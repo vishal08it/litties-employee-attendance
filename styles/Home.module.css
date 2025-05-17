@@ -1,0 +1,158 @@
+
+.container {
+  background-color: #1e1b18;
+  color: #fff3e6;
+  min-height: 100vh;
+  font-family: 'Segoe UI', sans-serif;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background-color: #917dd9;
+  color: #1e1b18;
+  padding: 5px 40px;
+  border-bottom: 2px solid #eab308;
+  flex-wrap: wrap;
+}
+
+.logo {
+  display: flex;
+  align-items: center;
+}
+
+.title {
+  flex-grow: 1;
+  text-align: center;
+  font-size: 1.8rem;
+  font-weight: bold;
+  font-family: 'Georgia', serif;
+}
+
+.loginButton {
+  background-color: #08ea2a;
+  color: #1e1b18;
+  padding: 10px 20px;
+  border: none;
+  border-radius: 6px;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 10;
+}
+
+.popup {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background-color: #1e1b18;
+  padding: 30px;
+  border-radius: 12px;
+  z-index: 20;
+  color: white;
+  width: 300px;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+}
+
+.closeButton {
+  position: absolute;
+  top: 10px;
+  right: 15px;
+  background: none;
+  border: none;
+  color: white;
+  font-size: 1.5rem;
+  cursor: pointer;
+}
+
+.input {
+  width: 100%;
+  margin: 10px 0;
+  padding: 10px;
+  background: #2e2a27;
+  color: white;
+  border: 1px solid #444;
+  border-radius: 5px;
+}
+
+.submitButton {
+  width: 100%;
+  padding: 10px;
+  background-color: #eab308;
+  border: none;
+  color: #1e1b18;
+  font-weight: bold;
+  border-radius: 5px;
+  margin-top: 10px;
+  cursor: pointer;
+}
+
+.testimonials {
+  padding: 40px 20px;
+}
+
+.testimonials h2 {
+  text-align: center;
+  font-size: 2rem;
+  margin-bottom: 30px;
+  color: #b3d00c;
+}
+
+.testimonialBox {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background-color: #2e2a27;
+  border-radius: 12px;
+  margin: 20px 0;
+  padding: 20px;
+  flex-wrap: wrap;
+}
+
+.testimonialText {
+  flex: 1;
+  padding: 10px 20px;
+}
+
+.squareImage {
+  width: 160px;
+  height: 160px;
+  object-fit: cover;
+  border-radius: 8px;
+  margin: 10px;
+  border: none;
+  background: transparent;
+}
+
+.name {
+  font-weight: bold;
+  font-size: 1.2rem;
+  color: hsl(349, 97%, 65%);
+}
+
+.review {
+  font-size: 1rem;
+  margin-top: 10px;
+  color: #fff3e6;
+}
+
+@media (max-width: 768px) {
+  .testimonialBox {
+    flex-direction: column;
+    text-align: center;
+  }
+
+  .squareImage {
+    order: -1;
+  }
+}
