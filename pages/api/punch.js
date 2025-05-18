@@ -6,14 +6,15 @@ export default async function handler(req, res) {
 
   await dbConnect();
 
-  const { empId } = req.body;
+  const { empId ,name} = req.body;
   const today = new Date().toISOString().split('T')[0];
 
-  const existing = await Attendance.findOne({ empId, date: today });
+  const existing = await Attendance.findOne({ empId,name, date: today });
+  console.log("check", existing)
 
   if (!existing) {
     const punchIn = new Date();
-    await Attendance.create({ empId, date: today, punchIn });
+    await Attendance.create({ empId, name,date: today, punchIn });
     res.status(200).json({ status: 'punchIn', punchIn });
   } else if (!existing.punchOut) {
     const punchOut = new Date();

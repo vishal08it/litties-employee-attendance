@@ -38,7 +38,11 @@ export default function Home() {
         <div className={styles.logo}>
           <Image src="/litties.png" alt="Litties Logo" width={60} height={60} />
         </div>
+        <div className={styles.headerText}>
         <h1 className={styles.title}>Litties Multi Cuisine Family Restaurant</h1>
+        <p className={styles.address}>Shanti Prayag, Lalganj, Sasaram - 821115</p>
+        </div>
+
         <button onClick={() => setShowLogin(true)} className={styles.loginButton}>Login</button>
       </header>
 
