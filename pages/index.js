@@ -96,7 +96,7 @@ export default function Home() {
         
         {/* 4th Testimonial: Image left, Text right */}
         <div className={styles.testimonialBox}>
-          <img src="/neema.jpg" className={styles.squareImage} alt="Neema kumari" />
+          <img src="/neema.JPG" className={styles.squareImage} alt="Neema kumari" />
           <div className={styles.testimonialText}>
             <p className={styles.name}>Neema Kumari</p>
             <p className={styles.review}>
