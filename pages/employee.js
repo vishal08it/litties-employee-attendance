@@ -13,13 +13,14 @@ export default function Employee() {
 
   useEffect(() => {
     const role = localStorage.getItem('role');
-    const storedName = localStorage.getItem('name');
+    const name = localStorage.getItem('name');
+    console.log("name",name)
 
     if (role !== 'employee') {
       router.push('/');
     } else {
-      setName(storedName);
-      startTypingMessage(storedName);
+      setName(name);
+      startTypingMessage(name);
     }
 
     checkPunch();
@@ -40,10 +41,12 @@ export default function Employee() {
 
   const punch = async () => {
     const empId = localStorage.getItem('empId');
+    const name = localStorage.getItem('name')
+    console.log("abcd",name)
     const res = await fetch('/api/punch', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ empId }),
+      body: JSON.stringify({ empId, name }),
     });
     await res.json();
     checkPunch();
@@ -87,11 +90,11 @@ export default function Employee() {
         </div>
 
         <div style={{ textAlign: 'center', padding: '2rem' }}>
-          {status === 'punchin' && <button className="submitButton" onClick={punch}>Punch In</button>}
-          {status === 'punchout' && <button className="submitButton" onClick={punch}>Punch Out</button>}
+          {status === 'punchin' && <button className={styles.loginButton} onClick={punch}>Punch In</button>}
+          {status === 'punchout' && <button className={styles.loginButton} onClick={punch}>Punch Out</button>}
           {status === 'done' && <p style={{ color: '#fff3e6' }}>You have completed today's attendance.</p>}
         </div>
-        <button className="logoutButton" onClick={logout}>Logout</button>
+        <button className={styles.logoutButton} onClick={logout}>Logout</button>
       </header>
 
       <h2 style={{ color: '#eab308' }}>Welcome, {name}</h2>
