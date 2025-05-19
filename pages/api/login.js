@@ -12,5 +12,5 @@ export default async function handler(req, res) {
 
   if (!user) return res.status(401).json({ message: 'Invalid credentials' });
 
-  res.status(200).json({ role: user.role, name: user.name });
+  res.status(200).json({ role: user.role, name: user.name ,image:user.image});
   }

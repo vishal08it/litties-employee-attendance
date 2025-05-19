@@ -19,13 +19,14 @@ export default function Home() {
     });
 
     const data = await res.json();
-    console.log("data",data)
+    
 
 
     if (res.ok) {
       localStorage.setItem('role', data.role);
       localStorage.setItem('empId', empId);
       localStorage.setItem('name', data.name || '');
+       localStorage.setItem('image', data.image || '');
       router.push(data.role === 'admin' ? '/admin' : '/employee');
     } else {
       alert(data.message || 'Login failed');

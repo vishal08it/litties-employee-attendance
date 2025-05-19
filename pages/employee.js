@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
 import Image from 'next/image';
@@ -7,20 +6,22 @@ import styles from '../styles/Home.module.css';
 export default function Employee() {
   const [status, setStatus] = useState('');
   const [name, setName] = useState('');
+  const [photoUrl, setPhotoUrl] = useState('');
   const [popupMessage, setPopupMessage] = useState('');
   const [typedMessage, setTypedMessage] = useState('');
   const router = useRouter();
 
   useEffect(() => {
     const role = localStorage.getItem('role');
-    const name = localStorage.getItem('name');
-    console.log("name",name)
+    const storedName = localStorage.getItem('name');
+    const imageUrl = localStorage.getItem('image');
 
     if (role !== 'employee') {
       router.push('/');
     } else {
-      setName(name);
-      startTypingMessage(name);
+      setName(storedName);
+      if (imageUrl) setPhotoUrl(imageUrl);
+      if (storedName) startTypingMessage(storedName);
     }
 
     checkPunch();
@@ -41,8 +42,8 @@ export default function Employee() {
 
   const punch = async () => {
     const empId = localStorage.getItem('empId');
-    const name = localStorage.getItem('name')
-    console.log("abcd",name)
+    const name = localStorage.getItem('name');
+
     const res = await fetch('/api/punch', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -61,10 +62,11 @@ export default function Employee() {
     router.push('/');
   };
 
-  const startTypingMessage = () => {
+  const startTypingMessage = (employeeName) => {
     const fullText = ` your presence at Litties brings not just your hard work, but also your inspiring spirit. Your consistency, effort, and energy elevate everyone around you. Day after day, your commitment never goes unnoticed. You're not just an employee — you're a valued member of our family. Keep shining, keep pushing, and remember: Litties grows stronger because of people like you. We appreciate your dedication, your time, and most of all — your heart. Thank you for everything you do!`;
 
     let index = 0;
+    setTypedMessage('');
     const speed = 40;
 
     const type = () => {
@@ -80,40 +82,99 @@ export default function Employee() {
 
   return (
     <div className={styles.container}>
+      {/* Header (unchanged structure) */}
       <header className={styles.header}>
         <div className={styles.logo}>
           <Image src="/litties.png" alt="Litties Logo" width={60} height={60} />
         </div>
         <div className={styles.headerText}>
-        <h1 className={styles.title}>Litties Multi Cuisine Family Restaurant</h1>
-        <p className={styles.address}>Shanti Prayag, Lalganj, Sasaram - 821115</p>
+          <h1 className={styles.title}>Litties Multi Cuisine Family Restaurant</h1>
+          <p className={styles.address}>Shanti Prayag, Lalganj, Sasaram - 821115</p>
+          {status === 'done' && (
+            <p style={{ color: '#eab308', marginTop: '0.5rem', fontWeight: 'bold' }}>
+              You have completed today's attendance.
+            </p>
+          )}
         </div>
-
-        <div style={{ textAlign: 'center', padding: '2rem' }}>
-          {status === 'punchin' && <button className={styles.loginButton} onClick={punch}>Punch In</button>}
-          {status === 'punchout' && <button className={styles.loginButton} onClick={punch}>Punch Out</button>}
-          {status === 'done' && <p style={{ color: '#fff3e6' }}>You have completed today's attendance.</p>}
-        </div>
-        <button className={styles.logoutButton} onClick={logout}>Logout</button>
+        <button onClick={logout} className={styles.loginButton}>Logout</button>
       </header>
 
-      <h2 style={{ color: '#eab308' }}>Welcome, {name}</h2>
+      {/* Punch In/Out Button */}
+      <div style={{ textAlign: 'center', padding: '1rem' }}>
+        {status === 'punchin' && <button className={styles.loginButton} onClick={punch}>Punch In</button>}
+        {status === 'punchout' && <button className={styles.loginButton} onClick={punch}>Punch Out</button>}
+      </div>
 
-      <p style={{
-        color: '#fef08a',
-        fontSize: '1.1rem',
-        padding: '1rem 2rem',
-        textAlign: 'center',
-        lineHeight: '1.6',
-        whiteSpace: 'pre-wrap',
-        minHeight: '160px',
-        fontFamily: 'monospace',
-        maxWidth: '900px',
-        margin: '0 auto'
-      }}>
-        {typedMessage}
-      </p>
+      {/* Welcome Message above image/message */}
+      <div style={{ marginTop: '1rem', textAlign: 'left', maxWidth: '1200px', margin: '0 auto', paddingLeft: '2rem' }}>
+        <h2 style={{ color: '#eab308', margin: 0, fontSize: '1.5rem' }}>
+          Welcome, {name}
+        </h2>
+      </div>
 
+      {/* Image and Typing Message Layout */}
+      <div
+        style={{
+          display: 'flex',
+          flexDirection: 'row',
+          alignItems: 'flex-start',
+          justifyContent: 'center',
+          gap: '2rem',
+          padding: '2rem',
+          maxWidth: '1200px',
+          margin: '0 auto',
+          overflow: 'hidden',
+          flexWrap: 'nowrap'
+        }}
+      >
+        {/* Employee Image */}
+        {photoUrl && (
+          <div
+            style={{
+              width: '400px',
+              height: '400px',
+              flexShrink: 0,
+              borderRadius: '12px',
+              overflow: 'hidden',
+              border: '2px solid #444'
+            }}
+          >
+            <Image
+              src={photoUrl}
+              alt={`${name}'s photo`}
+              width={400}
+              height={400}
+              style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+            />
+          </div>
+        )}
+
+        {/* Typing Message */}
+        <div
+          style={{
+            flexGrow: 1,
+            maxHeight: '400px',
+            overflowY: 'auto',
+            paddingRight: '1rem',
+            boxSizing: 'border-box'
+          }}
+        >
+          <p
+            style={{
+              color: '#fef08a',
+              fontSize: '1.1rem',
+              lineHeight: '1.6',
+              whiteSpace: 'pre-wrap',
+              fontFamily: 'monospace',
+              margin: 0
+            }}
+          >
+            {typedMessage}
+          </p>
+        </div>
+      </div>
+
+      {/* Popup Message */}
       {popupMessage && (
         <div className="popupMessage">
           {popupMessage}
