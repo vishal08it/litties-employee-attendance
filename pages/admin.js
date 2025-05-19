@@ -116,7 +116,7 @@ export default function Admin() {
 
   const generatePDF = async () => {
     const doc = new jsPDF();
-    const logoData = await getBase64Image('/litties.png');
+    //const logoData = await getBase64Image('/litties.png');
 
     const groupedData = data.reduce((acc, curr) => {
       const key = `${curr.empId}_${curr.name}`;
@@ -161,7 +161,7 @@ export default function Admin() {
       const totalDays = rows.reduce((acc, row) => acc + parseFloat(row[6]), 0).toFixed(1);
       rows.push(['', '', '', '', '', 'Total Days:', totalDays]);
 
-      doc.addImage(logoData, 'PNG', 14, 10, 20, 20);
+      //doc.addImage(logoData, 'PNG', 14, 10, 20, 20);
       doc.setFontSize(14);
       doc.text('Litties Multi Cuisine Family Restaurant', 40, 16);
       doc.setFontSize(10);
