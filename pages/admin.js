@@ -19,9 +19,10 @@ export default function Admin() {
   const [password, setPassword] = useState('');
   const [role, setRole] = useState('employee');
   const [image, setImage] = useState(null);
+  const [searchEmp, setSearchEmp] = useState('');
   const router = useRouter();
 
-  // Get unique employees for dropdown
+  // Get unique employees for dropdown and filter
   const uniqueEmployees = Array.from(
     new Map(data.map(emp => [`${emp.empId}_${emp.name}`, emp])).values()
   );
@@ -198,6 +199,13 @@ export default function Admin() {
     }
   };
 
+  // Filter data based on searchEmp input (case-insensitive)
+  const filteredData = data.filter(
+    (a) =>
+      a.empId.toLowerCase().includes(searchEmp.toLowerCase()) ||
+      a.name.toLowerCase().includes(searchEmp.toLowerCase())
+  );
+
   return (
     <div className={styles.container}>
       <header className={styles.header}>
@@ -215,8 +223,20 @@ export default function Admin() {
         <div style={{ display: 'flex', justifyContent: 'space-between' }}>
           <h2 style={{ color: '#facc15' }}>Admin Dashboard</h2>
           <div>
-            <button onClick={() => setShowForm(true)} className={styles.loginButton}>Add New Employee</button>
-            <button onClick={handleDownloadClick} className={styles.loginButton}>Download Attendance</button>
+            <button
+              onClick={() => setShowForm(true)}
+              className={styles.loginButton}
+              style={{ minWidth: '140px', height: '40px' }}
+            >
+              Add New Employee
+            </button>
+            <button
+              onClick={handleDownloadClick}
+              className={styles.loginButton}
+              style={{ minWidth: '140px', height: '40px', marginLeft: '10px' }}
+            >
+              Download Attendance
+            </button>
           </div>
         </div>
 
@@ -225,16 +245,65 @@ export default function Admin() {
             <div className={styles.modalContent}>
               <h3>Add New Employee</h3>
               <form onSubmit={handleAddEmployee}>
-                <input value={empId} onChange={(e) => setEmpId(e.target.value)} placeholder="Employee ID" className={styles.input} required />
-                <input value={name} onChange={(e) => setName(e.target.value)} placeholder="Name" className={styles.input} required />
-                <input value={password} onChange={(e) => setPassword(e.target.value)} placeholder="Password" className={styles.input} required />
-                <select value={role} onChange={(e) => setRole(e.target.value)} className={styles.input}>
+                <input
+                  value={empId}
+                  onChange={(e) => setEmpId(e.target.value)}
+                  placeholder="Employee ID"
+                  className={styles.input}
+                  required
+                />
+                <input
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  placeholder="Name"
+                  className={styles.input}
+                  required
+                />
+                <input
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="Password"
+                  className={styles.input}
+                  required
+                />
+                <select
+                  value={role}
+                  onChange={(e) => setRole(e.target.value)}
+                  className={styles.input}
+                >
                   <option value="employee">Employee</option>
                   <option value="admin">Admin</option>
                 </select>
-                <input type="file" accept="image/*" onChange={(e) => setImage(e.target.files[0])} className={styles.input} />
-                <button type="submit" className={styles.submitButton}>Submit</button>
-                <button type="button" onClick={() => setShowForm(false)} className={styles.loginButton}>Cancel</button>
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={(e) => setImage(e.target.files[0])}
+                  className={styles.input}
+                />
+                <div
+                  style={{
+                    display: 'flex',
+                    justifyContent: 'flex-end',
+                    gap: '10px',
+                    marginTop: '10px',
+                  }}
+                >
+                  <button
+                    type="submit"
+                    className={styles.submitButton}
+                    style={{ minWidth: '140px', height: '40px' }}
+                  >
+                    Submit
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setShowForm(false)}
+                    className={styles.loginButton}
+                    style={{ minWidth: '140px', height: '40px' }}
+                  >
+                    Cancel
+                  </button>
+                </div>
               </form>
             </div>
           </div>
@@ -258,57 +327,147 @@ export default function Admin() {
                 ))}
               </select>
 
-              <DatePicker selected={dateFrom} onChange={(date) => setDateFrom(date)} placeholderText="From" className={styles.input} />
-              <DatePicker selected={dateTo} onChange={(date) => setDateTo(date)} placeholderText="To" className={styles.input} />
-              <button onClick={generatePDF} className={styles.loginButton}>Download</button>
-              <button onClick={() => setShowDownloadModal(false)} className={styles.loginButton}>Cancel</button>
+              <div style={{ display: 'flex', gap: '10px', marginTop: '10px', marginBottom: '10px' }}>
+                <DatePicker
+                  selected={dateFrom}
+                  onChange={(date) => setDateFrom(date)}
+                  placeholderText="From"
+                  className={styles.input}
+                />
+                <DatePicker
+                  selected={dateTo}
+                  onChange={(date) => setDateTo(date)}
+                  placeholderText="To"
+                  className={styles.input}
+                />
+              </div>
+
+              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px' }}>
+                <button
+                  onClick={generatePDF}
+                  className={styles.submitButton}
+                  style={{ minWidth: '140px', height: '40px' }}
+                >
+                  Download
+                </button>
+                <button
+                  onClick={() => setShowDownloadModal(false)}
+                  className={styles.loginButton}
+                  style={{ minWidth: '140px', height: '40px' }}
+                >
+                  Cancel
+                </button>
+              </div>
             </div>
           </div>
         )}
 
-        <h2 style={{ color: '#facc15' }}>Attendance Records</h2>
-        <div style={{ overflowX: 'auto' }}>
-          <table className={styles.table}>
-            <thead>
-              <tr>
-                <th>Emp ID</th>
-                <th>Name</th>
-                <th>Date</th>
-                <th>Punch In</th>
-                <th>Punch Out</th>
-                <th>Time Diff</th>
-                <th>Day Type</th>
-              </tr>
-            </thead>
-            <tbody>
-              {data.map((a, i) => {
-                let timeDiff = '', dayType = '';
-                if (a.punchIn && a.punchOut) {
-                  const inTime = new Date(a.punchIn);
-                  const outTime = new Date(a.punchOut);
-                  const diff = outTime - inTime;
-                  const hrs = Math.floor(diff / 3600000);
-                  const mins = Math.floor((diff % 3600000) / 60000);
-                  timeDiff = `${hrs.toString().padStart(2, '0')}:${mins.toString().padStart(2, '0')}`;
-                  dayType = diff / 3600000 >= 6 ? '1.0' : '0.5';
-                } else {
-                  dayType = '0.0';
-                }
-                return (
-                  <tr key={i}>
-                    <td>{a.empId}</td>
-                    <td>{a.name}</td>
-                    <td>{formatDate(a.date)}</td>
-                    <td>{a.punchIn ? new Date(a.punchIn).toLocaleTimeString() : ''}</td>
-                    <td>{a.punchOut ? new Date(a.punchOut).toLocaleTimeString() : ''}</td>
-                    <td>{timeDiff}</td>
-                    <td>{dayType}</td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
+        {/* Filter Dropdown below "Employee Attendance Records" */}
+        <div style={{ marginTop: '2rem', marginBottom: '1rem' }}>
+          <h2 style={{ color: '#facc15' }}>Employee Attendance Records</h2>
+
+          <select
+            value={searchEmp}
+            onChange={(e) => setSearchEmp(e.target.value)}
+            style={{
+              marginTop: '0.5rem',
+              padding: '0.5rem',
+              borderRadius: '8px',
+              border: '1.5px solid #facc15',
+              backgroundColor: '#1f2937',
+              color: 'white',
+              boxShadow:
+                '4px 4px 6px #121827, -4px -4px 6px #374151',
+              minWidth: '220px',
+              fontWeight: 'bold',
+              cursor: 'pointer',
+            }}
+          >
+            <option value="">-- All Employees --</option>
+            {uniqueEmployees.map((emp) => (
+              <option key={emp.empId} value={emp.empId}>
+                {emp.empId} ({emp.name})
+              </option>
+            ))}
+          </select>
         </div>
+
+        <table
+          style={{
+            width: '100%',
+            borderCollapse: 'separate',
+            borderSpacing: '0 10px',
+            background: '#111827',
+            borderRadius: '10px',
+            boxShadow:
+              '0 4px 15px rgba(250, 204, 21, 0.6), inset 0 0 10px #facc15',
+            color: 'white',
+          }}
+        >
+          <thead style={{ backgroundColor: '#facc15', color: '#111827', borderRadius: '10px' }}>
+            <tr>
+              <th style={{ padding: '10px 15px', borderRadius: '10px 0 0 10px' }}>Date</th>
+              <th>Emp ID</th>
+              <th>Name</th>
+              <th>Punch In</th>
+              <th>Punch Out</th>
+              <th>Time Diff</th>
+              <th>Day Type</th>
+            </tr>
+          </thead>
+          <tbody>
+            {filteredData.length === 0 && (
+              <tr>
+                <td colSpan={7} style={{ textAlign: 'center', padding: '20px' }}>
+                  No attendance records found.
+                </td>
+              </tr>
+            )}
+            {filteredData.map((record, i) => {
+              const punchInTime = record.punchIn ? new Date(record.punchIn).toLocaleTimeString() : '';
+              const punchOutTime = record.punchOut ? new Date(record.punchOut).toLocaleTimeString() : '';
+
+              let timeDiff = '';
+              let dayType = '';
+
+              if (record.punchIn && record.punchOut) {
+                const inTime = new Date(record.punchIn);
+                const outTime = new Date(record.punchOut);
+                const diffMs = outTime - inTime;
+                const hrs = Math.floor(diffMs / 3600000);
+                const mins = Math.floor((diffMs % 3600000) / 60000);
+                timeDiff = `${hrs.toString().padStart(2, '0')}:${mins.toString().padStart(2, '0')}`;
+                dayType = diffMs / 3600000 >= 6 ? 1.0 : 0.5;
+              } else {
+                dayType = 0.0;
+              }
+
+              return (
+                <tr
+                  key={i}
+                  style={{
+                    background: i % 2 === 0 ? '#1f2937' : '#374151',
+                    borderRadius: '8px',
+                    boxShadow:
+                      'inset 2px 2px 5px #111827, inset -2px -2px 5px #4b5563',
+                    transition: 'transform 0.2s',
+                    textAlign:'center',
+                  }}
+                  onMouseEnter={e => e.currentTarget.style.transform = 'scale(1.02)'}
+                  onMouseLeave={e => e.currentTarget.style.transform = 'scale(1)'}
+                >
+                  <td style={{ padding: '10px 15px' }}>{formatDate(record.date)}</td>
+                  <td>{record.empId}</td>
+                  <td>{record.name}</td>
+                  <td>{punchInTime}</td>
+                  <td>{punchOutTime}</td>
+                  <td>{timeDiff}</td>
+                  <td>{dayType}</td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
       </div>
     </div>
   );

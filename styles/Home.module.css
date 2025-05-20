@@ -166,6 +166,7 @@
   background-color: #917dd9;
   color: #1e1b18;
 }
+
 .headerText {
   text-align: center;
   margin-top: 0.5rem;
@@ -188,7 +189,7 @@
   }
 }
 
-/* ✅ NEW — Punch Notification Popup */
+/* ✅ Toast Notification Style */
 .popupMessage {
   position: fixed;
   bottom: 40px;
@@ -222,6 +223,7 @@
     transform: translateX(-50%) translateY(20px);
   }
 }
+
 .table {
   width: 100%;
   border-collapse: collapse;
@@ -250,4 +252,34 @@
 
 .table tr:nth-child(odd) {
   background-color: #1f1f1f;
+}
+
+/* ✅ Stylish Modal for Add/Edit */
+.modal {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0, 0, 0, 0.7);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.modalContent {
+  background-color: #1e1b18;
+  padding: 2rem;
+  border-radius: 15px;
+  width: 320px;
+  color: #fff3e6;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
+  position: relative;
+  font-family: 'Segoe UI', sans-serif;
+  border: 2px solid #eab308;
+}
+
+.modalContent h3 {
+  font-size: 1.5rem;
+  color: #facc15;
+  text-align: center;
+  margin-bottom: 1rem;
 }
