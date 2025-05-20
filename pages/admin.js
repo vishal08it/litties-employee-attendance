@@ -11,6 +11,7 @@ export default function Admin() {
   const [data, setData] = useState([]);
   const [dateFrom, setDateFrom] = useState(null);
   const [dateTo, setDateTo] = useState(null);
+  const [pdfEmpId, setPdfEmpId] = useState('');
   const [showForm, setShowForm] = useState(false);
   const [showDownloadModal, setShowDownloadModal] = useState(false);
   const [empId, setEmpId] = useState('');
@@ -19,6 +20,11 @@ export default function Admin() {
   const [role, setRole] = useState('employee');
   const [image, setImage] = useState(null);
   const router = useRouter();
+
+  // Get unique employees for dropdown
+  const uniqueEmployees = Array.from(
+    new Map(data.map(emp => [`${emp.empId}_${emp.name}`, emp])).values()
+  );
 
   useEffect(() => {
     const r = localStorage.getItem('role');
@@ -106,85 +112,91 @@ export default function Admin() {
     return `${day}-${month}-${year}`;
   };
 
-  const isSameOrAfter = (a, b) => !b || a.setHours(0,0,0,0) >= b.setHours(0,0,0,0);
-  const isSameOrBefore = (a, b) => !b || a.setHours(0,0,0,0) <= b.setHours(0,0,0,0);
+  const isSameOrAfter = (a, b) => !b || a.setHours(0, 0, 0, 0) >= b.setHours(0, 0, 0, 0);
+  const isSameOrBefore = (a, b) => !b || a.setHours(0, 0, 0, 0) <= b.setHours(0, 0, 0, 0);
 
-const generatePDF = async () => {
-  const doc = new jsPDF();
-  // Use Cloudinary URL here
-  const logoData = await getBase64Image('https://res.cloudinary.com/depov4b4l/image/upload/v1747723678/va6o3y0edaied536mjlv.jpg');
+  const generatePDF = async () => {
+    try {
+      const doc = new jsPDF();
+      const logoData = await getBase64Image('https://res.cloudinary.com/depov4b4l/image/upload/v1747723678/va6o3y0edaied536mjlv.jpg');
 
-  const grouped = data.reduce((acc, curr) => {
-    const key = `${curr.empId}_${curr.name}`;
-    if (!acc[key]) acc[key] = [];
-    acc[key].push(curr);
-    return acc;
-  }, {});
+      const grouped = data.reduce((acc, curr) => {
+        const key = `${curr.empId}_${curr.name}`;
+        if (!acc[key]) acc[key] = [];
+        acc[key].push(curr);
+        return acc;
+      }, {});
 
-  let hasData = false;
-  let pageIndex = 0;
+      let hasData = false;
+      let pageIndex = 0;
 
-  for (const key in grouped) {
-    const [empId, empName] = key.split('_');
-    const records = grouped[key].filter((record) => {
-      const recDate = new Date(record.date);
-      const from = dateFrom ? new Date(dateFrom) : null;
-      const to = dateTo ? new Date(dateTo) : null;
-      return isSameOrAfter(recDate, from) && isSameOrBefore(recDate, to);
-    });
+      for (const key in grouped) {
+        const [empIdKey, empName] = key.split('_');
 
-    if (records.length === 0) continue;
-    hasData = true;
-    if (pageIndex > 0) doc.addPage();
+        if (pdfEmpId && empIdKey !== pdfEmpId.trim()) continue;
 
-    const rows = records.map((r) => {
-      const punchIn = r.punchIn ? new Date(r.punchIn).toLocaleTimeString() : '';
-      const punchOut = r.punchOut ? new Date(r.punchOut).toLocaleTimeString() : '';
-      let timeDiff = '', dayType = '';
+        const records = grouped[key].filter((record) => {
+          const recDate = new Date(record.date);
+          const from = dateFrom ? new Date(dateFrom) : null;
+          const to = dateTo ? new Date(dateTo) : null;
+          return isSameOrAfter(recDate, from) && isSameOrBefore(recDate, to);
+        });
 
-      if (r.punchIn && r.punchOut) {
-        const inTime = new Date(r.punchIn), outTime = new Date(r.punchOut);
-        const diffMs = outTime - inTime;
-        const hrs = Math.floor(diffMs / 3600000);
-        const mins = Math.floor((diffMs % 3600000) / 60000);
-        timeDiff = `${hrs.toString().padStart(2, '0')}:${mins.toString().padStart(2, '0')}`;
-        dayType = diffMs / 3600000 >= 6 ? 1.0 : 0.5;
-      } else {
-        dayType = 0.0;
+        if (records.length === 0) continue;
+        hasData = true;
+        if (pageIndex > 0) doc.addPage();
+
+        const rows = records.map((r) => {
+          const punchIn = r.punchIn ? new Date(r.punchIn).toLocaleTimeString() : '';
+          const punchOut = r.punchOut ? new Date(r.punchOut).toLocaleTimeString() : '';
+          let timeDiff = '', dayType = '';
+
+          if (r.punchIn && r.punchOut) {
+            const inTime = new Date(r.punchIn), outTime = new Date(r.punchOut);
+            const diffMs = outTime - inTime;
+            const hrs = Math.floor(diffMs / 3600000);
+            const mins = Math.floor((diffMs % 3600000) / 60000);
+            timeDiff = `${hrs.toString().padStart(2, '0')}:${mins.toString().padStart(2, '0')}`;
+            dayType = diffMs / 3600000 >= 6 ? 1.0 : 0.5;
+          } else {
+            dayType = 0.0;
+          }
+
+          return [formatDate(r.date), r.empId, r.name, punchIn, punchOut, timeDiff, dayType.toString()];
+        });
+
+        const totalDays = rows.reduce((acc, r) => acc + parseFloat(r[6]), 0).toFixed(1);
+        rows.push(['', '', '', '', '', 'Total Days:', totalDays]);
+
+        doc.addImage(logoData, 'jpg', 14, 10, 20, 20);
+        doc.setFontSize(14);
+        doc.text('Litties Multi Cuisine Family Restaurant', 40, 16);
+        doc.setFontSize(10);
+        doc.text('Shanti Prayag, Lalganj, Sasaram - 821115', 40, 22);
+        doc.setFontSize(12);
+        doc.text(`Attendance for ${empName} (${empIdKey})`, 14, 35);
+
+        autoTable(doc, {
+          startY: 40,
+          head: [['Date', 'Emp ID', 'Name', 'Punch In', 'Punch Out', 'Time Diff', 'Day Type']],
+          body: rows,
+        });
+
+        pageIndex++;
       }
 
-      return [formatDate(r.date), r.empId, r.name, punchIn, punchOut, timeDiff, dayType.toString()];
-    });
+      if (!hasData) {
+        alert('No attendance records found for selected criteria.');
+      } else {
+        doc.save('attendance.pdf');
+      }
 
-    const totalDays = rows.reduce((acc, r) => acc + parseFloat(r[6]), 0).toFixed(1);
-    rows.push(['', '', '', '', '', 'Total Days:', totalDays]);
-
-    doc.addImage(logoData, 'jpg', 14, 10, 20, 20);
-    doc.setFontSize(14);
-    doc.text('Litties Multi Cuisine Family Restaurant', 40, 16);
-    doc.setFontSize(10);
-    doc.text('Shanti Prayag, Lalganj, Sasaram - 821115', 40, 22);
-    doc.setFontSize(12);
-    doc.text(`Attendance for ${empName} (${empId})`, 14, 35);
-
-    autoTable(doc, {
-      startY: 40,
-      head: [['Date', 'Emp ID', 'Name', 'Punch In', 'Punch Out', 'Time Diff', 'Day Type']],
-      body: rows,
-    });
-
-    pageIndex++;
-  }
-
-  if (!hasData) {
-    alert('No attendance records found for selected date range.');
-  } else {
-    doc.save('attendance.pdf');
-  }
-
-  setShowDownloadModal(false);
-};
-
+      setShowDownloadModal(false);
+    } catch (err) {
+      console.error('PDF generation error:', err);
+      alert('Failed to generate PDF.');
+    }
+  };
 
   return (
     <div className={styles.container}>
@@ -231,7 +243,21 @@ const generatePDF = async () => {
         {showDownloadModal && (
           <div className={styles.modal}>
             <div className={styles.modalContent}>
-              <h3>Select Date Range</h3>
+              <h3>Select Employee and Date Range</h3>
+
+              <select
+                value={pdfEmpId}
+                onChange={(e) => setPdfEmpId(e.target.value)}
+                className={styles.input}
+              >
+                <option value="">-- Select Employee --</option>
+                {uniqueEmployees.map((emp) => (
+                  <option key={emp.empId} value={emp.empId}>
+                    {emp.name} ({emp.empId})
+                  </option>
+                ))}
+              </select>
+
               <DatePicker selected={dateFrom} onChange={(date) => setDateFrom(date)} placeholderText="From" className={styles.input} />
               <DatePicker selected={dateTo} onChange={(date) => setDateTo(date)} placeholderText="To" className={styles.input} />
               <button onClick={generatePDF} className={styles.loginButton}>Download</button>
