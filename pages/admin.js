@@ -7,6 +7,8 @@ import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
 import styles from '../styles/Home.module.css';
 import { toast } from 'react-toastify';
+import { FaEdit } from 'react-icons/fa';
+
 
 
 export default function Admin() {
@@ -31,6 +33,19 @@ const [showDeleteAttendanceModal, setShowDeleteAttendanceModal] = useState(false
 const [deleteDateFrom, setDeleteDateFrom] = useState(null);
 const [deleteDateTo, setDeleteDateTo] = useState(null);
 const [deleteEmpId, setDeleteEmpId] = useState('');
+const [showEditModal, setShowEditModal] = useState(false);
+const [editRecord, setEditRecord] = useState(null);
+const [editPunchIn, setEditPunchIn] = useState('');
+const [editPunchOut, setEditPunchOut] = useState('');
+const [showEditForm, setShowEditForm] = useState(false);
+const [editData, setEditData] = useState({
+  empId: '',
+  name: '',
+  date: '',
+  punchIn: '',
+  punchOut: ''
+});
+
 
 
 
@@ -38,7 +53,7 @@ const [deleteEmpId, setDeleteEmpId] = useState('');
   const uniqueEmployees = Array.from(
     new Map(data.map(emp => [`${emp.empId}_${emp.name}`, emp])).values()
   );
-console.log("uniqu",uniqueEmployees)
+
   useEffect(() => {
     const r = localStorage.getItem('role');
     if (r !== 'admin') router.push('/');
@@ -63,11 +78,48 @@ useEffect(() => {
 
         setEmployeeList(uniqueEmployees);
       } catch (error) {
-        console.error('Error fetching employees:', error);
+        //console.error('Error fetching employees:', error);
       }
     }
     fetchEmployees();
   }, []);
+
+  const handleEditClick = (record) => {
+    debugger
+  setEditRecord(record);
+  setEditPunchIn(record.punchIn ? new Date(record.punchIn).toISOString().slice(0, 16) : '');
+  setEditPunchOut(record.punchOut ? new Date(record.punchOut).toISOString().slice(0, 16) : '');
+  setShowEditModal(true);
+};
+
+const handleUpdateAttendance = async () => {
+  if (!editRecord) return;
+
+  try {
+    const res = await fetch('/api/edit-attendance', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        empId: editRecord.empId,
+        date: editRecord.date,
+        punchIn: editPunchIn ? new Date(editPunchIn).toISOString() : null,
+        punchOut: editPunchOut ? new Date(editPunchOut).toISOString() : null,
+      }),
+    });
+
+    const result = await res.json();
+    if (res.ok) {
+      toast.success('Attendance updated successfully');
+      setShowEditModal(false);
+      fetchAttendances();
+    } else {
+      toast.error(result.message || 'Failed to update attendance');
+    }
+  } catch (error) {
+    //console.error('Update error:', error);
+    toast.error('Server error while updating attendance');
+  }
+};
 
   const handleDelete = async () => {
     if (!selectedEmpId) {
@@ -95,7 +147,7 @@ useEffect(() => {
         alert(result.message || 'Failed to delete employee');
       }
     } catch (error) {
-      console.error('Delete employee error:', error);
+      //console.error('Delete employee error:', error);
       alert('Server error');
     }
   };
@@ -119,7 +171,7 @@ useEffect(() => {
       const data = await res.json();
       return data.secure_url || '';
     } catch (err) {
-      console.error('Cloudinary upload failed:', err);
+      //console.error('Cloudinary upload failed:', err);
       return '';
     }
   };
@@ -192,7 +244,7 @@ const handleDeleteAttendance = async () => {
       toast.error(result.message || 'Failed to delete attendance records.');
     }
   } catch (error) {
-    console.error('Error deleting attendance:', error);
+    //console.error('Error deleting attendance:', error);
     toast.error('Server error while deleting attendance.');
   }
 };
@@ -254,6 +306,7 @@ const handleDeleteAttendance = async () => {
     return `${day}-${month}-${year}`;
   };
 
+  
   const isSameOrAfter = (a, b) => !b || a.setHours(0, 0, 0, 0) >= b.setHours(0, 0, 0, 0);
   const isSameOrBefore = (a, b) => !b || a.setHours(0, 0, 0, 0) <= b.setHours(0, 0, 0, 0);
 
@@ -335,7 +388,7 @@ const handleDeleteAttendance = async () => {
 
       setShowDownloadModal(false);
     } catch (err) {
-      console.error('PDF generation error:', err);
+     // console.error('PDF generation error:', err);
       alert('Failed to generate PDF.');
     }
   };
@@ -548,6 +601,76 @@ const handleDeleteAttendance = async () => {
 </div>
 
 )}
+{showEditForm && (
+  <div className={styles.modal}>
+    <div className={styles.modalContent}>
+      <h3>Edit Attendance</h3>
+      <form
+        onSubmit={async (e) => {
+          e.preventDefault();
+
+          const res = await fetch('/api/edit-attendance', {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              empId: editData.empId,
+              date: editData.date,
+              punchIn: `${editData.date}T${editData.punchIn}`,
+              punchOut: `${editData.date}T${editData.punchOut}`,
+            }),
+          });
+
+          const json = await res.json();
+          if (res.ok) {
+            toast.success('Attendance updated successfully!');
+            setShowEditForm(false);
+            fetchAttendances();
+          } else {
+            toast.error(json.message || 'Failed to update attendance');
+          }
+        }}
+      >
+        <input className={styles.input} value={editData.empId} readOnly />
+        <input className={styles.input} value={editData.name} readOnly />
+        <input className={styles.input} value={editData.date} readOnly />
+
+        <input
+          className={styles.input}
+          type="time"
+          value={editData.punchIn}
+          onChange={(e) => setEditData({ ...editData, punchIn: e.target.value })}
+          required
+        />
+        <input
+          className={styles.input}
+          type="time"
+          value={editData.punchOut}
+          onChange={(e) => setEditData({ ...editData, punchOut: e.target.value })}
+          required
+        />
+
+        <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '10px' }}>
+          <button
+            type="submit"
+            className={styles.submitButton}
+            style={{ minWidth: '140px', height: '40px' }}
+          >
+            Save
+          </button>
+          <button
+            type="button"
+            className={styles.loginButton}
+            style={{ minWidth: '140px', height: '40px' }}
+            onClick={() => setShowEditForm(false)}
+          >
+            Cancel
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+)}
+
 
         {showDownloadModal && (
           <div className={styles.modal}>
@@ -653,6 +776,7 @@ const handleDeleteAttendance = async () => {
               <th>Punch Out</th>
               <th>Time Diff</th>
               <th>Day Type</th>
+              <th>Action</th>
             </tr>
           </thead>
           <tbody>
@@ -703,6 +827,35 @@ const handleDeleteAttendance = async () => {
                   <td>{punchOutTime}</td>
                   <td>{timeDiff}</td>
                   <td>{dayType}</td>
+                  
+ <td>
+  <button
+    onClick={() => {
+      setEditData({
+        empId: record.empId,
+        name: record.name,
+        date: record.date,
+        punchIn: record.punchIn?.slice(11, 16) || '',
+        punchOut: record.punchOut?.slice(11, 16) || ''
+      });
+      setShowEditForm(true);
+    }}
+    style={{
+      background: 'none',
+      border: 'none',
+      cursor: 'pointer',
+      color: '#facc15',
+      fontSize: '18px'
+    }}
+    title="Edit"
+  >
+    ✏️
+  </button>
+</td>
+
+
+
+
                 </tr>
               );
             })}
