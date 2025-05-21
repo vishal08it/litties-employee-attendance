@@ -6,6 +6,8 @@ import autoTable from 'jspdf-autotable';
 import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
 import styles from '../styles/Home.module.css';
+import { toast } from 'react-toastify';
+
 
 export default function Admin() {
   const [data, setData] = useState([]);
@@ -21,12 +23,22 @@ export default function Admin() {
   const [image, setImage] = useState(null);
   const [searchEmp, setSearchEmp] = useState('');
   const router = useRouter();
+ const [showDeleteModal, setShowDeleteModal] = useState(false);
+const [selectedDeleteEmpId, setSelectedDeleteEmpId] = useState('');
+const [employeeList, setEmployeeList] = useState([]);
+const [selectedEmpId, setSelectedEmpId] = useState('');
+const [showDeleteAttendanceModal, setShowDeleteAttendanceModal] = useState(false);
+const [deleteDateFrom, setDeleteDateFrom] = useState(null);
+const [deleteDateTo, setDeleteDateTo] = useState(null);
+const [deleteEmpId, setDeleteEmpId] = useState('');
+
+
 
   // Get unique employees for dropdown and filter
   const uniqueEmployees = Array.from(
     new Map(data.map(emp => [`${emp.empId}_${emp.name}`, emp])).values()
   );
-
+console.log("uniqu",uniqueEmployees)
   useEffect(() => {
     const r = localStorage.getItem('role');
     if (r !== 'admin') router.push('/');
@@ -38,7 +50,55 @@ export default function Admin() {
     const json = await res.json();
     setData(json);
   };
+useEffect(() => {
+    async function fetchEmployees() {
+      try {
+        const res = await fetch('/api/get-employee');
+        const data = await res.json();
 
+        // Your unique filtering logic here
+        const uniqueEmployees = Array.from(
+          new Map(data.map(emp => [`${emp.empId}_${emp.name}`, emp])).values()
+        );
+
+        setEmployeeList(uniqueEmployees);
+      } catch (error) {
+        console.error('Error fetching employees:', error);
+      }
+    }
+    fetchEmployees();
+  }, []);
+
+  const handleDelete = async () => {
+    if (!selectedEmpId) {
+      toast.error('Please select an employee to delete');
+      return;
+    }
+
+    try {
+      const res = await fetch('/api/delete-employee', {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ empId: selectedEmpId }),
+      });
+
+      const result = await res.json();
+
+      if (res.ok) {
+        alert('Employee deleted successfully');
+        setShowDeleteModal(false);
+        await router.push('/admin');
+        window.location.reload(); // redirect to admin page
+      } else {
+        alert(result.message || 'Failed to delete employee');
+      }
+    } catch (error) {
+      console.error('Delete employee error:', error);
+      alert('Server error');
+    }
+  };
   const logout = () => {
     localStorage.clear();
     router.push('/');
@@ -65,28 +125,109 @@ export default function Admin() {
   };
 
   const handleAddEmployee = async (e) => {
-    e.preventDefault();
-    const imageUrl = await uploadImageToCloudinary();
+  e.preventDefault();
+  const imageUrl = await uploadImageToCloudinary();
 
-    const res = await fetch('/api/add-employee', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ empId, name, password, role, image: imageUrl }),
-    });
+  const res = await fetch('/api/add-employee', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ empId, name, password, role, image: imageUrl }),
+  });
 
-    const json = await res.json();
-    alert(json.message);
+  const json = await res.json();
+  alert(json.message);
+
+  if (res.ok) {
     setEmpId('');
     setName('');
     setPassword('');
     setImage(null);
     setShowForm(false);
-    fetchAttendances();
-  };
+
+    // Redirect and refresh page
+    router.push('/admin').then(() => {
+      window.location.reload();
+    });
+  }
+};
+
+const handleDeleteAttendance = async () => {
+  if (!deleteDateFrom || !deleteDateTo) {
+    toast.error('Please select both date from and date to.');
+    return;
+  }
+  if (deleteDateFrom > deleteDateTo) {
+    toast.error('Date From cannot be after Date To.');
+    return;
+  }
+
+  // Confirm deletion with user
+  const confirmed = window.confirm(
+    `Are you sure you want to delete attendance records from ${formatDate(deleteDateFrom)} to ${formatDate(deleteDateTo)}${deleteEmpId ? ' for employee ' + deleteEmpId : ' for all employees'}?`
+  );
+
+  if (!confirmed) return;
+
+  try {
+    const res = await fetch('/api/delete-attendance', {
+      method: 'DELETE',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        dateFrom: deleteDateFrom,
+        dateTo: deleteDateTo,
+        empId: deleteEmpId || undefined,
+      }),
+    });
+
+    const result = await res.json();
+
+    if (res.ok) {
+      toast.success('Attendance records deleted successfully.');
+      setShowDeleteAttendanceModal(false);
+      setDeleteDateFrom(null);
+      setDeleteDateTo(null);
+      setDeleteEmpId('');
+      fetchAttendances();  // Refresh attendance list after delete
+    } else {
+      toast.error(result.message || 'Failed to delete attendance records.');
+    }
+  } catch (error) {
+    console.error('Error deleting attendance:', error);
+    toast.error('Server error while deleting attendance.');
+  }
+};
 
   const handleDownloadClick = () => {
     setShowDownloadModal(true);
   };
+//   const handleDeleteEmployee = async () => {
+//   if (!selectedEmpId) {
+//     toast.error("Please select an employee to delete");
+//     return;
+//   }
+
+//   const confirmed = window.confirm(`Are you sure you want to delete employee ${selectedEmpId}?`);
+//   if (!confirmed) return;
+
+//   try {
+//     const res = await fetch("/api/delete-employee", {
+//       method: "POST",
+//       headers: { "Content-Type": "application/json" },
+//       body: JSON.stringify({ empId: selectedEmpId }),
+//     });
+
+//     if (res.ok) {
+//       toast.success("Employee deleted successfully!");
+//       router.push("/admin");
+//     } else {
+//       toast.error("Failed to delete employee");
+//     }
+//   } catch (error) {
+//     console.error(error);
+//     toast.error("Error deleting employee");
+//   }
+// };
+
 
   const getBase64Image = (url) => {
     return new Promise((resolve, reject) => {
@@ -230,6 +371,16 @@ export default function Admin() {
             >
               Add New Employee
             </button>
+            <button onClick={() => setShowDeleteModal(true)} className={styles.loginButton}>
+             Delete Employee
+            </button>
+            <button
+               onClick={() => setShowDeleteAttendanceModal(true)}
+               className={styles.loginButton}
+              style={{ minWidth: '140px', height: '40px', marginLeft: '10px' }}
+              >
+             Delete Attendance
+          </button>
             <button
               onClick={handleDownloadClick}
               className={styles.loginButton}
@@ -308,6 +459,95 @@ export default function Admin() {
             </div>
           </div>
         )}
+        
+
+        {/* Delete Employee Modal */}
+   {showDeleteModal && (
+  <div className={styles.modalOverlay}>
+    <div className={styles.modalContent}>
+      <h3>Delete Employee</h3>
+      <select
+        value={selectedEmpId}
+        onChange={(e) => setSelectedEmpId(e.target.value)}
+        className={styles.inputField}
+      >
+        <option value="">Select Employee</option>
+        {employeeList.map(emp => (
+          <option key={emp.empId} value={emp.empId}>
+            {emp.empId} - {emp.name}
+          </option>
+        ))}
+      </select>
+
+      <div style={{ marginTop: '1rem', display: 'flex', justifyContent: 'flex-end', gap: '10px' }}>
+        <button onClick={() => setShowDeleteModal(false)} className={styles.cancelButton}>
+          Cancel
+        </button>
+        <button onClick={handleDelete} className={styles.deleteButton}>
+          Delete
+        </button>
+      </div>
+    </div>
+  </div>
+)}
+
+{showDeleteAttendanceModal && (
+ <div className={styles.modal}>
+  <div className={styles.modalContent}>
+    <h3>Delete Attendance Records</h3>
+
+    <select
+      value={deleteEmpId}
+      onChange={(e) => setDeleteEmpId(e.target.value)}
+      className={styles.input}
+    >
+      <option value="">All Employees</option>
+      {employeeList.map((emp) => (
+        <option key={emp.empId} value={emp.empId}>
+          {emp.name} ({emp.empId})
+        </option>
+      ))}
+    </select>
+
+    <div style={{ display: 'flex', gap: '10px', marginTop: '10px', marginBottom: '10px' }}>
+      <DatePicker
+        selected={deleteDateFrom}
+        onChange={setDeleteDateFrom}
+        maxDate={new Date()}
+        isClearable
+        placeholderText="From"
+        className={styles.input}
+      />
+      <DatePicker
+        selected={deleteDateTo}
+        onChange={setDeleteDateTo}
+        maxDate={new Date()}
+        isClearable
+        placeholderText="To"
+        className={styles.input}
+      />
+    </div>
+
+    <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px' }}>
+      <button
+        className={styles.submitButton}
+        onClick={handleDeleteAttendance}
+        style={{ minWidth: '140px', height: '40px' }}
+      >
+        Delete
+      </button>
+      <button
+        className={styles.loginButton}
+        onClick={() => setShowDeleteAttendanceModal(false)}
+        style={{ minWidth: '140px', height: '40px' }}
+      >
+        Cancel
+      </button>
+    </div>
+  </div>
+</div>
+
+)}
 
         {showDownloadModal && (
           <div className={styles.modal}>

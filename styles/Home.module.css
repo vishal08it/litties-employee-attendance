@@ -39,6 +39,8 @@
   border-radius: 6px;
   font-weight: bold;
   cursor: pointer;
+  margin: 10px;
+
 }
 
 .overlay {
@@ -282,4 +284,44 @@
   color: #facc15;
   text-align: center;
   margin-bottom: 1rem;
+}
+.modalOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.modalContent {
+  background: white;
+  padding: 2rem;
+  border-radius: 10px;
+  width: 300px;
+}
+
+.inputField {
+  width: 100%;
+  padding: 0.5rem;
+  margin-top: 0.5rem;
+}
+
+.cancelButton {
+  background-color: #ccc;
+  padding: 0.5rem 1rem;
+  border: none;
+  border-radius: 5px;
+}
+
+.deleteButton {
+  background-color: #e74c3c;
+  color: white;
+  padding: 0.5rem 1rem;
+  border: none;
+  border-radius: 5px;
 }
