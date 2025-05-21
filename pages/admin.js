@@ -413,7 +413,7 @@ const handleDeleteAttendance = async () => {
         <button onClick={logout} className={styles.logoutButton}>Logout</button>
       </header>
 
-      <div style={{ padding: '2rem' }}>
+      <div style={{ padding: '100px' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between' }}>
           <h2 style={{ color: '#facc15' }}>Admin Dashboard</h2>
           <div>

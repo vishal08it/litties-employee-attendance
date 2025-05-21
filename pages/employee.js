@@ -94,15 +94,19 @@ export default function Employee() {
             <p style={{ color: '#eab308', marginTop: '0.5rem', fontWeight: 'bold' }}>
               You have completed today's attendance.
             </p>
+            
           )}
+          {status === 'punchin' && <button className={styles.loginButton} onClick={punch}>Punch In</button>}
+        {status === 'punchout' && <button className={styles.loginButton} onClick={punch}>Punch Out</button>}
         </div>
+         
         <button onClick={logout} className={styles.loginButton}>Logout</button>
       </header>
 
       {/* Punch In/Out Button */}
-      <div style={{ textAlign: 'center', padding: '1rem' }}>
-        {status === 'punchin' && <button className={styles.loginButton} onClick={punch}>Punch In</button>}
-        {status === 'punchout' && <button className={styles.loginButton} onClick={punch}>Punch Out</button>}
+      <div style={{ textAlign: 'center', padding: '55px' }}>
+        {/* {status === 'punchin' && <button className={styles.loginButton} onClick={punch}>Punch In</button>}
+        {status === 'punchout' && <button className={styles.loginButton} onClick={punch}>Punch Out</button>} */}
       </div>
 
       {/* Welcome Message above image/message */}
@@ -131,8 +135,8 @@ export default function Employee() {
         {photoUrl && (
           <div
             style={{
-              width: '400px',
-              height: '400px',
+              width: '200px',
+              height: '200px',
               flexShrink: 0,
               borderRadius: '12px',
               overflow: 'hidden',
