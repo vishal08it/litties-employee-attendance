@@ -445,284 +445,268 @@ const handleDeleteAttendance = async () => {
         </div>
 
         {showForm && (
-          <div className={styles.modal}>
-            <div className={styles.modalContent}>
-              <h3>Add New Employee</h3>
-              <form onSubmit={handleAddEmployee}>
-                <input
-                  value={empId}
-                  onChange={(e) => setEmpId(e.target.value)}
-                  placeholder="Employee ID"
-                  className={styles.input}
-                  required
-                />
-                <input
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  placeholder="Name"
-                  className={styles.input}
-                  required
-                />
-                <input
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  placeholder="Password"
-                  className={styles.input}
-                  required
-                />
-                <select
-                  value={role}
-                  onChange={(e) => setRole(e.target.value)}
-                  className={styles.input}
-                >
-                  <option value="employee">Employee</option>
-                  <option value="admin">Admin</option>
-                </select>
-                <input
-                  type="file"
-                  accept="image/*"
-                  onChange={(e) => setImage(e.target.files[0])}
-                  className={styles.input}
-                />
-                <div
-                  style={{
-                    display: 'flex',
-                    justifyContent: 'flex-end',
-                    gap: '10px',
-                    marginTop: '10px',
-                  }}
-                >
-                  <button
-                    type="submit"
-                    className={styles.submitButton}
-                    style={{ minWidth: '140px', height: '40px' }}
-                  >
-                    Submit
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setShowForm(false)}
-                    className={styles.logoutButton}
-                    style={{ minWidth: '140px', height: '40px' }}
-                  >
-                    Cancel
-                  </button>
-                </div>
-              </form>
-            </div>
-          </div>
+          <>
+          <div className={styles.overlay1} onClick={() => setShowForm(false)} />
+<div className={styles.popup1}>
+  <button className={styles.closeButton1} onClick={() => setShowForm(false)}>&times;</button>
+  <h2>Add New Employee</h2>
+  <form onSubmit={handleAddEmployee}>
+    <input className={styles.input1} placeholder="Employee ID" value={empId} onChange={(e) => setEmpId(e.target.value)} />
+    <input className={styles.input1} placeholder="Name" value={name} onChange={(e) => setName(e.target.value)} />
+    <input className={styles.input1} placeholder="Password" value={password} onChange={(e) => setPassword(e.target.value)} />
+    <select className={styles.selectBackground } value={role} onChange={(e) => setRole(e.target.value)}>
+      <option value="employee">Employee</option>
+      <option value="admin">Admin</option>
+    </select>
+    <input type="file" accept="image/*" onChange={(e) => setImage(e.target.files[0])} className={styles.input1} />
+    <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px' }}>
+      <button type="submit" className={styles.submitButton1}>Submit</button>
+      <button type="button" onClick={() => setShowForm(false)} className={styles.submitButton1} style={{ backgroundColor: '#999' }}>Cancel</button>
+    </div>
+  </form>
+</div>
+</>
         )}
         
 
         {/* Delete Employee Modal */}
    {showDeleteModal && (
-  <div className={styles.modalOverlay}>
-    <div className={styles.modalContent}>
-      <h3>Delete Employee</h3>
-      <select
-        value={selectedEmpId}
-        onChange={(e) => setSelectedEmpId(e.target.value)}
-        className={styles.inputField}
-      >
-        <option value="">Select Employee</option>
-        {employeeList.map(emp => (
-          <option key={emp.empId} value={emp.empId}>
-            {emp.empId} - {emp.name}
-          </option>
-        ))}
-      </select>
+    <>
+  <div className={styles.overlay1} onClick={() => setShowDeleteModal(false)} />
+<div className={styles.popup1}>
+  <button className={styles.closeButton1} onClick={() => setShowDeleteModal(false)}>
+    &times;
+  </button>
+  <h2>Delete Employee</h2>
+  <select
+    value={selectedEmpId}
+    onChange={(e) => setSelectedEmpId(e.target.value)}
+    className={styles.selectBackground}
+  >
+    <option value="">Select Employee</option>
+{employeeList
+  .filter(emp => emp.empId !== "1001")
+  .map(emp => (
+    <option key={emp.empId} value={emp.empId}>
+      {emp.empId} - {emp.name}
+    </option>
+))}
 
-      <div style={{ marginTop: '1rem', display: 'flex', justifyContent: 'flex-end', gap: '10px' }}>
-        <button onClick={() => setShowDeleteModal(false)} className={styles.cancelButton}>
-          Cancel
-        </button>
-        <button onClick={handleDelete} className={styles.deleteButton}>
-          Delete
-        </button>
-      </div>
-    </div>
+  </select>
+
+  <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '10px' }}>
+    <button
+      onClick={() => setShowDeleteModal(false)}
+      className={styles.submitButton1}
+      style={{ backgroundColor: '#999' }}
+    >
+      Cancel
+    </button>
+    <button
+      onClick={handleDelete}
+      className={styles.submitButton1}
+      style={{ backgroundColor: '#e74c3c' }}
+    >
+      Delete
+    </button>
   </div>
+</div>
+</>
 )}
 
 {showDeleteAttendanceModal && (
- <div className={styles.modal}>
-  <div className={styles.modalContent}>
-    <h3>Delete Attendance Records</h3>
+ <>
+ <div className={styles.overlay1} onClick={() => setShowDeleteAttendanceModal(false)} />
+<div className={styles.popup1}>
+  <button className={styles.closeButton1} onClick={() => setShowDeleteAttendanceModal(false)}>
+    &times;
+  </button>
+  <h2>Delete Attendance Records</h2>
 
-    <select
-      value={deleteEmpId}
-      onChange={(e) => setDeleteEmpId(e.target.value)}
-      className={styles.input}
+  <select
+    value={deleteEmpId}
+    onChange={(e) => setDeleteEmpId(e.target.value)}
+    className={styles.selectBackground}
+  >
+   <option value="">All Employees</option>
+{employeeList
+  .filter(emp => emp.empId !== "1001") // hide Admin user
+  .map((emp) => (
+    <option key={emp.empId} value={emp.empId}>
+      {emp.name} ({emp.empId})
+    </option>
+))}
+
+  </select>
+
+  <div style={{ display: 'flex', gap: '10px', marginTop: '10px', marginBottom: '10px' }}>
+    <DatePicker
+      selected={deleteDateFrom}
+      onChange={setDeleteDateFrom}
+      maxDate={new Date()}
+      isClearable
+      placeholderText="From"
+      className={styles.input1}
+    />
+    <DatePicker
+      selected={deleteDateTo}
+      onChange={setDeleteDateTo}
+      maxDate={new Date()}
+      isClearable
+      placeholderText="To"
+      className={styles.input1}
+    />
+  </div>
+
+  <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px' }}>
+    <button
+      onClick={handleDeleteAttendance}
+      className={styles.submitButton1}
+      style={{ backgroundColor: '#e74c3c' }}
     >
-      <option value="">All Employees</option>
-      {employeeList.map((emp) => (
-        <option key={emp.empId} value={emp.empId}>
-          {emp.name} ({emp.empId})
-        </option>
-      ))}
-    </select>
+      Delete
+    </button>
+    <button
+      onClick={() => setShowDeleteAttendanceModal(false)}
+      className={styles.submitButton1}
+      style={{ backgroundColor: '#999' }}
+    >
+      Cancel
+    </button>
+  </div>
+</div>
 
-    <div style={{ display: 'flex', gap: '10px', marginTop: '10px', marginBottom: '10px' }}>
-      <DatePicker
-        selected={deleteDateFrom}
-        onChange={setDeleteDateFrom}
-        maxDate={new Date()}
-        isClearable
-        placeholderText="From"
-        className={styles.input}
-      />
-      <DatePicker
-        selected={deleteDateTo}
-        onChange={setDeleteDateTo}
-        maxDate={new Date()}
-        isClearable
-        placeholderText="To"
-        className={styles.input}
-      />
-    </div>
+ </>
 
-    <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px' }}>
-      <button
-        className={styles.submitButton}
-        onClick={handleDeleteAttendance}
-        style={{ minWidth: '140px', height: '40px' }}
-      >
-        Delete
+)}
+{showEditForm && (
+ <>
+ <div className={styles.overlay1} onClick={() => setShowEditForm(false)} />
+<div className={styles.popup1}>
+  <button className={styles.closeButton1} onClick={() => setShowEditForm(false)}>
+    &times;
+  </button>
+  <h2>Edit Attendance</h2>
+
+  <form
+    onSubmit={async (e) => {
+      e.preventDefault();
+
+      const res = await fetch('/api/edit-attendance', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          empId: editData.empId,
+          date: editData.date,
+          punchIn: `${editData.date}T${editData.punchIn}`,
+          punchOut: `${editData.date}T${editData.punchOut}`,
+        }),
+      });
+
+      const json = await res.json();
+      if (res.ok) {
+        toast.success('Attendance updated successfully!');
+        setShowEditForm(false);
+        fetchAttendances();
+      } else {
+        toast.error(json.message || 'Failed to update attendance');
+      }
+    }}
+  >
+    <input className={styles.input1} value={editData.empId} readOnly />
+    <input className={styles.input1} value={editData.name} readOnly />
+    <input className={styles.input1} value={editData.date} readOnly />
+
+    <input
+      className={styles.input1}
+      type="time"
+      value={editData.punchIn}
+      onChange={(e) => setEditData({ ...editData, punchIn: e.target.value })}
+      required
+    />
+    <input
+      className={styles.input1}
+      type="time"
+      value={editData.punchOut}
+      onChange={(e) => setEditData({ ...editData, punchOut: e.target.value })}
+      required
+    />
+
+    <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '10px' }}>
+      <button type="submit" className={styles.submitButton1}>
+        Save
       </button>
       <button
-        className={styles.logoutButton}
-        onClick={() => setShowDeleteAttendanceModal(false)}
-        style={{ minWidth: '140px', height: '40px' }}
+        type="button"
+        className={styles.submitButton1}
+        style={{ backgroundColor: '#999' }}
+        onClick={() => setShowEditForm(false)}
       >
         Cancel
       </button>
     </div>
-  </div>
+  </form>
 </div>
 
-)}
-{showEditForm && (
-  <div className={styles.modal}>
-    <div className={styles.modalContent}>
-      <h3>Edit Attendance</h3>
-      <form
-        onSubmit={async (e) => {
-          e.preventDefault();
-
-          const res = await fetch('/api/edit-attendance', {
-            method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              empId: editData.empId,
-              date: editData.date,
-              punchIn: `${editData.date}T${editData.punchIn}`,
-              punchOut: `${editData.date}T${editData.punchOut}`,
-            }),
-          });
-
-          const json = await res.json();
-          if (res.ok) {
-            toast.success('Attendance updated successfully!');
-            setShowEditForm(false);
-            fetchAttendances();
-          } else {
-            toast.error(json.message || 'Failed to update attendance');
-          }
-        }}
-      >
-        <input className={styles.input} value={editData.empId} readOnly />
-        <input className={styles.input} value={editData.name} readOnly />
-        <input className={styles.input} value={editData.date} readOnly />
-
-        <input
-          className={styles.input}
-          type="time"
-          value={editData.punchIn}
-          onChange={(e) => setEditData({ ...editData, punchIn: e.target.value })}
-          required
-        />
-        <input
-          className={styles.input}
-          type="time"
-          value={editData.punchOut}
-          onChange={(e) => setEditData({ ...editData, punchOut: e.target.value })}
-          required
-        />
-
-        <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '10px' }}>
-          <button
-            type="submit"
-            className={styles.submitButton}
-            style={{ minWidth: '140px', height: '40px' }}
-          >
-            Save
-          </button>
-          <button
-            type="button"
-            className={styles.logoutButton}
-            style={{ minWidth: '140px', height: '40px' }}
-            onClick={() => setShowEditForm(false)}
-          >
-            Cancel
-          </button>
-        </div>
-      </form>
-    </div>
-  </div>
+ </>
 )}
 
 
         {showDownloadModal && (
-          <div className={styles.modal}>
-            <div className={styles.modalContent}>
-              <h3>Select Employee and Date Range</h3>
+          <>
+          <div className={styles.overlay1} onClick={() => setShowDownloadModal(false)} />
+<div className={styles.popup1}>
+  <button className={styles.closeButton1} onClick={() => setShowDownloadModal(false)}>
+    &times;
+  </button>
+  <h2>Select Employee and Date Range</h2>
 
-              <select
-                value={pdfEmpId}
-                onChange={(e) => setPdfEmpId(e.target.value)}
-                className={styles.input}
-              >
-                <option value="">-- Select Employee --</option>
-                {uniqueEmployees.map((emp) => (
-                  <option key={emp.empId} value={emp.empId}>
-                    {emp.name} ({emp.empId})
-                  </option>
-                ))}
-              </select>
+  <select
+    value={pdfEmpId}
+    onChange={(e) => setPdfEmpId(e.target.value)}
+    className={styles.selectBackground}
+  >
+    <option value="">-- Select Employee --</option>
+    {uniqueEmployees.map((emp) => (
+      <option key={emp.empId} value={emp.empId}>
+        {emp.name} ({emp.empId})
+      </option>
+    ))}
+  </select>
 
-              <div style={{ display: 'flex', gap: '10px', marginTop: '10px', marginBottom: '10px' }}>
-                <DatePicker
-                  selected={dateFrom}
-                  onChange={(date) => setDateFrom(date)}
-                  placeholderText="From"
-                  className={styles.input}
-                />
-                <DatePicker
-                  selected={dateTo}
-                  onChange={(date) => setDateTo(date)}
-                  placeholderText="To"
-                  className={styles.input}
-                />
-              </div>
+  <div style={{ display: 'flex', gap: '10px', marginTop: '10px', marginBottom: '10px' }}>
+    <DatePicker
+      selected={dateFrom}
+      onChange={(date) => setDateFrom(date)}
+      placeholderText="From"
+      className={styles.input1}
+    />
+    <DatePicker
+      selected={dateTo}
+      onChange={(date) => setDateTo(date)}
+      placeholderText="To"
+      className={styles.input1}
+    />
+  </div>
 
-              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px' }}>
-                <button
-                  onClick={generatePDF}
-                  className={styles.submitButton}
-                  style={{ minWidth: '140px', height: '40px' }}
-                >
-                  Download
-                </button>
-                <button
-                  onClick={() => setShowDownloadModal(false)}
-                  className={styles.logoutButton}
-                  style={{ minWidth: '140px', height: '40px' }}
-                >
-                  Cancel
-                </button>
-              </div>
-            </div>
-          </div>
+  <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px' }}>
+    <button
+      onClick={generatePDF}
+      className={styles.submitButton1}
+    >
+      Download
+    </button>
+    <button
+      onClick={() => setShowDownloadModal(false)}
+      className={styles.submitButton1}
+      style={{ backgroundColor: '#999' }}
+    >
+      Cancel
+    </button>
+  </div>
+</div>
+
+          </>
         )}
 
         {/* Filter Dropdown below "Employee Attendance Records" */}
