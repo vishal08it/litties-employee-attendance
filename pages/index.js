@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/router';
 import styles from '../styles/Home.module.css';
 import Image from 'next/image';
+import '@/styles/globals.css';
 
 export default function Home() {
   const [showLogin, setShowLogin] = useState(false);
@@ -49,16 +50,31 @@ export default function Home() {
 
       {showLogin && (
         <>
-          <div className={styles.overlay} onClick={() => setShowLogin(false)} />
-          <div className={styles.popup}>
-            <button className={styles.closeButton} onClick={() => setShowLogin(false)}>&times;</button>
-            <h2>Login</h2>
-            <form onSubmit={login}>
-              <input type="text" placeholder="Employee ID" value={empId} onChange={(e) => setEmpId(e.target.value)} required className={styles.input} />
-              <input type="password" placeholder="Password" value={password} onChange={(e) => setPassword(e.target.value)} required className={styles.input} />
-              <button type="submit" className={styles.submitButton}>Login</button>
-            </form>
-          </div>
+         <div className={styles.overlay1} onClick={() => setShowLogin(false)} />
+<div className={styles.popup1}>
+  <button className={styles.closeButton1} onClick={() => setShowLogin(false)}>&times;</button>
+  <h2>Employee Login</h2>
+  <form onSubmit={login}>
+    <input
+      type="text"
+      placeholder="Employee ID"
+      value={empId}
+      onChange={(e) => setEmpId(e.target.value)}
+      required
+      className={styles.input1}
+    />
+    <input
+      type="password"
+      placeholder="Password"
+      value={password}
+      onChange={(e) => setPassword(e.target.value)}
+      required
+      className={styles.input1}
+    />
+    <button type="submit" className={styles.submitButton1}>Login</button>
+  </form>
+</div>
+
         </>
       )}
 

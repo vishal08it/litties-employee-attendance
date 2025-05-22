@@ -396,3 +396,114 @@
     flex-direction: column !important;
   }
 }
+.overlay1 {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(4px);
+  z-index: 100;
+}
+
+.popup1 {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%) perspective(800px) rotateX(8deg) rotateY(-8deg);
+  background: linear-gradient(to bottom, #ff9933, #ffffff, #138808);
+  border-radius: 20px;
+  padding: 40px 50px;
+  width: 350px;
+  box-shadow:
+    10px 10px 30px rgba(0, 0, 0, 0.3),
+    inset -5px -5px 15px rgba(255, 255, 255, 0.2),
+    inset 5px 5px 15px rgba(0, 0, 0, 0.25);
+  color: black;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  z-index: 101;
+  transition: transform 0.3s ease;
+}
+
+.popup1:hover {
+  transform: translate(-50%, -50%) perspective(800px) rotateX(0deg) rotateY(0deg) scale(1.05);
+  box-shadow:
+    12px 12px 40px rgba(0, 0, 0, 0.5),
+    inset -5px -5px 20px rgba(255, 255, 255, 0.3),
+    inset 5px 5px 20px rgba(0, 0, 0, 0.35);
+}
+
+.closeButton1 {
+  position: absolute;
+  top: 15px;
+  right: 20px;
+  font-size: 28px;
+  color: white;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  filter: drop-shadow(0 0 2px black);
+  transition: color 0.3s ease;
+}
+
+.closeButton1:hover {
+  color: #ff4757;
+}
+
+.h2 {
+  text-align: center;
+  margin-bottom: 30px;
+  font-weight: 700;
+  text-shadow: 0 0 5px rgba(255, 255, 255, 0.7);
+}
+
+.input1 {
+  display: block;
+  width: 100%;
+  padding: 14px 18px;
+  margin-bottom: 20px;
+  border-radius: 12px;
+  border: none;
+  outline: none;
+  font-size: 1rem;
+  background: linear-gradient(145deg, #2c3e50, #34495e);
+  color: white;
+  box-shadow:
+    inset 2px 2px 5px rgba(255, 255, 255, 0.15),
+    inset -2px -2px 5px rgba(0, 0, 0, 0.7);
+  transition: background 0.3s ease, box-shadow 0.3s ease;
+}
+
+.input1::placeholder {
+  color: #bdc3c7;
+}
+
+.input1:focus {
+  background: linear-gradient(145deg, #3b5998, #2a437c);
+  box-shadow:
+    inset 4px 4px 8px rgba(255, 255, 255, 0.3),
+    inset -4px -4px 8px rgba(0, 0, 0, 0.8),
+    0 0 8px #2980b9;
+  color: white;
+}
+
+.submitButton1 {
+  width: 100%;
+  padding: 16px 0;
+ background: linear-gradient(to bottom, #ff9933, #ffffff, #138808);
+  border: none;
+  border-radius: 14px;
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: black;
+  cursor: pointer;
+  box-shadow:
+    0 6px 15px rgba(255, 71, 87, 0.6);
+  transition: background 0.3s ease, transform 0.2s ease;
+}
+
+.submitButton1:hover {
+  
+  background: linear-gradient(145deg, #3aca4d, #3aca4d);
+  transform: scale(1.05);
+  box-shadow:
+    0 8px 20px rgba(255, 71, 87, 0.8);
+}
