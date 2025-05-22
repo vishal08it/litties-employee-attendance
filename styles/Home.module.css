@@ -7,80 +7,20 @@
 }
 
 .header {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  z-index: 1000;
-
   display: flex;
   align-items: center;
   justify-content: space-between;
-  background: linear-gradient(to bottom, #a28dea, #917dd9); 
+  background-color: #917dd9;
+  color: #1e1b18;
   padding: 5px 40px;
-  border-bottom: 3px solid #eab308;
+  border-bottom: 2px solid #eab308;
   flex-wrap: wrap;
-
-  height: 120px;
-  box-sizing: border-box;
-
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3); 
-  border-top: 1px solid rgba(255, 255, 255, 0.4); 
-  border-left: 1px solid rgba(255, 255, 255, 0.2);
-  border-right: 1px solid rgba(0, 0, 0, 0.2);
-
-  backdrop-filter: blur(2px); 
-  transition: all 0.3s ease-in-out;
 }
-.title {
-  font-size: 24px;
-  font-weight: bold;
-  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
-}
-
-.address {
-  font-size: 16px;
-  font-style: italic;
-  text-shadow: 1px 1px 1px rgba(255, 255, 255, 0.2);
-}
-
-
-.mainContent {
-  padding-top: 90px; 
-}
-
 
 .logo {
   display: flex;
   align-items: center;
-  justify-content: center; 
-  position: relative;
-  z-index: 1;
-  padding: 10px;
 }
-
-
-.logo::before {
-  content: '';
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  width: 120px; 
-  height: 120px;
-  background: radial-gradient(circle, rgba(255, 223, 0, 0.6), transparent 70%);
-  z-index: -1;
-  border-radius: 50%;
-  filter: blur(10px);
-}
-
-
-.logo img {
-  height: 100px;
-  width: 80px;
-  object-fit: contain;
-}
-
 
 .title {
   flex-grow: 1;
@@ -169,47 +109,23 @@
   font-size: 2rem;
   margin-bottom: 30px;
   color: #b3d00c;
-  padding: 40px;
 }
 
 .testimonialBox {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  background: linear-gradient(to bottom, #ff9933, #ffffff, #138808);
+  background-color: #2e2a27;
   border-radius: 12px;
   margin: 20px 0;
   padding: 20px;
   flex-wrap: wrap;
 }
 
-
 .testimonialText {
   flex: 1;
   padding: 10px 20px;
-
-  
-  background: linear-gradient(145deg, #3a3531, #2e2a27);
-  border-radius: 10px;
-  color: #f0e6d2;
-  box-shadow: 
-    inset 0 2px 4px rgba(0, 0, 0, 0.4), 
-    0 4px 6px rgba(0, 0, 0, 0.6); 
-  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.6);
-
-  font-size: 16px;
-  line-height: 1.6;
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
-
-
-.testimonialText:hover {
-  transform: scale(1.02);
-  box-shadow: 
-    inset 0 2px 5px rgba(255, 255, 255, 0.05), 
-    0 6px 12px rgba(0, 0, 0, 0.8);
-}
-
 
 .squareImage {
   width: 160px;
@@ -275,7 +191,7 @@
   }
 }
 
-
+/* ✅ Toast Notification Style */
 .popupMessage {
   position: fixed;
   bottom: 40px;
@@ -340,7 +256,7 @@
   background-color: #1f1f1f;
 }
 
-
+/* ✅ Stylish Modal for Add/Edit */
 .modal {
   position: fixed;
   top: 0; left: 0; right: 0; bottom: 0;
