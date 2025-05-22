@@ -9,6 +9,7 @@ export default function Employee() {
   const [photoUrl, setPhotoUrl] = useState('');
   const [popupMessage, setPopupMessage] = useState('');
   const [typedMessage, setTypedMessage] = useState('');
+  const [records, setRecords] = useState([]);
   const router = useRouter();
 
   useEffect(() => {
@@ -25,6 +26,7 @@ export default function Employee() {
     }
 
     checkPunch();
+    fetchRecords();
   }, []);
 
   const checkPunch = async () => {
@@ -40,6 +42,14 @@ export default function Employee() {
     else setStatus('done');
   };
 
+  const fetchRecords = async () => {
+    const res = await fetch('/api/attendances');
+    const all = await res.json();
+    const empId = localStorage.getItem('empId');
+    const filtered = all.filter(record => record.empId === empId);
+    setRecords(filtered);
+  };
+
   const punch = async () => {
     const empId = localStorage.getItem('empId');
     const name = localStorage.getItem('name');
@@ -51,6 +61,7 @@ export default function Employee() {
     });
     await res.json();
     checkPunch();
+    fetchRecords();
 
     const message = status === 'punchin' ? 'Punched In Successfully!' : 'Punched Out Successfully!';
     setPopupMessage(message);
@@ -80,6 +91,42 @@ export default function Employee() {
     type();
   };
 
+  const tableHeader = {
+    padding: '12px',
+    textAlign: 'left',
+    borderBottom: '1px solid #444',
+    color: '#facc15',
+    fontSize: '1rem',
+    fontWeight: 'bold',
+    boxShadow: 'inset 0 -1px 0 #00000030'
+  };
+
+  const tableCell = {
+    padding: '12px',
+    borderBottom: '1px solid #374151',
+    fontSize: '0.95rem',
+  };
+
+  const formatTime = (timestamp) => {
+    if (!timestamp) return '';
+    const date = new Date(timestamp);
+    return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  };
+
+  const formatDate = (dateStr) => {
+    if (!dateStr) return '';
+    const [year, month, day] = dateStr.split('-');
+    return `${day}-${month}-${year}`;
+  };
+
+  const getDayType = (duration) => {
+    if (!duration || duration === '0') return 'Absent';
+    const hours = parseFloat(duration);
+    if (hours > 6) return '1';
+    if (hours > 0) return '0.5';
+    return 'Absent';
+  };
+
   return (
     <div className={styles.container}>
       <header className={styles.header}>
@@ -106,31 +153,25 @@ export default function Employee() {
         </h2>
       </div>
 
-      {/* Image + Typing layout with mobile responsive styles */}
-      <div
-        style={{
-          display: 'flex',
-          flexDirection: 'row',
-          flexWrap: 'wrap',
-          gap: '2rem',
-          padding: '2rem',
-          maxWidth: '1200px',
-          margin: '0 auto',
-          justifyContent: 'center'
-        }}
-      >
-        {/* Photo */}
+      <div style={{
+        display: 'flex',
+        flexDirection: 'row',
+        flexWrap: 'wrap',
+        gap: '2rem',
+        padding: '2rem',
+        maxWidth: '1200px',
+        margin: '0 auto',
+        justifyContent: 'center'
+      }}>
         {photoUrl && (
-          <div
-            style={{
-              width: '100%',
-              maxWidth: '400px',
-              height: 'auto',
-              borderRadius: '140px',
-              overflow: 'hidden',
-              border: '2px solid #444'
-            }}
-          >
+          <div style={{
+            width: '100%',
+            maxWidth: '400px',
+            height: 'auto',
+            borderRadius: '140px',
+            overflow: 'hidden',
+            border: '2px solid #444'
+          }}>
             <Image
               src={photoUrl}
               alt={`${name}'s photo`}
@@ -141,30 +182,73 @@ export default function Employee() {
           </div>
         )}
 
-        {/* Typing Message */}
-        <div
-          style={{
-            flexGrow: 1,
-            maxHeight: '400px',
-            overflowY: 'auto',
-            paddingRight: '1rem',
-            boxSizing: 'border-box',
-            width: '100%',
-            maxWidth: '600px'
-          }}
-        >
-          <p
-            style={{
-              color: '#fef08a',
-              fontSize: '1.1rem',
-              lineHeight: '1.6',
-              whiteSpace: 'pre-wrap',
-              fontFamily: 'monospace',
-              margin: 0
-            }}
-          >
+        <div style={{
+          flexGrow: 1,
+          maxHeight: '400px',
+          overflowY: 'auto',
+          paddingRight: '1rem',
+          boxSizing: 'border-box',
+          width: '100%',
+          maxWidth: '600px'
+        }}>
+          <p style={{
+            color: '#fef08a',
+            fontSize: '1.1rem',
+            lineHeight: '1.6',
+            whiteSpace: 'pre-wrap',
+            fontFamily: 'monospace',
+            margin: 0
+          }}>
             {typedMessage}
           </p>
+        </div>
+      </div>
+
+      {/* Attendance Table */}
+      <div style={{ padding: '2rem', maxWidth: '1200px', margin: '0 auto' }}>
+        <h2 style={{ color: '#facc15', fontSize: '1.8rem', marginBottom: '1rem' }}>Your Attendance Records</h2>
+        <div style={{
+          overflowX: 'auto',
+          boxShadow: '0 10px 25px rgba(0,0,0,0.3)',
+          borderRadius: '1rem',
+          background: '#1f2937',
+          border: '1px solid #374151',
+          padding: '1rem'
+        }}>
+          <table style={{
+            width: '100%',
+            borderCollapse: 'collapse',
+            color: '#fefce8',
+            background: '#111827',
+            borderRadius: '0.75rem',
+            boxShadow: 'inset 0 0 10px #00000050',
+            overflow: 'hidden'
+          }}>
+            <thead style={{ backgroundColor: '#27272a' }}>
+              <tr>
+                <th style={tableHeader}>Date</th>
+                <th style={tableHeader}>Punch In</th>
+                <th style={tableHeader}>Punch Out</th>
+                <th style={tableHeader}>Day Type</th>
+              </tr>
+            </thead>
+            <tbody>
+              {records.length === 0 ? (
+                <tr>
+                  <td colSpan="4" style={tableCell}>No records found.</td>
+                </tr>
+              ) : (
+                records.map((rec, index) => (
+                  <tr key={index} style={{ backgroundColor: index % 2 ? '#1f2937' : '#111827' }}>
+                    <td style={tableCell}>{formatDate(rec.date)}</td>
+                    <td style={tableCell}>{formatTime(rec.punchIn)}</td>
+                    <td style={tableCell}>{rec.punchOut ? formatTime(rec.punchOut) : '—'}</td>
+                    <td style={tableCell}>{getDayType(rec.timeDiff)}</td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
         </div>
       </div>
 
