@@ -161,13 +161,13 @@ export default function Employee() {
         padding: '2rem',
         maxWidth: '1200px',
         margin: '0 auto',
-        justifyContent: 'center'
+        justifyContent: 'left'
       }}>
         {photoUrl && (
           <div style={{
             width: '100%',
-            maxWidth: '400px',
-            height: 'auto',
+            maxWidth: '200px',
+            height: '200px',
             borderRadius: '140px',
             overflow: 'hidden',
             border: '2px solid #444'
