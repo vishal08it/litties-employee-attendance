@@ -419,24 +419,24 @@ const handleDeleteAttendance = async () => {
           <div>
             <button
               onClick={() => setShowForm(true)}
-              className={styles.loginButton}
+              className={styles.addemployeeButton}
               style={{ minWidth: '140px', height: '40px' }}
             >
               Add New Employee
             </button>
-            <button onClick={() => setShowDeleteModal(true)} className={styles.loginButton}>
+            <button onClick={() => setShowDeleteModal(true)} className={styles.addemployeeButton}>
              Delete Employee
             </button>
             <button
                onClick={() => setShowDeleteAttendanceModal(true)}
-               className={styles.loginButton}
+               className={styles.addemployeeButton}
               style={{ minWidth: '140px', height: '40px', marginLeft: '10px' }}
               >
              Delete Attendance
           </button>
             <button
               onClick={handleDownloadClick}
-              className={styles.loginButton}
+              className={styles.addemployeeButton}
               style={{ minWidth: '140px', height: '40px', marginLeft: '10px' }}
             >
               Download Attendance
@@ -502,7 +502,7 @@ const handleDeleteAttendance = async () => {
                   <button
                     type="button"
                     onClick={() => setShowForm(false)}
-                    className={styles.loginButton}
+                    className={styles.logoutButton}
                     style={{ minWidth: '140px', height: '40px' }}
                   >
                     Cancel
@@ -590,7 +590,7 @@ const handleDeleteAttendance = async () => {
         Delete
       </button>
       <button
-        className={styles.loginButton}
+        className={styles.logoutButton}
         onClick={() => setShowDeleteAttendanceModal(false)}
         style={{ minWidth: '140px', height: '40px' }}
       >
@@ -659,7 +659,7 @@ const handleDeleteAttendance = async () => {
           </button>
           <button
             type="button"
-            className={styles.loginButton}
+            className={styles.logoutButton}
             style={{ minWidth: '140px', height: '40px' }}
             onClick={() => setShowEditForm(false)}
           >
@@ -715,7 +715,7 @@ const handleDeleteAttendance = async () => {
                 </button>
                 <button
                   onClick={() => setShowDownloadModal(false)}
-                  className={styles.loginButton}
+                  className={styles.logoutButton}
                   style={{ minWidth: '140px', height: '40px' }}
                 >
                   Cancel

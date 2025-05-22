@@ -29,14 +29,50 @@
   font-weight: bold;
   font-family: 'Georgia', serif;
 }
-
-.loginButton,
-.logoutButton {
-  background-color: #f44336;
+.logoutButton
+ {
+  background-color: #FF0000;
   color: #fff;
   padding: 10px 20px;
-  border: none;
-  border-radius: 6px;
+  border: blueviolet;
+  border-radius: 120px;
+  font-weight: bold;
+  cursor: pointer;
+  margin: 10px;
+
+}
+
+.loginButton
+ {
+  background-color: #3aca4d;
+  color: #fff;
+  padding: 10px 20px;
+  border: blueviolet;
+  border-radius: 120px;
+  font-weight: bold;
+  cursor: pointer;
+  margin: 10px;
+
+}
+.addemployeeButton
+ {
+  background-color: #a42cbc;
+  color: #ffffff;
+  padding: 10px 20px;
+  border: blueviolet;
+  border-radius: 120px;
+  font-weight: bold;
+  cursor: pointer;
+  margin: 10px;
+
+}
+
+.punchin {
+  background-color: #3aca4d;
+  color: #fff;
+  padding: 10px 20px;
+  border: blueviolet;
+  border-radius: 120px;
   font-weight: bold;
   cursor: pointer;
   margin: 10px;
@@ -89,16 +125,22 @@
 }
 
 .submitButton {
-  width: 100%;
+  width: 35%;
   padding: 10px;
   background-color: #eab308;
   border: none;
   color: #1e1b18;
   font-weight: bold;
-  border-radius: 5px;
+  border-radius: 50px;
   margin-top: 10px;
   cursor: pointer;
+
+  display: block;
+  margin-left: auto;
+  margin-right: auto;
+  text-align: center;
 }
+
 
 .testimonials {
   padding: 40px 20px;
@@ -115,7 +157,7 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  background-color: #2e2a27;
+  background: linear-gradient(to bottom, #ff9933, #ffffff, #138808);
   border-radius: 12px;
   margin: 20px 0;
   padding: 20px;
@@ -125,13 +167,15 @@
 .testimonialText {
   flex: 1;
   padding: 10px 20px;
+  background-color: #000;
+  border-radius: 30px;
 }
 
 .squareImage {
-  width: 160px;
-  height: 160px;
+  width: 140px;
+  height: 140px;
   object-fit: cover;
-  border-radius: 8px;
+  border-radius: 30px;
   margin: 10px;
   border: none;
   background: transparent;
@@ -146,7 +190,7 @@
 .review {
   font-size: 1rem;
   margin-top: 10px;
-  color: #fff3e6;
+  color: #17e0d9;
 }
 
 .adminTable {
@@ -324,4 +368,31 @@
   padding: 0.5rem 1rem;
   border: none;
   border-radius: 5px;
+}
+.popupMessage {
+  position: fixed;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: #eab308;
+  color: #1e1b18;
+  padding: 15px 30px;
+  border-radius: 8px;
+  font-weight: bold;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+  z-index: 999;
+  animation: fadeinout 3s ease-in-out;
+}
+
+@keyframes fadeinout {
+  0% { opacity: 0; }
+  10% { opacity: 1; }
+  90% { opacity: 1; }
+  100% { opacity: 0; }
+}
+
+@media screen and (max-width: 768px) {
+  .your-container-class {
+    flex-direction: column !important;
+  }
 }

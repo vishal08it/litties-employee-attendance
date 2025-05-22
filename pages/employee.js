@@ -82,7 +82,6 @@ export default function Employee() {
 
   return (
     <div className={styles.container}>
-      {/* Header (unchanged structure) */}
       <header className={styles.header}>
         <div className={styles.logo}>
           <Image src="/litties.png" alt="Litties Logo" width={60} height={60} />
@@ -96,45 +95,38 @@ export default function Employee() {
             </p>
           )}
         </div>
-        <button onClick={logout} className={styles.loginButton}>Logout</button>
+        {status === 'punchin' && <button className={styles.punchin} onClick={punch}>Punch In</button>}
+        {status === 'punchout' && <button className={styles.logoutButton} onClick={punch}>Punch Out</button>}
+        <button onClick={logout} className={styles.logoutButton}>Logout</button>
       </header>
 
-      {/* Punch In/Out Button */}
-      <div style={{ textAlign: 'center', padding: '1rem' }}>
-        {status === 'punchin' && <button className={styles.loginButton} onClick={punch}>Punch In</button>}
-        {status === 'punchout' && <button className={styles.loginButton} onClick={punch}>Punch Out</button>}
-      </div>
-
-      {/* Welcome Message above image/message */}
       <div style={{ marginTop: '1rem', textAlign: 'left', maxWidth: '1200px', margin: '0 auto', paddingLeft: '2rem' }}>
         <h2 style={{ color: '#eab308', margin: 0, fontSize: '1.5rem' }}>
           Welcome, {name}
         </h2>
       </div>
 
-      {/* Image and Typing Message Layout */}
+      {/* Image + Typing layout with mobile responsive styles */}
       <div
         style={{
           display: 'flex',
           flexDirection: 'row',
-          alignItems: 'flex-start',
-          justifyContent: 'center',
+          flexWrap: 'wrap',
           gap: '2rem',
           padding: '2rem',
           maxWidth: '1200px',
           margin: '0 auto',
-          overflow: 'hidden',
-          flexWrap: 'nowrap'
+          justifyContent: 'center'
         }}
       >
-        {/* Employee Image */}
+        {/* Photo */}
         {photoUrl && (
           <div
             style={{
-              width: '400px',
-              height: '400px',
-              flexShrink: 0,
-              borderRadius: '12px',
+              width: '100%',
+              maxWidth: '400px',
+              height: 'auto',
+              borderRadius: '140px',
               overflow: 'hidden',
               border: '2px solid #444'
             }}
@@ -144,7 +136,7 @@ export default function Employee() {
               alt={`${name}'s photo`}
               width={400}
               height={400}
-              style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+              style={{ width: '100%', height: 'auto', objectFit: 'cover' }}
             />
           </div>
         )}
@@ -156,7 +148,9 @@ export default function Employee() {
             maxHeight: '400px',
             overflowY: 'auto',
             paddingRight: '1rem',
-            boxSizing: 'border-box'
+            boxSizing: 'border-box',
+            width: '100%',
+            maxWidth: '600px'
           }}
         >
           <p
@@ -174,7 +168,6 @@ export default function Employee() {
         </div>
       </div>
 
-      {/* Popup Message */}
       {popupMessage && (
         <div className="popupMessage">
           {popupMessage}
