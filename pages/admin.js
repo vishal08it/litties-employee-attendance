@@ -417,6 +417,21 @@ const handleDeleteAttendance = async () => {
         <div style={{ display: 'flex', justifyContent: 'space-between' }}>
           <h2 style={{ color: '#facc15' }}>Admin Dashboard</h2>
           <div>
+              <button
+  onClick={() => window.location.href = '/items'} // Replace with your actual path
+  className={styles.addemployeeButton}
+  style={{ minWidth: '140px', height: '40px' }}
+>
+  Item Menu
+</button>
+            <button
+  onClick={() => window.location.href = '/orders'} // Replace with your actual path
+  className={styles.addemployeeButton}
+  style={{ minWidth: '140px', height: '40px' }}
+>
+  Control Panel
+</button>
+
             <button
               onClick={() => setShowForm(true)}
               className={styles.addemployeeButton}
