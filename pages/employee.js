@@ -8,7 +8,6 @@ export default function Employee() {
   const [name, setName] = useState('');
   const [photoUrl, setPhotoUrl] = useState('');
   const [popupMessage, setPopupMessage] = useState('');
-  const [typedMessage, setTypedMessage] = useState('');
   const [records, setRecords] = useState([]);
   const router = useRouter();
 
@@ -22,7 +21,6 @@ export default function Employee() {
     } else {
       setName(storedName);
       if (imageUrl) setPhotoUrl(imageUrl);
-      if (storedName) startTypingMessage(storedName);
     }
 
     checkPunch();
@@ -71,24 +69,6 @@ export default function Employee() {
   const logout = () => {
     localStorage.clear();
     router.push('/');
-  };
-
-  const startTypingMessage = (employeeName) => {
-    const fullText = ` your presence at Litties brings not just your hard work, but also your inspiring spirit. Your consistency, effort, and energy elevate everyone around you. Day after day, your commitment never goes unnoticed. You're not just an employee — you're a valued member of our family. Keep shining, keep pushing, and remember: Litties grows stronger because of people like you. We appreciate your dedication, your time, and most of all — your heart. Thank you for everything you do!`;
-
-    let index = 0;
-    setTypedMessage('');
-    const speed = 40;
-
-    const type = () => {
-      if (index < fullText.length) {
-        setTypedMessage(prev => prev + fullText.charAt(index));
-        index++;
-        setTimeout(type, speed);
-      }
-    };
-
-    type();
   };
 
   const tableHeader = {
@@ -184,44 +164,21 @@ export default function Employee() {
 
         <div style={{
           flexGrow: 1,
-          maxHeight: '400px',
-          overflowY: 'auto',
-          paddingRight: '1rem',
-          boxSizing: 'border-box',
-          width: '100%',
-          maxWidth: '600px'
-        }}>
-          <p style={{
-            color: '#fef08a',
-            fontSize: '1.1rem',
-            lineHeight: '1.6',
-            whiteSpace: 'pre-wrap',
-            fontFamily: 'monospace',
-            margin: 0
-          }}>
-            {typedMessage}
-          </p>
-        </div>
-      </div>
-
-      {/* Attendance Table */}
-      <div style={{ padding: '2rem', maxWidth: '1200px', margin: '0 auto' }}>
-        <h2 style={{ color: '#facc15', fontSize: '1.8rem', marginBottom: '1rem' }}>Your Attendance Records</h2>
-        <div style={{
+          maxWidth: '1000px',
           overflowX: 'auto',
           boxShadow: '0 10px 25px rgba(0,0,0,0.3)',
           borderRadius: '1rem',
           background: '#1f2937',
           border: '1px solid #374151',
-          padding: '1rem'
+          padding: '1rem',
         }}>
+          <h2 style={{ color: '#facc15', fontSize: '1.5rem', marginBottom: '1rem' }}>Your Attendance Records</h2>
           <table style={{
             width: '100%',
             borderCollapse: 'collapse',
             color: '#fefce8',
             background: '#111827',
             borderRadius: '0.75rem',
-            boxShadow: 'inset 0 0 10px #00000050',
             overflow: 'hidden'
           }}>
             <thead style={{ backgroundColor: '#27272a' }}>
