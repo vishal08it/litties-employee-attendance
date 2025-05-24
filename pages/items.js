@@ -429,14 +429,17 @@ export default function ItemsPage() {
           onChange={(e) => setCategory(e.target.value)}
         >
           <option value="">Select Category</option>
-          <option value="Indian Gravy Veg">Indian Gravy Veg</option>
-          <option value="Indian Gravy Non-Veg">Indian Gravy Non-Veg</option>
           <option value="Rolls">Rolls</option>
           <option value="Chowmeins">Chowmeins</option>
+          <option value="Momos">Momos</option>
+          <option value="Soups">Soups</option>
+          <option value="Rice & Roti">Rice & Roti</option>
+          <option value="Biryani">Biryani</option>
           <option value="Chinese Dry & Gravy">Chinese Dry & Gravy</option>
-          <option value="Momos & Soups">Momos & Soups</option>
-          <option value="Biryani Rice & Roti">Biryani Rice & Roti</option>
-        </select>
+          <option value="Indian Gravy Veg">Indian Gravy Veg</option>
+          <option value="Indian Gravy Non-Veg">Indian Gravy Non-Veg</option>
+          <option value="Litties Special">Litties Special</option>
+          </select>
 
         <input
           type="file"

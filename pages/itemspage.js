@@ -138,10 +138,8 @@ export default function ItemsPage() {
   const router = useRouter();
 
   const categories = [
-    "Indian Gravy Veg", "Indian Gravy Non-Veg", "Rolls",
-    "Chowmeins", "Chinese Dry & Gravy", "Momos & Soups",
-    "Biryani", "Rice & Roti"
-  ];
+    "Rolls","Chowmeins","Momos","Soups","Rice & Roti","Biryani", "Chinese Dry & Gravy","Indian Gravy Veg", "Indian Gravy Non-Veg","Litties Special" 
+    ];
 
   useEffect(() => {
     const fetchItems = async () => {
@@ -154,7 +152,7 @@ export default function ItemsPage() {
     const nameFromStorage = localStorage.getItem('name');
     const mobileFromStorage = localStorage.getItem('mobile');
     if (nameFromStorage) setUserName(nameFromStorage);
-    if (!mobileFromStorage) localStorage.setItem('mobile', prompt("Enter your mobile number"));
+    if (!mobileFromStorage) localStorage.getItem('mobile');
   }, []);
 
   useEffect(() => {
