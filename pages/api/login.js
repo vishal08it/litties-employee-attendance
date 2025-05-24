@@ -37,7 +37,7 @@ export default async function handler(req, res) {
   }
 
   // Determine redirect
-  let destination = '/homeitems';
+  let destination = '/itemspage';
   if (user.role === 'admin')       destination = '/admin';
   else if (user.role === 'employee') destination = '/employee';
 
