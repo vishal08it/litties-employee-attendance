@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { useRouter } from 'next/router';
 import styles from '../styles/Home.module.css';
@@ -7,7 +6,7 @@ import '@/styles/globals.css';
 
 export default function Home() {
   const [showLogin, setShowLogin] = useState(false);
-  const [empId, setEmpId] = useState('');
+  const [identifier, setIdentifier] = useState('');
   const [password, setPassword] = useState('');
   const router = useRouter();
 
@@ -16,19 +15,18 @@ export default function Home() {
     const res = await fetch('/api/login', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ empId, password }),
+      body: JSON.stringify({ identifier, password }),
     });
 
     const data = await res.json();
-    
-
 
     if (res.ok) {
       localStorage.setItem('role', data.role);
-      localStorage.setItem('empId', empId);
       localStorage.setItem('name', data.name || '');
-       localStorage.setItem('image', data.image || '');
-      router.push(data.role === 'admin' ? '/admin' : '/employee');
+      localStorage.setItem('image', data.image || '');
+      if (data.empId) localStorage.setItem('empId', data.empId);
+      if (data.mobileNumber) localStorage.setItem('mobileNumber', data.mobileNumber);
+      router.push(data.destination);
     } else {
       alert(data.message || 'Login failed');
     }
@@ -41,8 +39,8 @@ export default function Home() {
           <Image src="/litties.png" alt="Litties Logo" width={60} height={60} />
         </div>
         <div className={styles.headerText}>
-        <h1 className={styles.title}>Litties Multi Cuisine Family Restaurant</h1>
-        <p className={styles.address}>Shanti Prayag, Lalganj, Sasaram - 821115</p>
+          <h1 className={styles.title}>Litties Multi Cuisine Family Restaurant</h1>
+          <p className={styles.address}>Shanti Prayag, Lalganj, Sasaram - 821115</p>
         </div>
 
         <button onClick={() => setShowLogin(true)} className={styles.loginButton}>Login</button>
@@ -50,35 +48,34 @@ export default function Home() {
 
       {showLogin && (
         <>
-         <div className={styles.overlay1} onClick={() => setShowLogin(false)} />
-<div className={styles.popup1}>
-  <button className={styles.closeButton1} onClick={() => setShowLogin(false)}>&times;</button>
-  <h2>Employee Login</h2>
-  <form onSubmit={login}>
-    <input
-      type="text"
-      placeholder="Employee ID"
-      value={empId}
-      onChange={(e) => setEmpId(e.target.value)}
-      required
-      className={styles.input1}
-    />
-    <input
-      type="password"
-      placeholder="Password"
-      value={password}
-      onChange={(e) => setPassword(e.target.value)}
-      required
-      className={styles.input1}
-    />
-    <button type="submit" className={styles.submitButton1}>Login</button>
-  </form>
-</div>
-
+          <div className={styles.overlay1} onClick={() => setShowLogin(false)} />
+          <div className={styles.popup1}>
+            <button className={styles.closeButton1} onClick={() => setShowLogin(false)}>&times;</button>
+            <h2>Login</h2>
+            <form onSubmit={login}>
+              <input
+                type="text"
+                placeholder="Employee ID or Mobile Number"
+                value={identifier}
+                onChange={(e) => setIdentifier(e.target.value)}
+                required
+                className={styles.input1}
+              />
+              <input
+                type="password"
+                placeholder="Password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+                className={styles.input1}
+              />
+              <button type="submit" className={styles.submitButton1}>Login</button>
+            </form>
+          </div>
         </>
       )}
 
-      <section className={styles.testimonials}>
+     <section className={styles.testimonials}>
         <h2>What Our Customers Say</h2>
 
         {/* 1st Testimonial: Text left, Image right */}

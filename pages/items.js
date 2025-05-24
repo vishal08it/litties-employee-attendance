@@ -3,6 +3,8 @@ import { useRouter } from 'next/router';
 import Image from 'next/image';
 import styles from '../styles/Home.module.css';
 
+
+
 export default function ItemsPage() {
   const router = useRouter();
 
@@ -22,6 +24,9 @@ export default function ItemsPage() {
   const [price, setPrice] = useState('');
   const [image, setImage] = useState(null);
   const [imageUrl, setImageUrl] = useState('');
+  const [category, setCategory] = useState('');
+  const [previewUrl, setPreviewUrl] = useState(null);
+
 
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
@@ -133,7 +138,7 @@ export default function ItemsPage() {
       const res = await fetch(endpoint, {
         method,
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name, price: parseFloat(price), image: uploadedUrl }),
+        body: JSON.stringify({ name, price: parseFloat(price), category,image: uploadedUrl }),
       });
 
       if (!res.ok) throw new Error('Save failed');
@@ -379,62 +384,82 @@ export default function ItemsPage() {
 
       {/* Add/Edit Item Form */}
       {showForm && (
-        <div
-          role="dialog"
-          aria-modal="true"
-          aria-labelledby="formTitle"
-          className={styles.modalOverlay}
-          onClick={(e) => e.target === e.currentTarget && resetForm()}
+  <>
+    <div className={styles.overlay1} onClick={(e) => e.target === e.currentTarget && resetForm()} />
+    <div className={styles.popup1}>
+      <button className={styles.closeButton1} onClick={resetForm}>&times;</button>
+      <h2>{isEditing ? 'Edit Item' : 'Add New Item'}</h2>
+      <form onSubmit={handleSubmit}>
+        <input
+          className={styles.input1}
+          placeholder="Name"
+          id="name"
+          required
+          type="text"
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+          autoFocus
+        />
+
+        <input
+          className={styles.input1}
+          placeholder="Price"
+          id="price"
+          required
+          type="number"
+          step="0.01"
+          min="0"
+          value={price}
+          onChange={(e) => setPrice(e.target.value)}
+        />
+
+        <select
+          className={styles.input2}
+          required
+          value={category}
+          onChange={(e) => setCategory(e.target.value)}
         >
-          <form className={styles.modalContent} onSubmit={handleSubmit}>
-            <h2 id="formTitle">{isEditing ? 'Edit Item' : 'Add New Item'}</h2>
+          <option value="">Select Category</option>
+          <option value="Indian Gravy Veg">Indian Gravy Veg</option>
+          <option value="Indian Gravy Non-Veg">Indian Gravy Non-Veg</option>
+          <option value="Rolls">Rolls</option>
+          <option value="Chowmeins">Chowmeins</option>
+          <option value="Chinese Dry & Gravy">Chinese Dry & Gravy</option>
+          <option value="Momos & Soups">Momos & Soups</option>
+          <option value="Biryani Rice & Roti">Biryani Rice & Roti</option>
+        </select>
 
-            <label htmlFor="name">Name:</label>
-            <input
-              id="name"
-              required
-              type="text"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              autoFocus
-            />
+        <input
+          type="file"
+          accept="image/*"
+          onChange={(e) => setImage(e.target.files[0])}
+          className={styles.input1}
+        />
 
-            <label htmlFor="price">Price:</label>
-            <input
-              id="price"
-              required
-              type="number"
-              step="0.01"
-              min="0"
-              value={price}
-              onChange={(e) => setPrice(e.target.value)}
-            />
+        {imageUrl && !image && (
+          <div style={{ marginBottom: '1rem' }}>
+            <Image src={imageUrl} alt="Current Image" width={80} height={80} />
+          </div>
+        )}
 
-            <label htmlFor="imageUpload">Image:</label>
-            <input
-              id="imageUpload"
-              type="file"
-              accept="image/*"
-              onChange={(e) => setImage(e.target.files[0])}
-            />
-
-            {imageUrl && !image && (
-              <div style={{ marginBottom: '1rem' }}>
-                <Image src={imageUrl} alt="Current Image" width={80} height={80} />
-              </div>
-            )}
-
-            <div style={{ marginTop: '1rem' }}>
-              <button type="submit" style={{ marginRight: '1rem' }}>
-                {isEditing ? 'Update' : 'Add'}
-              </button>
-              <button type="button" onClick={resetForm}>
-                Cancel
-              </button>
-            </div>
-          </form>
+        <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px' }}>
+          <button type="submit" className={styles.submitButton1}>
+            {isEditing ? 'Update' : 'Add'}
+          </button>
+          <button type="button" onClick={resetForm} className={styles.submitButton1} style={{ backgroundColor: '#999' }}>
+            Cancel
+          </button>
         </div>
-      )}
+      </form>
+    </div>
+  
+
+
+  </>
+)}
+
+        
+      
     </div>
   );
 }
