@@ -150,7 +150,7 @@ export default function ItemsPage() {
     fetchItems();
 
     const nameFromStorage = localStorage.getItem('name');
-    const mobileFromStorage = localStorage.getItem('mobile');
+    const mobileFromStorage = localStorage.getItem('mobileNumber');
     if (nameFromStorage) setUserName(nameFromStorage);
     if (!mobileFromStorage) localStorage.getItem('mobile');
   }, []);
@@ -170,7 +170,7 @@ export default function ItemsPage() {
   const logout = () => router.push('/');
 
   const handleAddToCart = async () => {
-    const mobile = localStorage.getItem('mobile');
+    const mobile = localStorage.getItem('mobileNumber');
     if (!mobile) return alert('Mobile number not found');
 
     const existingIndex = cart.findIndex(item => item._id === selectedItem._id);
