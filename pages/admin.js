@@ -464,6 +464,15 @@ const handleDeleteAttendance = async () => {
           <div className={styles.overlay1} onClick={() => setShowForm(false)} />
 <div className={styles.popup1}>
   <button className={styles.closeButton1} onClick={() => setShowForm(false)}>&times;</button>
+   <div style={{
+    display: 'flex',
+    justifyContent: 'center',
+    alignItems: 'center',
+    height: '100%',  // Optional: for vertical centering
+    width: '100%'    // Optional: for horizontal centering
+  }}>
+    <Image src="/litties.png" alt="Litties Logo" width={60} height={60} />
+  </div>
   <h2>Add New Employee</h2>
   <form onSubmit={handleAddEmployee}>
     <input className={styles.input1} placeholder="Employee ID" value={empId} onChange={(e) => setEmpId(e.target.value)} />
@@ -492,6 +501,15 @@ const handleDeleteAttendance = async () => {
   <button className={styles.closeButton1} onClick={() => setShowDeleteModal(false)}>
     &times;
   </button>
+   <div style={{
+    display: 'flex',
+    justifyContent: 'center',
+    alignItems: 'center',
+    height: '100%',  // Optional: for vertical centering
+    width: '100%'    // Optional: for horizontal centering
+  }}>
+    <Image src="/litties.png" alt="Litties Logo" width={60} height={60} />
+  </div>
   <h2>Delete Employee</h2>
   <select
     value={selectedEmpId}
@@ -536,6 +554,15 @@ const handleDeleteAttendance = async () => {
   <button className={styles.closeButton1} onClick={() => setShowDeleteAttendanceModal(false)}>
     &times;
   </button>
+   <div style={{
+    display: 'flex',
+    justifyContent: 'center',
+    alignItems: 'center',
+    height: '100%',  // Optional: for vertical centering
+    width: '100%'    // Optional: for horizontal centering
+  }}>
+    <Image src="/litties.png" alt="Litties Logo" width={60} height={60} />
+  </div>
   <h2>Delete Attendance Records</h2>
 
   <select
@@ -601,6 +628,15 @@ const handleDeleteAttendance = async () => {
   <button className={styles.closeButton1} onClick={() => setShowEditForm(false)}>
     &times;
   </button>
+   <div style={{
+    display: 'flex',
+    justifyContent: 'center',
+    alignItems: 'center',
+    height: '100%',  // Optional: for vertical centering
+    width: '100%'    // Optional: for horizontal centering
+  }}>
+    <Image src="/litties.png" alt="Litties Logo" width={60} height={60} />
+  </div>
   <h2>Edit Attendance</h2>
 
   <form
@@ -674,6 +710,15 @@ const handleDeleteAttendance = async () => {
   <button className={styles.closeButton1} onClick={() => setShowDownloadModal(false)}>
     &times;
   </button>
+   <div style={{
+    display: 'flex',
+    justifyContent: 'center',
+    alignItems: 'center',
+    height: '100%',  // Optional: for vertical centering
+    width: '100%'    // Optional: for horizontal centering
+  }}>
+    <Image src="/litties.png" alt="Litties Logo" width={60} height={60} />
+  </div>
   <h2>Select Employee and Date Range</h2>
 
   <select

@@ -388,6 +388,15 @@ export default function ItemsPage() {
     <div className={styles.overlay1} onClick={(e) => e.target === e.currentTarget && resetForm()} />
     <div className={styles.popup1}>
       <button className={styles.closeButton1} onClick={resetForm}>&times;</button>
+       <div style={{
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center',
+        height: '100%',  // Optional: for vertical centering
+        width: '100%'    // Optional: for horizontal centering
+      }}>
+        <Image src="/litties.png" alt="Litties Logo" width={60} height={60} />
+      </div>
       <h2>{isEditing ? 'Edit Item' : 'Add New Item'}</h2>
       <form onSubmit={handleSubmit}>
         <input
