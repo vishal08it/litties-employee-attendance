@@ -8,7 +8,6 @@ export default function Employee() {
   const [name, setName] = useState('');
   const [photoUrl, setPhotoUrl] = useState('');
   const [popupMessage, setPopupMessage] = useState('');
-  const [popupError, setPopupError] = useState('');
   const [records, setRecords] = useState([]);
   const router = useRouter();
 
@@ -50,61 +49,22 @@ export default function Employee() {
   };
 
   const punch = async () => {
-    if (!navigator.geolocation) {
-      setPopupError('Geolocation is not supported by your browser.');
-      setTimeout(() => setPopupError(''), 3000);
-      return;
-    }
+    const empId = localStorage.getItem('empId');
+    const name = localStorage.getItem('name');
 
-    navigator.geolocation.getCurrentPosition(async (position) => {
-      const userLat = position.coords.latitude;
-      const userLon = position.coords.longitude;
-      const restaurantLat = 24.969167;
-      const restaurantLon = 84.019472;
-
-      const distance = getDistanceFromLatLonInMeters(userLat, userLon, restaurantLat, restaurantLon);
-
-      if (distance > 50) {
-        setPopupError('You are not at the restaurant location! Move closer to punch in/out.');
-        setTimeout(() => setPopupError(''), 4000);
-        return;
-      }
-
-      const empId = localStorage.getItem('empId');
-      const name = localStorage.getItem('name');
-
-      const res = await fetch('/api/punch', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ empId, name }),
-      });
-      await res.json();
-      checkPunch();
-      fetchRecords();
-
-      const message = status === 'punchin' ? 'Punched In Successfully!' : 'Punched Out Successfully!';
-      setPopupMessage(message);
-      setTimeout(() => setPopupMessage(''), 3000);
-    }, (error) => {
-      console.error(error);
-      setPopupError('Location access denied. Please allow location permission.');
-      setTimeout(() => setPopupError(''), 4000);
+    const res = await fetch('/api/punch', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ empId, name }),
     });
-  };
+    await res.json();
+    checkPunch();
+    fetchRecords();
 
-  const getDistanceFromLatLonInMeters = (lat1, lon1, lat2, lon2) => {
-    const R = 6371000; // Radius of the Earth in meters
-    const dLat = deg2rad(lat2 - lat1);
-    const dLon = deg2rad(lon2 - lon1);
-    const a =
-      Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-      Math.cos(deg2rad(lat1)) * Math.cos(deg2rad(lat2)) *
-      Math.sin(dLon / 2) * Math.sin(dLon / 2);
-    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-    return R * c;
+    const message = status === 'punchin' ? 'Punched In Successfully!' : 'Punched Out Successfully!';
+    setPopupMessage(message);
+    setTimeout(() => setPopupMessage(''), 3000);
   };
-
-  const deg2rad = (deg) => deg * (Math.PI / 180);
 
   const logout = () => {
     localStorage.clear();
@@ -250,36 +210,8 @@ export default function Employee() {
       </div>
 
       {popupMessage && (
-        <div style={{
-          backgroundColor: '#16a34a',
-          color: '#fff',
-          padding: '12px 24px',
-          borderRadius: '8px',
-          position: 'fixed',
-          top: '20px',
-          left: '50%',
-          transform: 'translateX(-50%)',
-          zIndex: 1000,
-          boxShadow: '0 5px 20px rgba(0,0,0,0.2)',
-        }}>
+        <div className="popupMessage">
           {popupMessage}
-        </div>
-      )}
-
-      {popupError && (
-        <div style={{
-          backgroundColor: '#dc2626',
-          color: '#fff',
-          padding: '12px 24px',
-          borderRadius: '8px',
-          position: 'fixed',
-          top: '20px',
-          left: '50%',
-          transform: 'translateX(-50%)',
-          zIndex: 1000,
-          boxShadow: '0 5px 20px rgba(0,0,0,0.2)',
-        }}>
-          {popupError}
         </div>
       )}
     </div>
