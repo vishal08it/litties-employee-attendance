@@ -49,21 +49,48 @@ export default function Employee() {
   };
 
   const punch = async () => {
+    debugger
     const empId = localStorage.getItem('empId');
     const name = localStorage.getItem('name');
 
-    const res = await fetch('/api/punch', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ empId, name }),
-    });
-    await res.json();
-    checkPunch();
-    fetchRecords();
+    if (!navigator.geolocation) {
+      alert('Geolocation is not supported by your browser.');
+      return;
+    }
 
-    const message = status === 'punchin' ? 'Punched In Successfully!' : 'Punched Out Successfully!';
-    setPopupMessage(message);
-    setTimeout(() => setPopupMessage(''), 3000);
+    navigator.geolocation.getCurrentPosition(
+      async (position) => {
+        const location = {
+          lat: position.coords.latitude,
+          lng: position.coords.longitude,
+        };
+
+        console.log('Location:', location); // Optional: can remove in production
+
+        const res = await fetch('/api/punch', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ empId, name, location }),
+        });
+
+        await res.json();
+        checkPunch();
+        fetchRecords();
+
+        const message = status === 'punchin' ? 'Punched In Successfully!' : 'Punched Out Successfully!';
+        setPopupMessage(message);
+        setTimeout(() => setPopupMessage(''), 3000);
+      },
+      (error) => {
+        console.error('Error getting location:', error);
+        alert('Location access denied. Please allow location access to punch in/out.');
+      },
+      {
+        enableHighAccuracy: true,
+        timeout: 10000,
+        maximumAge: 0
+      }
+    );
   };
 
   const logout = () => {
@@ -217,4 +244,3 @@ export default function Employee() {
     </div>
   );
 }
-
