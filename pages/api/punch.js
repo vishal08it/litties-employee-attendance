@@ -10,7 +10,7 @@ export default async function handler(req, res) {
   const today = new Date().toISOString().split('T')[0];
 
   const existing = await Attendance.findOne({ empId,name, date: today });
-  //console.log("check", existing)
+  console.log("check", existing)
 
   if (!existing) {
     const punchIn = new Date();
