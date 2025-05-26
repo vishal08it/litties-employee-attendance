@@ -10,6 +10,7 @@ export default function Employee() {
   const [popupMessage, setPopupMessage] = useState('');
   const [popupError, setPopupError] = useState('');
   const [records, setRecords] = useState([]);
+  const [loading, setLoading] = useState(false);
   const router = useRouter();
 
   useEffect(() => {
@@ -50,56 +51,79 @@ export default function Employee() {
   };
 
   const punch = async () => {
+    if (loading) return;
+
+    setLoading(true);
+
+    const currentStatus = status;
+
     if (!navigator.geolocation) {
-      setPopupError('Geolocation is not supported by your browser.');
-      setTimeout(() => setPopupError(''), 3000);
+      setPopupError('Geolocation not supported by your browser.');
+      setTimeout(() => setPopupError(''), 4000);
+      setLoading(false);
       return;
     }
 
-    navigator.geolocation.getCurrentPosition(async (position) => {
-      const userLat = position.coords.latitude;
-      const userLon = position.coords.longitude;
-      const restaurantLat = 24.969167;
-      const restaurantLon = 84.019472;
+    navigator.geolocation.getCurrentPosition(
+      async (position) => {
+        const userLat = position.coords.latitude;
+        const userLon = position.coords.longitude;
+        const restaurantLat = 24.969219106202274;
+        const restaurantLon = 84.01965047063095;
+        
 
-      const distance = getDistanceFromLatLonInMeters(userLat, userLon, restaurantLat, restaurantLon);
+        const distance = getDistanceFromLatLonInMeters(userLat, userLon, restaurantLat, restaurantLon);
 
-      if (distance > 50) {
-        setPopupError('You are not at the restaurant location! Move closer to punch in/out.');
+        if (distance > 50) {
+          setPopupError('You are not at the restaurant location! Move closer to punch in/out.');
+          setTimeout(() => setPopupError(''), 4000);
+          setLoading(false);
+          return;
+        }
+
+        const empId = localStorage.getItem('empId');
+        const name = localStorage.getItem('name');
+
+        try {
+          const res = await fetch('/api/punch', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ empId, name }),
+          });
+          await res.json();
+
+          await checkPunch();
+          await fetchRecords();
+
+          const message = currentStatus === 'punchin' ? 'Punched In Successfully!' : 'Punched Out Successfully!';
+          setPopupMessage(message);
+          setTimeout(() => setPopupMessage(''), 3000);
+        } catch (err) {
+          console.error('Punch error:', err);
+          setPopupError('Something went wrong. Try again.');
+          setTimeout(() => setPopupError(''), 3000);
+        }
+
+        setLoading(false);
+      },
+      (error) => {
+        console.error('Geolocation error:', error);
+        setPopupError('Location access denied. Please allow location permission in browser settings.');
         setTimeout(() => setPopupError(''), 4000);
-        return;
-      }
-
-      const empId = localStorage.getItem('empId');
-      const name = localStorage.getItem('name');
-
-      const res = await fetch('/api/punch', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ empId, name }),
-      });
-      await res.json();
-      checkPunch();
-      fetchRecords();
-
-      const message = status === 'punchin' ? 'Punched In Successfully!' : 'Punched Out Successfully!';
-      setPopupMessage(message);
-      setTimeout(() => setPopupMessage(''), 3000);
-    }, (error) => {
-      console.error(error);
-      setPopupError('Location access denied. Please allow location permission.');
-      setTimeout(() => setPopupError(''), 4000);
-    });
+        setLoading(false);
+      },
+      { timeout: 10000 } // optional: wait 10 seconds max
+    );
   };
 
   const getDistanceFromLatLonInMeters = (lat1, lon1, lat2, lon2) => {
-    const R = 6371000; // Radius of the Earth in meters
+    const R = 6371000; // meters
     const dLat = deg2rad(lat2 - lat1);
     const dLon = deg2rad(lon2 - lon1);
     const a =
-      Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+      Math.sin(dLat / 2) ** 2 +
       Math.cos(deg2rad(lat1)) * Math.cos(deg2rad(lat2)) *
-      Math.sin(dLon / 2) * Math.sin(dLon / 2);
+      Math.sin(dLon / 2) ** 2;
     const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
     return R * c;
   };
@@ -162,8 +186,8 @@ export default function Employee() {
             </p>
           )}
         </div>
-        {status === 'punchin' && <button className={styles.punchin} onClick={punch}>Punch In</button>}
-        {status === 'punchout' && <button className={styles.logoutButton} onClick={punch}>Punch Out</button>}
+        {status === 'punchin' && <button className={styles.punchin} onClick={punch} disabled={loading}>Punch In</button>}
+        {status === 'punchout' && <button className={styles.logoutButton} onClick={punch} disabled={loading}>Punch Out</button>}
         <button onClick={logout} className={styles.logoutButton}>Logout</button>
       </header>
 
