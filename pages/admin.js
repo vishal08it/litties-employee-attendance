@@ -252,34 +252,6 @@ const handleDeleteAttendance = async () => {
   const handleDownloadClick = () => {
     setShowDownloadModal(true);
   };
-//   const handleDeleteEmployee = async () => {
-//   if (!selectedEmpId) {
-//     toast.error("Please select an employee to delete");
-//     return;
-//   }
-
-//   const confirmed = window.confirm(`Are you sure you want to delete employee ${selectedEmpId}?`);
-//   if (!confirmed) return;
-
-//   try {
-//     const res = await fetch("/api/delete-employee", {
-//       method: "POST",
-//       headers: { "Content-Type": "application/json" },
-//       body: JSON.stringify({ empId: selectedEmpId }),
-//     });
-
-//     if (res.ok) {
-//       toast.success("Employee deleted successfully!");
-//       router.push("/admin");
-//     } else {
-//       toast.error("Failed to delete employee");
-//     }
-//   } catch (error) {
-//     console.error(error);
-//     toast.error("Error deleting employee");
-//   }
-// };
-
 
   const getBase64Image = (url) => {
     return new Promise((resolve, reject) => {
@@ -512,22 +484,24 @@ const handleDeleteAttendance = async () => {
   </div>
   <h2>Delete Employee</h2>
   <select
-    value={selectedEmpId}
-    onChange={(e) => setSelectedEmpId(e.target.value)}
-    className={styles.selectBackground}
-  >
-    <option value="">Select Employee</option>
-{employeeList
-  .filter(emp => emp.empId !== "1001")
-  .map(emp => (
-    <option key={emp.empId} value={emp.empId}>
-      {emp.empId} - {emp.name}
-    </option>
-))}
-
-  </select>
-
-  <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '10px' }}>
+  value={selectedEmpId}
+  onChange={(e) => setSelectedEmpId(e.target.value)}
+  className={styles.selectBackground}
+>
+  <option value="">Select Employee</option>
+  {employeeList
+    .filter(emp =>
+      emp.empId && // empId not null
+      emp.empId !== "1001" &&
+      emp.role?.toLowerCase() !== "customer"
+    )
+    .map(emp => (
+      <option key={emp.empId} value={emp.empId}>
+        {emp.empId} - {emp.name}
+      </option>
+    ))}
+</select>
+ <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '10px' }}>
     <button
       onClick={() => setShowDeleteModal(false)}
       className={styles.submitButton1}
@@ -565,21 +539,25 @@ const handleDeleteAttendance = async () => {
   </div>
   <h2>Delete Attendance Records</h2>
 
-  <select
-    value={deleteEmpId}
-    onChange={(e) => setDeleteEmpId(e.target.value)}
-    className={styles.selectBackground}
-  >
-   <option value="">All Employees</option>
-{employeeList
-  .filter(emp => emp.empId !== "1001") // hide Admin user
-  .map((emp) => (
-    <option key={emp.empId} value={emp.empId}>
-      {emp.name} ({emp.empId})
-    </option>
-))}
+ <select
+  value={deleteEmpId}
+  onChange={(e) => setDeleteEmpId(e.target.value)}
+  className={styles.selectBackground}
+>
+  <option value="">All Employees</option>
+  {employeeList
+    .filter(emp =>
+      emp.empId &&                     // empId is not null
+      emp.empId !== "1001" &&          // not Admin
+      emp.role?.toLowerCase() !== "customer" // not Customer
+    )
+    .map((emp) => (
+      <option key={emp.empId} value={emp.empId}>
+        {emp.name} ({emp.empId})
+      </option>
+    ))}
+</select>
 
-  </select>
 
   <div style={{ display: 'flex', gap: '10px', marginTop: '10px', marginBottom: '10px' }}>
     <DatePicker
