@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import Image from 'next/image';
 import styles from '../styles/Home.module.css';
+import { toast } from 'react-toastify';
 
 
 
@@ -10,8 +11,8 @@ export default function ItemsPage() {
 
   // Header logout handler (update with your logout logic)
   const logout = () => {
-    
-    router.push('/'); // adjust to your login route
+    router.push('/');
+    toast.success('Logout Sucessfully') // adjust to your login route
   };
 
   const [items, setItems] = useState([]);

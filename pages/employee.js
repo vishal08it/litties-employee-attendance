@@ -1,13 +1,14 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
 import Image from 'next/image';
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 import styles from '../styles/Home.module.css';
 
 export default function Employee() {
   const [status, setStatus] = useState('');
   const [name, setName] = useState('');
   const [photoUrl, setPhotoUrl] = useState('');
-  const [popupMessage, setPopupMessage] = useState('');
   const [records, setRecords] = useState([]);
   const router = useRouter();
 
@@ -28,47 +29,64 @@ export default function Employee() {
   }, []);
 
   const checkPunch = async () => {
-    const empId = localStorage.getItem('empId');
-    const today = new Date().toISOString().split('T')[0];
+    try {
+      const empId = localStorage.getItem('empId');
+      const today = new Date().toISOString().split('T')[0];
 
-    const res = await fetch('/api/attendances');
-    const all = await res.json();
-    const todayRecord = all.find(a => a.empId === empId && a.date === today);
+      const res = await fetch('/api/attendances');
+      const all = await res.json();
+      const todayRecord = all.find(a => a.empId === empId && a.date === today);
 
-    if (!todayRecord) setStatus('punchin');
-    else if (todayRecord && !todayRecord.punchOut) setStatus('punchout');
-    else setStatus('done');
+      if (!todayRecord) setStatus('punchin');
+      else if (todayRecord && !todayRecord.punchOut) setStatus('punchout');
+      else setStatus('done');
+    } catch (error) {
+      toast.error('Failed to check attendance status.');
+    }
   };
 
   const fetchRecords = async () => {
-    const res = await fetch('/api/attendances');
-    const all = await res.json();
-    const empId = localStorage.getItem('empId');
-    const filtered = all.filter(record => record.empId === empId);
-    setRecords(filtered);
+    try {
+      const res = await fetch('/api/attendances');
+      const all = await res.json();
+      const empId = localStorage.getItem('empId');
+      const filtered = all.filter(record => record.empId === empId);
+      setRecords(filtered);
+    } catch (error) {
+      toast.error('Failed to fetch attendance records.');
+    }
   };
 
   const punch = async () => {
-    const empId = localStorage.getItem('empId');
-    const name = localStorage.getItem('name');
+    try {
+      const empId = localStorage.getItem('empId');
+      const name = localStorage.getItem('name');
 
-    const res = await fetch('/api/punch', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ empId, name }),
-    });
-    await res.json();
-    checkPunch();
-    fetchRecords();
+      const res = await fetch('/api/punch', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ empId, name }),
+      });
 
-    const message = status === 'punchin' ? 'Punched In Successfully!' : 'Punched Out Successfully!';
-    setPopupMessage(message);
-    setTimeout(() => setPopupMessage(''), 3000);
+      const result = await res.json();
+
+      if (res.ok) {
+        checkPunch();
+        fetchRecords();
+        const message = status === 'punchin' ? 'Punched In Successfully!' : 'Punched Out Successfully!';
+        toast.success(message);
+      } else {
+        toast.error(result.message || 'Punch action failed.');
+      }
+    } catch (error) {
+      toast.error('An error occurred while punching.');
+    }
   };
 
   const logout = () => {
     localStorage.clear();
     router.push('/');
+     toast.success('Logout successfully!', { autoClose: 2000 });
   };
 
   const tableHeader = {
@@ -109,6 +127,7 @@ export default function Employee() {
 
   return (
     <div className={styles.container}>
+      <ToastContainer position="top-right" autoClose={3000} />
       <header className={styles.header}>
         <div className={styles.logo}>
           <Image src="/litties.png" alt="Litties Logo" width={60} height={60} />
@@ -208,13 +227,6 @@ export default function Employee() {
           </table>
         </div>
       </div>
-
-      {popupMessage && (
-        <div className="popupMessage">
-          {popupMessage}
-        </div>
-      )}
     </div>
   );
 }
-

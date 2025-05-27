@@ -6,8 +6,10 @@ import autoTable from 'jspdf-autotable';
 import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
 import styles from '../styles/Home.module.css';
-import { toast } from 'react-toastify';
+
 import { FaEdit } from 'react-icons/fa';
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 
 
@@ -139,21 +141,22 @@ const handleUpdateAttendance = async () => {
       const result = await res.json();
 
       if (res.ok) {
-        alert('Employee deleted successfully');
+        toast.success('Employee deleted successfully', { autoClose: 2000 });
         setShowDeleteModal(false);
         await router.push('/admin');
         window.location.reload(); // redirect to admin page
       } else {
-        alert(result.message || 'Failed to delete employee');
+         toast.error(result.message ||'Failed to delete employee.');
       }
     } catch (error) {
       //console.error('Delete employee error:', error);
-      alert('Server error');
+      toast.error('server error')
     }
   };
   const logout = () => {
     localStorage.clear();
     router.push('/');
+     toast.success('Logout successfully!', { autoClose: 2000 });
   };
 
   const uploadImageToCloudinary = async () => {
@@ -172,6 +175,7 @@ const handleUpdateAttendance = async () => {
       return data.secure_url || '';
     } catch (err) {
       //console.error('Cloudinary upload failed:', err);
+      toast.error('Cloudinary upload failed:', err);
       return '';
     }
   };
@@ -187,7 +191,8 @@ const handleUpdateAttendance = async () => {
   });
 
   const json = await res.json();
-  alert(json.message);
+  //alert(json.message);
+  toast.success(json.message,'Employee added successfully.', { autoClose: 2000 })
 
   if (res.ok) {
     setEmpId('');
@@ -214,7 +219,7 @@ const handleDeleteAttendance = async () => {
   }
 
   // Confirm deletion with user
-  const confirmed = window.confirm(
+  const confirmed = toast.confirm(
     `Are you sure you want to delete attendance records from ${formatDate(deleteDateFrom)} to ${formatDate(deleteDateTo)}${deleteEmpId ? ' for employee ' + deleteEmpId : ' for all employees'}?`
   );
 
@@ -355,7 +360,8 @@ const handleDeleteAttendance = async () => {
       }
 
       if (!hasData) {
-        alert('No attendance records found for selected criteria.');
+       
+        toast.error('No attendance records found for selected criteria.')
       } else {
         doc.save('attendance.pdf');
       }
@@ -363,7 +369,8 @@ const handleDeleteAttendance = async () => {
       setShowDownloadModal(false);
     } catch (err) {
      // console.error('PDF generation error:', err);
-      alert('Failed to generate PDF.');
+     
+      toast.error('Failed to generate PDF.')
     }
   };
 

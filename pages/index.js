@@ -3,6 +3,8 @@ import { useRouter } from 'next/router';
 import styles from '../styles/Home.module.css';
 import Image from 'next/image';
 import '@/styles/globals.css';
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 export default function Home() {
   const [showLogin, setShowLogin] = useState(false);
@@ -12,28 +14,41 @@ export default function Home() {
 
   const login = async (e) => {
     e.preventDefault();
-    const res = await fetch('/api/login', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ identifier, password }),
-    });
 
-    const data = await res.json();
+    try {
+      const res = await fetch('/api/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ identifier, password }),
+      });
 
-    if (res.ok) {
-      localStorage.setItem('role', data.role);
-      localStorage.setItem('name', data.name || '');
-      localStorage.setItem('image', data.image || '');
-      if (data.empId) localStorage.setItem('empId', data.empId);
-      if (data.mobileNumber) localStorage.setItem('mobileNumber', data.mobileNumber);
-      router.push(data.destination);
-    } else {
-      alert(data.message || 'Login failed');
+      const data = await res.json();
+
+      if (res.ok) {
+        toast.success('Login successful!', { autoClose: 2000 });
+
+        localStorage.setItem('role', data.role);
+        localStorage.setItem('name', data.name || '');
+        localStorage.setItem('image', data.image || '');
+        if (data.empId) localStorage.setItem('empId', data.empId);
+        if (data.mobileNumber) localStorage.setItem('mobileNumber', data.mobileNumber);
+
+        setTimeout(() => {
+          router.push(data.destination);
+        }, 2500);
+      } else {
+        toast.error(data.message || 'Login failed');
+      }
+    } catch (err) {
+      toast.error('Something went wrong. Please try again.');
     }
   };
 
   return (
     <div className={styles.container}>
+      <ToastContainer position="top-right" theme="colored" />
+
+      {/* Header */}
       <header className={styles.header}>
         <div className={styles.logo}>
           <Image src="/litties.png" alt="Litties Logo" width={60} height={60} />
@@ -42,22 +57,16 @@ export default function Home() {
           <h1 className={styles.title}>Litties Multi Cuisine Family Restaurant</h1>
           <p className={styles.address}>Shanti Prayag, Lalganj, Sasaram - 821115</p>
         </div>
-
         <button onClick={() => setShowLogin(true)} className={styles.loginButton}>Login</button>
       </header>
 
+      {/* Login Popup */}
       {showLogin && (
         <>
           <div className={styles.overlay1} onClick={() => setShowLogin(false)} />
           <div className={styles.popup1}>
             <button className={styles.closeButton1} onClick={() => setShowLogin(false)}>&times;</button>
-             <div style={{
-              display: 'flex',
-              justifyContent: 'center',
-              alignItems: 'center',
-              height: '100%',  // Optional: for vertical centering
-              width: '100%'    // Optional: for horizontal centering
-            }}>
+            <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%', width: '100%' }}>
               <Image src="/litties.png" alt="Litties Logo" width={60} height={60} />
             </div>
             <h2>Login</h2>
@@ -84,7 +93,8 @@ export default function Home() {
         </>
       )}
 
-     <section className={styles.testimonials}>
+      {/* Testimonials */}
+      <section className={styles.testimonials}>
         <h2>What Our Customers Say</h2>
 
         {/* 1st Testimonial: Text left, Image right */}

@@ -9,7 +9,8 @@ export default function OrdersGet() {
   const router = useRouter();
   const logout = () => {
     
-    router.push('/'); // adjust to your login route
+    router.push('/');
+     toast.success('Logout Sucessfully') // adjust to your login route
   };
 
   const statuses = ['New', 'Accepted', 'Rejected', 'Out for Delivery', 'Delivered'];
