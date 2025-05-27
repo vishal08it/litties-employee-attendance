@@ -56,6 +56,7 @@ export default function Employee() {
       toast.error('Failed to fetch attendance records.');
     }
   };
+  
 
   const punch = async () => {
     try {

@@ -253,6 +253,7 @@ const handleDeleteAttendance = async () => {
   } catch (error) {
     //console.error('Error deleting attendance:', error);
     toast.error('Server error while deleting attendance.');
+    
   }
 };
 

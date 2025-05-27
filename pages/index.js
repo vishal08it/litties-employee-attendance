@@ -59,6 +59,7 @@ export default function Home() {
         </div>
         <button onClick={() => setShowLogin(true)} className={styles.loginButton}>Login</button>
       </header>
+      
 
       {/* Login Popup */}
       {showLogin && (
