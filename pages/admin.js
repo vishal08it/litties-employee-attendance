@@ -222,14 +222,16 @@ const handleDeleteAttendance = async () => {
 
   try {
     const res = await fetch('/api/delete-attendance', {
-      method: 'DELETE',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        dateFrom: deleteDateFrom,
-        dateTo: deleteDateTo,
-        empId: deleteEmpId || undefined,
-      }),
-    });
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({
+    _method: 'DELETE',  // Trick to simulate DELETE
+    dateFrom: deleteDateFrom,
+    dateTo: deleteDateTo,
+    empId: deleteEmpId || undefined,
+  }),
+});
+
 
     const result = await res.json();
 
