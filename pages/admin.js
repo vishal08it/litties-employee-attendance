@@ -369,8 +369,6 @@ const handleDeleteAttendance = async () => {
     } else {
       doc.save('attendance.pdf');
     }
-
-
       setShowDownloadModal(false);
     } catch (err) {
      // console.error('PDF generation error:', err);
