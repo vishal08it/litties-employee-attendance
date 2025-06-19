@@ -490,21 +490,29 @@ const generateDOCX = async () => {
       }]
     });
 
-    // ✅ Fix for Android WebView - use FileReader and <a download>
     const blob = await Packer.toBlob(doc);
     const reader = new FileReader();
+
     reader.onload = () => {
       const base64 = reader.result;
-      const a = document.createElement('a');
-      a.href = base64;
-      a.download = `Attendance_${empName}_${empIdKey}.docx`;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-    };
-    reader.readAsDataURL(blob);
+      const filename = `Attendance_${empName}_${empIdKey}.docx`;
 
-    break; // only export one file for mobile
+      if (window.AndroidBridge && window.AndroidBridge.saveDocxFile) {
+        // ✅ Save using Android native bridge
+        window.AndroidBridge.saveDocxFile(base64, filename);
+      } else {
+        // ✅ Fallback for browsers
+        const a = document.createElement("a");
+        a.href = base64;
+        a.download = filename;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+      }
+    };
+
+    reader.readAsDataURL(blob);
+    break; // only export one employee at a time
   }
 
   if (!hasData) {
