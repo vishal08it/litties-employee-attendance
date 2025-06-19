@@ -48,8 +48,7 @@ const [editData, setEditData] = useState({
   punchOut: ''
 });
 
-const [currentPage, setCurrentPage] = useState(1);
-const itemsPerPage = 7;
+
 
 
   // Get unique employees for dropdown and filter
@@ -412,11 +411,7 @@ const handleDeleteAttendance = async () => {
       a.empId.toLowerCase().includes(searchEmp.toLowerCase()) ||
       a.name.toLowerCase().includes(searchEmp.toLowerCase())
   );
-const totalPages = Math.ceil(filteredData.length / itemsPerPage);
-const paginatedData = filteredData.slice(
-  (currentPage - 1) * itemsPerPage,
-  currentPage * itemsPerPage
-);
+
   return (
     <div className={styles.container}>
       <header className={styles.header}>
@@ -847,126 +842,88 @@ const paginatedData = filteredData.slice(
             </tr>
           </thead>
           <tbody>
-            {paginatedData.length === 0 ? (
+            {filteredData.length === 0 && (
               <tr>
-                <td colSpan={8} style={{ textAlign: 'center', padding: '20px' }}>
+                <td colSpan={7} style={{ textAlign: 'center', padding: '20px' }}>
                   No attendance records found.
                 </td>
               </tr>
-            ) : (
-              paginatedData.map((record, i) => {
-                const punchInTime = record.punchIn ? new Date(record.punchIn).toLocaleTimeString() : '';
-                const punchOutTime = record.punchOut ? new Date(record.punchOut).toLocaleTimeString() : '';
-                let timeDiff = '', dayType = '';
-
-                if (record.punchIn && record.punchOut) {
-                  const inTime = new Date(record.punchIn);
-                  const outTime = new Date(record.punchOut);
-                  const diffMs = outTime - inTime;
-                  const hrs = Math.floor(diffMs / 3600000);
-                  const mins = Math.floor((diffMs % 3600000) / 60000);
-                  timeDiff = `${hrs.toString().padStart(2, '0')}:${mins.toString().padStart(2, '0')}`;
-                  dayType = diffMs / 3600000 >= 6 ? 1.0 : 0.5;
-                } else {
-                  dayType = 0.0;
-                }
-
-                return (
-                  <tr
-                    key={i}
-                    style={{
-                      background: i % 2 === 0 ? '#1f2937' : '#374151',
-                      borderRadius: '8px',
-                      boxShadow:
-                        'inset 2px 2px 5px #111827, inset -2px -2px 5px #4b5563',
-                      transition: 'transform 0.2s',
-                      textAlign: 'center',
-                    }}
-                    onMouseEnter={e => e.currentTarget.style.transform = 'scale(1.02)'}
-                    onMouseLeave={e => e.currentTarget.style.transform = 'scale(1)'}
-                  >
-                    <td style={{ padding: '10px 15px' }}>{formatDate(record.date)}</td>
-                    <td>{record.empId}</td>
-                    <td>{record.name}</td>
-                    <td>{punchInTime}</td>
-                    <td>{punchOutTime}</td>
-                    <td>{timeDiff}</td>
-                    <td>{dayType}</td>
-                    <td>
-                      <button
-                        onClick={() => {
-                          setEditData({
-                            empId: record.empId,
-                            name: record.name,
-                            date: record.date,
-                            punchIn: record.punchIn?.slice(11, 16) || '',
-                            punchOut: record.punchOut?.slice(11, 16) || ''
-                          });
-                          setShowEditForm(true);
-                        }}
-                        style={{
-                          background: 'none',
-                          border: 'none',
-                          cursor: 'pointer',
-                          color: '#facc15',
-                          fontSize: '18px'
-                        }}
-                        title="Edit"
-                      >
-                        ✏️
-                      </button>
-                    </td>
-                  </tr>
-                );
-              })
             )}
+            {filteredData.map((record, i) => {
+              const punchInTime = record.punchIn ? new Date(record.punchIn).toLocaleTimeString() : '';
+              const punchOutTime = record.punchOut ? new Date(record.punchOut).toLocaleTimeString() : '';
+
+              let timeDiff = '';
+              let dayType = '';
+
+              if (record.punchIn && record.punchOut) {
+                const inTime = new Date(record.punchIn);
+                const outTime = new Date(record.punchOut);
+                const diffMs = outTime - inTime;
+                const hrs = Math.floor(diffMs / 3600000);
+                const mins = Math.floor((diffMs % 3600000) / 60000);
+                timeDiff = `${hrs.toString().padStart(2, '0')}:${mins.toString().padStart(2, '0')}`;
+                dayType = diffMs / 3600000 >= 6 ? 1.0 : 0.5;
+              } else {
+                dayType = 0.0;
+              }
+
+              return (
+                <tr
+                  key={i}
+                  style={{
+                    background: i % 2 === 0 ? '#1f2937' : '#374151',
+                    borderRadius: '8px',
+                    boxShadow:
+                      'inset 2px 2px 5px #111827, inset -2px -2px 5px #4b5563',
+                    transition: 'transform 0.2s',
+                    textAlign:'center',
+                  }}
+                  onMouseEnter={e => e.currentTarget.style.transform = 'scale(1.02)'}
+                  onMouseLeave={e => e.currentTarget.style.transform = 'scale(1)'}
+                >
+                  <td style={{ padding: '10px 15px' }}>{formatDate(record.date)}</td>
+                  <td>{record.empId}</td>
+                  <td>{record.name}</td>
+                  <td>{punchInTime}</td>
+                  <td>{punchOutTime}</td>
+                  <td>{timeDiff}</td>
+                  <td>{dayType}</td>
+                  
+ <td>
+  <button
+    onClick={() => {
+      setEditData({
+        empId: record.empId,
+        name: record.name,
+        date: record.date,
+        punchIn: record.punchIn?.slice(11, 16) || '',
+        punchOut: record.punchOut?.slice(11, 16) || ''
+      });
+      setShowEditForm(true);
+    }}
+    style={{
+      background: 'none',
+      border: 'none',
+      cursor: 'pointer',
+      color: '#facc15',
+      fontSize: '18px'
+    }}
+    title="Edit"
+  >
+    ✏️
+  </button>
+</td>
+
+
+
+
+                </tr>
+              );
+            })}
           </tbody>
         </table>
       </div>
-      {/* Pagination Controls */}
-      {totalPages > 1 && (
-        <div style={{ display: 'flex', justifyContent: 'center', marginTop: '20px', gap: '10px' }}>
-          <button
-            onClick={() => setCurrentPage(p => Math.max(p - 1, 1))}
-            disabled={currentPage === 1}
-            style={{
-              background: '#facc15',
-              color: '#111827',
-              border: 'none',
-              borderRadius: '5px',
-              padding: '6px 12px',
-              fontWeight: 'bold',
-              cursor: currentPage === 1 ? 'not-allowed' : 'pointer'
-            }}
-          >
-            Previous
-          </button>
-
-          <span style={{ color: '#facc15', fontWeight: 'bold', alignSelf: 'center' }}>
-            Page {currentPage} of {totalPages}
-          </span>
-
-          <button
-            onClick={() => setCurrentPage(p => Math.min(p + 1, totalPages))}
-            disabled={currentPage === totalPages}
-            style={{
-              background: '#facc15',
-              color: '#111827',
-              border: 'none',
-              borderRadius: '5px',
-              padding: '6px 12px',
-              fontWeight: 'bold',
-              cursor: currentPage === totalPages ? 'not-allowed' : 'pointer'
-            }}
-          >
-            Next
-          </button>
-        </div>
-      )}
-    
-  
-
-
     </div>
   );
 }
