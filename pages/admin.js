@@ -10,8 +10,6 @@ import styles from '../styles/Home.module.css';
 import { FaEdit } from 'react-icons/fa';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
-  import { Document, Packer, Paragraph, TextRun, Table, TableRow, TableCell, WidthType } from 'docx';
-import { saveAs } from 'file-saver';
 
 
 
@@ -319,9 +317,6 @@ const handleDeleteAttendance = async () => {
         return isSameOrAfter(recDate, from) && isSameOrBefore(recDate, to);
       });
 
-      // ✅ Sort by date ascending
-      records.sort((a, b) => new Date(a.date) - new Date(b.date));
-
       if (records.length === 0) continue;
       hasData = true;
       if (pageIndex > 0) doc.addPage();
@@ -360,33 +355,27 @@ const handleDeleteAttendance = async () => {
       doc.setFontSize(12);
       doc.text(`Attendance for ${empName} (${empIdKey})`, 14, 35);
 
-      // ✅ Add Date Range line
-      const fromText = dateFrom ? formatDate(dateFrom) : '-';
-      const toText = dateTo ? formatDate(dateTo) : '-';
-      doc.setFontSize(11);
-      doc.text(`Date Range: ${fromText} to ${toText}`, 14, 42);
-
       autoTable(doc, {
-        startY: 47,
+        startY: 40,
         head: [['Date', 'Emp ID', 'Name', 'Punch In', 'Punch Out', 'Time Diff', 'Day Type']],
         body: rows,
       });
 
       pageIndex++;
     }
-
+    
     if (!hasData) {
       toast.error('No attendance records found for selected criteria.');
     } else {
       doc.save('attendance.pdf');
     }
-
-    setShowDownloadModal(false);
-  } catch (err) {
-    toast.error('Failed to generate PDF.');
-  }
-};
-
+      setShowDownloadModal(false);
+    } catch (err) {
+     // console.error('PDF generation error:', err);
+     
+      toast.error('Failed to generate PDF.')
+    }
+  };
 
   // Filter data based on searchEmp input (case-insensitive)
   const filteredData = data.filter(
@@ -394,134 +383,6 @@ const handleDeleteAttendance = async () => {
       a.empId.toLowerCase().includes(searchEmp.toLowerCase()) ||
       a.name.toLowerCase().includes(searchEmp.toLowerCase())
   );
-
-
-
-const generateDOCX = async () => {
-  const grouped = data.reduce((acc, curr) => {
-    const key = `${curr.empId}_${curr.name}`;
-    if (!acc[key]) acc[key] = [];
-    acc[key].push(curr);
-    return acc;
-  }, {});
-
-  let hasData = false;
-
-  for (const key in grouped) {
-    const [empIdKey, empName] = key.split('_');
-
-    if (pdfEmpId && empIdKey !== pdfEmpId.trim()) continue;
-
-    const records = grouped[key].filter((record) => {
-      const recDate = new Date(record.date);
-      const from = dateFrom ? new Date(dateFrom) : null;
-      const to = dateTo ? new Date(dateTo) : null;
-      return isSameOrAfter(recDate, from) && isSameOrBefore(recDate, to);
-    });
-
-    records.sort((a, b) => new Date(a.date) - new Date(b.date));
-    if (records.length === 0) continue;
-    hasData = true;
-
-    const rows = records.map((r) => {
-      const punchIn = r.punchIn ? new Date(r.punchIn).toLocaleTimeString() : '';
-      const punchOut = r.punchOut ? new Date(r.punchOut).toLocaleTimeString() : '';
-      let timeDiff = '', dayType = '';
-
-      if (r.punchIn && r.punchOut) {
-        const inTime = new Date(r.punchIn), outTime = new Date(r.punchOut);
-        const diffMs = outTime - inTime;
-        const hrs = Math.floor(diffMs / 3600000);
-        const mins = Math.floor((diffMs % 3600000) / 60000);
-        timeDiff = `${hrs.toString().padStart(2, '0')}:${mins.toString().padStart(2, '0')}`;
-        dayType = diffMs / 3600000 >= 6 ? 1.0 : 0.5;
-      } else {
-        dayType = 0.0;
-      }
-
-      return [
-        formatDate(r.date),
-        r.empId,
-        r.name,
-        punchIn,
-        punchOut,
-        timeDiff,
-        dayType.toString()
-      ];
-    });
-
-    const totalDays = rows.reduce((acc, r) => acc + parseFloat(r[6]), 0).toFixed(1);
-    const dailySalary = empIdKey === '1004' ? 666.66 : 166.66;
-    const totalSalary = (totalDays * dailySalary).toFixed(2);
-
-    rows.push(['', '', '', '', '', 'Total Days', totalDays]);
-    rows.push(['', '', '', '', '', 'Total Salary', `Rs. ${totalSalary}`]);
-
-    const tableRows = [
-      new TableRow({
-        children: [
-          'Date', 'Emp ID', 'Name', 'Punch In', 'Punch Out', 'Time Diff', 'Day Type'
-        ].map(cell => new TableCell({
-          width: { size: 15, type: WidthType.PERCENTAGE },
-          children: [new Paragraph({ children: [new TextRun({ text: cell, bold: true })] })]
-        }))
-      }),
-      ...rows.map(row =>
-        new TableRow({
-          children: row.map(val => new TableCell({
-            children: [new Paragraph(val.toString())]
-          }))
-        })
-      )
-    ];
-
-    const fromText = dateFrom ? formatDate(dateFrom) : '-';
-    const toText = dateTo ? formatDate(dateTo) : '-';
-
-    const doc = new Document({
-      sections: [{
-        children: [
-          new Paragraph({ children: [new TextRun({ text: 'Litties Multi Cuisine Family Restaurant', bold: true, size: 24 })] }),
-          new Paragraph('Shanti Prayag, Lalganj, Sasaram - 821115'),
-          new Paragraph(`Attendance for ${empName} (${empIdKey})`),
-          new Paragraph(`Date Range: ${fromText} to ${toText}`),
-          new Table({ rows: tableRows })
-        ]
-      }]
-    });
-
-    const blob = await Packer.toBlob(doc);
-    const reader = new FileReader();
-
-    reader.onload = () => {
-      const base64 = reader.result;
-      const filename = `Attendance_${empName}_${empIdKey}.docx`;
-
-      if (window.AndroidBridge && window.AndroidBridge.saveDocxFile) {
-        // ✅ Save using Android native bridge
-        window.AndroidBridge.saveDocxFile(base64, filename);
-      } else {
-        // ✅ Fallback for browsers
-        const a = document.createElement("a");
-        a.href = base64;
-        a.download = filename;
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-      }
-    };
-
-    reader.readAsDataURL(blob);
-    break; // only export one employee at a time
-  }
-
-  if (!hasData) {
-    toast.error('No attendance records found for selected criteria.');
-  }
-
-  setShowDownloadModal(false);
-};
-
 
   return (
     <div className={styles.container}>
@@ -832,79 +693,71 @@ const generateDOCX = async () => {
 )}
 
 
-       {showDownloadModal && (
-  <>
-    <div className={styles.overlay1} onClick={() => setShowDownloadModal(false)} />
-    <div className={styles.popup1}>
-      <button className={styles.closeButton1} onClick={() => setShowDownloadModal(false)}>
-        &times;
-      </button>
+        {showDownloadModal && (
+          <>
+          <div className={styles.overlay1} onClick={() => setShowDownloadModal(false)} />
+<div className={styles.popup1}>
+  <button className={styles.closeButton1} onClick={() => setShowDownloadModal(false)}>
+    &times;
+  </button>
+   <div style={{
+    display: 'flex',
+    justifyContent: 'center',
+    alignItems: 'center',
+    height: '100%',  // Optional: for vertical centering
+    width: '100%'    // Optional: for horizontal centering
+  }}>
+    <Image src="/litties.png" alt="Litties Logo" width={60} height={60} />
+  </div>
+  <h2>Select Employee and Date Range</h2>
 
-      <div style={{
-        display: 'flex',
-        justifyContent: 'center',
-        alignItems: 'center',
-        height: '100%',
-        width: '100%'
-      }}>
-        <Image src="/litties.png" alt="Litties Logo" width={60} height={60} />
-      </div>
+  <select
+    value={pdfEmpId}
+    onChange={(e) => setPdfEmpId(e.target.value)}
+    className={styles.selectBackground}
+  >
+    <option value="">-- Select Employee --</option>
+    {uniqueEmployees.map((emp) => (
+      <option key={emp.empId} value={emp.empId}>
+        {emp.name} ({emp.empId})
+      </option>
+    ))}
+  </select>
 
-      <h2>Select Employee and Date Range</h2>
+  <div style={{ display: 'flex', gap: '10px', marginTop: '10px', marginBottom: '10px' }}>
+    <DatePicker
+      selected={dateFrom}
+      onChange={(date) => setDateFrom(date)}
+      placeholderText="From"
+      className={styles.input1}
+    />
+    <DatePicker
+      selected={dateTo}
+      onChange={(date) => setDateTo(date)}
+      placeholderText="To"
+      className={styles.input1}
+    />
+  </div>
 
-      <select
-        value={pdfEmpId}
-        onChange={(e) => setPdfEmpId(e.target.value)}
-        className={styles.selectBackground}
-      >
-        <option value="">-- Select Employee --</option>
-        {uniqueEmployees.map((emp) => (
-          <option key={emp.empId} value={emp.empId}>
-            {emp.name} ({emp.empId})
-          </option>
-        ))}
-      </select>
+  <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px' }}>
+    <button
+      onClick={generatePDF}
+      className={styles.submitButton1}
+    >
+      Download
+    </button>
+    <button
+      onClick={() => setShowDownloadModal(false)}
+      className={styles.submitButton1}
+      style={{ backgroundColor: '#999' }}
+    >
+      Cancel
+    </button>
+  </div>
+</div>
 
-      <div style={{ display: 'flex', gap: '10px', marginTop: '10px', marginBottom: '10px' }}>
-        <DatePicker
-          selected={dateFrom}
-          onChange={(date) => setDateFrom(date)}
-          placeholderText="From"
-          className={styles.input1}
-        />
-        <DatePicker
-          selected={dateTo}
-          onChange={(date) => setDateTo(date)}
-          placeholderText="To"
-          className={styles.input1}
-        />
-      </div>
-
-      <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px' }}>
-        <button
-          onClick={() => {
-            const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
-            if (isMobile) {
-              generateDOCX();
-            } else {
-              generatePDF();
-            }
-          }}
-          className={styles.submitButton1}
-        >
-          Download
-        </button>
-        <button
-          onClick={() => setShowDownloadModal(false)}
-          className={styles.submitButton1}
-          style={{ backgroundColor: '#999' }}
-        >
-          Cancel
-        </button>
-      </div>
-    </div>
-  </>
-)}
+          </>
+        )}
 
         {/* Filter Dropdown below "Employee Attendance Records" */}
         <div style={{ marginTop: '2rem', marginBottom: '1rem' }}>
