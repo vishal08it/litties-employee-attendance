@@ -304,9 +304,11 @@ const handleDeleteAttendance = async () => {
 
     let hasData = false;
     let pageIndex = 0;
+    let empName = '';
+    let empIdKey = '';
 
     for (const key in grouped) {
-      const [empIdKey, empName] = key.split('_');
+      [empIdKey, empName] = key.split('_');
 
       if (pdfEmpId && empIdKey !== pdfEmpId.trim()) continue;
 
@@ -316,6 +318,8 @@ const handleDeleteAttendance = async () => {
         const to = dateTo ? new Date(dateTo) : null;
         return isSameOrAfter(recDate, from) && isSameOrBefore(recDate, to);
       });
+
+      records.sort((a, b) => new Date(a.date) - new Date(b.date));
 
       if (records.length === 0) continue;
       hasData = true;
@@ -355,27 +359,51 @@ const handleDeleteAttendance = async () => {
       doc.setFontSize(12);
       doc.text(`Attendance for ${empName} (${empIdKey})`, 14, 35);
 
+      const fromText = dateFrom ? formatDate(dateFrom) : '-';
+      const toText = dateTo ? formatDate(dateTo) : '-';
+      doc.setFontSize(11);
+      doc.text(`Date Range: ${fromText} to ${toText}`, 14, 42);
+
       autoTable(doc, {
-        startY: 40,
+        startY: 47,
         head: [['Date', 'Emp ID', 'Name', 'Punch In', 'Punch Out', 'Time Diff', 'Day Type']],
         body: rows,
       });
 
       pageIndex++;
     }
-    
+
     if (!hasData) {
       toast.error('No attendance records found for selected criteria.');
     } else {
-      doc.save('attendance.pdf');
+      const filename = `Attendance_${empName}_${empIdKey}.pdf`;
+      const pdfBlob = doc.output('blob');
+      const reader = new FileReader();
+
+      reader.onload = () => {
+        const base64 = reader.result;
+
+        if (window.AndroidBridge && window.AndroidBridge.savePdfFile) {
+          window.AndroidBridge.savePdfFile(base64, filename);
+        } else {
+          const a = document.createElement("a");
+          a.href = base64;
+          a.download = filename;
+          document.body.appendChild(a);
+          a.click();
+          document.body.removeChild(a);
+        }
+      };
+
+      reader.readAsDataURL(pdfBlob);
     }
-      setShowDownloadModal(false);
-    } catch (err) {
-     // console.error('PDF generation error:', err);
-     
-      toast.error('Failed to generate PDF.')
-    }
-  };
+
+    setShowDownloadModal(false);
+  } catch (err) {
+    toast.error('Failed to generate PDF.');
+  }
+};
+
 
   // Filter data based on searchEmp input (case-insensitive)
   const filteredData = data.filter(
