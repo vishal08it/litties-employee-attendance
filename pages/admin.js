@@ -363,7 +363,6 @@ const handleDeleteAttendance = async () => {
 
       pageIndex++;
     }
-
     if (!hasData) {
       toast.error('No attendance records found for selected criteria.');
     } else {
