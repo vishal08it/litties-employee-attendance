@@ -168,7 +168,7 @@ export default function ItemsPage() {
   const totalPages = Math.ceil(filteredItems.length / ITEMS_PER_PAGE);
 
   const logout = () => router.push('/');
-   toast.success('Logout Sucessfully')
+   //toast.success('Logout Sucessfully')
 
   const handleAddToCart = async () => {
     const mobile = localStorage.getItem('mobileNumber');
