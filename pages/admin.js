@@ -419,9 +419,7 @@ const generateDOCX = async () => {
       return isSameOrAfter(recDate, from) && isSameOrBefore(recDate, to);
     });
 
-    // ✅ Sort records by date ASCENDING
     records.sort((a, b) => new Date(a.date) - new Date(b.date));
-
     if (records.length === 0) continue;
     hasData = true;
 
@@ -477,27 +475,36 @@ const generateDOCX = async () => {
       )
     ];
 
-    // ✅ Format "From" and "To" dates using formatDate()
     const fromText = dateFrom ? formatDate(dateFrom) : '-';
     const toText = dateTo ? formatDate(dateTo) : '-';
 
     const doc = new Document({
       sections: [{
         children: [
-          new Paragraph({
-            children: [new TextRun({ text: 'Litties Multi Cuisine Family Restaurant', bold: true, size: 24 })]
-          }),
+          new Paragraph({ children: [new TextRun({ text: 'Litties Multi Cuisine Family Restaurant', bold: true, size: 24 })] }),
           new Paragraph('Shanti Prayag, Lalganj, Sasaram - 821115'),
           new Paragraph(`Attendance for ${empName} (${empIdKey})`),
-          new Paragraph(`Date Range: ${fromText} to ${toText}`), // ✅ Added date range display
+          new Paragraph(`Date Range: ${fromText} to ${toText}`),
           new Table({ rows: tableRows })
         ]
       }]
     });
 
+    // ✅ Fix for Android WebView - use FileReader and <a download>
     const blob = await Packer.toBlob(doc);
-    saveAs(blob, `Attendance_${empName}_${empIdKey}.docx`);
-    break; // only export one file at a time for mobile
+    const reader = new FileReader();
+    reader.onload = () => {
+      const base64 = reader.result;
+      const a = document.createElement('a');
+      a.href = base64;
+      a.download = `Attendance_${empName}_${empIdKey}.docx`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+    };
+    reader.readAsDataURL(blob);
+
+    break; // only export one file for mobile
   }
 
   if (!hasData) {
@@ -506,7 +513,6 @@ const generateDOCX = async () => {
 
   setShowDownloadModal(false);
 };
-
 
 
   return (
