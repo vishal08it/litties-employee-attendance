@@ -290,7 +290,7 @@ const handleDeleteAttendance = async () => {
   const isSameOrAfter = (a, b) => !b || a.setHours(0, 0, 0, 0) >= b.setHours(0, 0, 0, 0);
   const isSameOrBefore = (a, b) => !b || a.setHours(0, 0, 0, 0) <= b.setHours(0, 0, 0, 0);
 
-  const generatePDF = async () => {
+ const generatePDF = async () => {
   try {
     const doc = new jsPDF();
     const logoData = await getBase64Image('https://res.cloudinary.com/depov4b4l/image/upload/v1747723678/va6o3y0edaied536mjlv.jpg');
@@ -345,10 +345,32 @@ const handleDeleteAttendance = async () => {
       });
 
       const totalDays = rows.reduce((acc, r) => acc + parseFloat(r[6]), 0).toFixed(1);
-      const dailySalary = empIdKey === '1004' ? 666.66 : 166.66;
-      const totalSalary = (totalDays * dailySalary).toFixed(2);
 
+      // 👇 Bonus Logic & Salary Calculation
+      const fromDate = dateFrom ? new Date(dateFrom) : null;
+      const month = fromDate ? fromDate.getMonth() : null;
+      const year = fromDate ? fromDate.getFullYear() : null;
+      const totalMonthDays = month !== null && year !== null
+        ? new Date(year, month + 1, 0).getDate()
+        : 30; // fallback if undefined
+
+      const presentDays = parseFloat(totalDays);
+      let baseSalary = empIdKey === '1004' ? 20000 : 5000;
+      let bonus = 0;
+
+      if (
+        (totalMonthDays === 30 && presentDays > 29) ||
+        (totalMonthDays === 31 && presentDays > 30)
+      ) {
+        bonus = empIdKey === '1004' ? 666.66 : 166.66;
+      }
+
+      const dailyRate = baseSalary / totalMonthDays;
+      const totalSalary = ((presentDays * dailyRate) + bonus).toFixed(2);
+
+      // ⬇️ Add rows to PDF
       rows.push(['', '', '', '', '', 'Total Days:', totalDays]);
+      rows.push(['', '', '', '', '', 'Bonus:', `Rs. ${bonus.toFixed(2)}`]);
       rows.push(['', '', '', '', '', 'Total Salary:', `Rs. ${totalSalary}`]);
 
       doc.addImage(logoData, 'jpg', 14, 10, 20, 20);
@@ -403,6 +425,7 @@ const handleDeleteAttendance = async () => {
     toast.error('Failed to generate PDF.');
   }
 };
+
 
 
   // Filter data based on searchEmp input (case-insensitive)

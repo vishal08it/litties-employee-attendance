@@ -4,40 +4,41 @@ import Cart from '@/models/Cart';
 export default async function handler(req, res) {
   await dbConnect();
 
-  if (req.method === 'POST') {
+  const method = req.method;
+
+  if (method === 'POST') {
     const { mobile, items } = req.body;
-
     if (!mobile || !Array.isArray(items)) {
-      return res.status(400).json({ success: false, message: 'Invalid input' });
+      return res.status(400).json({ success: false, message: 'Invalid payload' });
     }
-
     try {
-      for (const item of items) {
-        const existing = await Cart.findOne({ mobile, 'item._id': item._id });
-
-        if (existing) {
-          existing.quantity += item.quantity;
-          await existing.save();
-        } else {
-          await Cart.create({
-            mobile,
-            item: {
-              _id: item._id,
-              name: item.name,
-              image: item.image,
-              price: item.price
-            },
-            quantity: item.quantity
-          });
-        }
+      const existing = await Cart.findOne({ mobile });
+      if (existing) {
+        existing.items = items;
+        await existing.save();
+      } else {
+        await Cart.create({ mobile, items });
       }
-
       return res.status(200).json({ success: true });
-    } catch (error) {
-      console.error('Error saving cart:', error);
-      return res.status(500).json({ success: false, error: error.message });
+    } catch (err) {
+      console.error(err);
+      return res.status(500).json({ success: false, message: 'Save failed' });
     }
-  } else {
-    return res.status(405).json({ success: false, message: 'Method not allowed' });
   }
+
+  if (method === 'GET') {
+    const { mobile } = req.query;
+    if (!mobile) {
+      return res.status(400).json({ success: false, message: 'Invalid query' });
+    }
+    try {
+      const cart = await Cart.findOne({ mobile });
+      return res.status(200).json({ success: true, items: cart?.items || [] });
+    } catch (err) {
+      console.error(err);
+      return res.status(500).json({ success: false, message: 'Fetch failed' });
+    }
+  }
+
+  return res.status(405).end();
 }
