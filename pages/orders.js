@@ -102,8 +102,7 @@ export default function OrdersGet() {
     <tr>
       <th style={{ padding: '10px 15px', borderRadius: '10px 0 0 10px' }}>Order ID</th>
       <th>User ID</th>
-      <th>Email</th>
-      <th>Items</th>
+       <th>Items</th>
       <th>Quantity</th>
       <th>Total</th>
       <th>Status</th>
@@ -134,8 +133,8 @@ export default function OrdersGet() {
         >
           <td style={{ padding: '10px 15px' }}>{order.orderId}</td>
           <td>{order.userId}</td>
-          <td>{order.email}</td>
-          <td><b>{order.items.join(', ')}</b></td>
+          <td><b>{order.items.map(i => i.name).join(', ')}</b></td>
+
           <td>{order.quantity}</td>
           <td>₹{order.totalAmount}</td>
           <td>{order.status}</td>

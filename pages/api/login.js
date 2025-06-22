@@ -45,6 +45,7 @@ export default async function handler(req, res) {
     role:          user.role,
     name:          user.name,
     image:         user.image,
+    emailId:       user.emailId,
     empId:         user.empId || '',
     mobileNumber:  user.mobileNumber || '',
     destination,

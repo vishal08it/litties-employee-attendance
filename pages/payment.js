@@ -9,6 +9,7 @@ import styles from '../styles/Home.module.css';
 
 export default function PaymentPage() {
   const router = useRouter();
+  const [isHydrated, setIsHydrated] = useState(false);
   const [step, setStep] = useState(1);
   const [paymentMethod, setPaymentMethod] = useState('');
   const [selectedAddress, setSelectedAddress] = useState(null);
@@ -19,19 +20,35 @@ export default function PaymentPage() {
   const [showAddressModal, setShowAddressModal] = useState(false);
   const [editAddress, setEditAddress] = useState(null);
   const [formData, setFormData] = useState({ name: '', address: '', mobile: '' });
+  const [email, setEmail] = useState('');
 
   const deliveryCharge = totalAmount < 399 ? 50 : 0;
   const grandTotal = totalAmount + deliveryCharge;
 
   useEffect(() => {
+    setIsHydrated(true);
+    const storedStep = localStorage.getItem('checkoutStep');
+    if (storedStep) setStep(parseInt(storedStep));
+
     const storedCart = localStorage.getItem('cartItems');
+    const storedEmail = localStorage.getItem('emailId');
     if (storedCart) {
       const parsed = JSON.parse(storedCart);
       setCartItems(parsed);
       setTotalAmount(parsed.reduce((a, i) => a + i.total, 0));
     }
+    if (storedEmail) setEmail(storedEmail);
     fetchAddresses();
+
+    if ('Notification' in window && Notification.permission !== 'granted') {
+      Notification.requestPermission();
+    }
   }, []);
+
+  const goToStep = (s) => {
+    setStep(s);
+    localStorage.setItem('checkoutStep', s);
+  };
 
   async function fetchAddresses() {
     const res = await fetch('/api/address');
@@ -71,17 +88,33 @@ export default function PaymentPage() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         orderId,
-        email: 'user@example.com',
-        items: cartItems.map((i) => i.name),
+        userId: selectedAddress?.mobile,
+        email,
+        address: selectedAddress,
+        paymentMethod,
+        items: cartItems,
         quantity: cartItems.reduce((a, i) => a + i.quantity, 0),
         totalAmount: grandTotal,
+        mobile: selectedAddress?.mobile,
       }),
     });
+
     if (res.ok) {
-      setShowSuccess(true);
       localStorage.removeItem('cartItems');
-    } else toast.error('Order failed');
+      localStorage.removeItem('checkoutStep');
+      setCartItems([]);
+      setShowSuccess(true);
+      if ('Notification' in window && Notification.permission === 'granted') {
+        new Notification('✅ Order Successful', {
+          body: 'Your order has been placed. Please check your email for details.',
+        });
+      }
+    } else {
+      toast.error('Order failed. Please check your email for more info.');
+    }
   }
+
+  if (!isHydrated) return null;
 
   if (showSuccess) {
     return (
@@ -89,7 +122,7 @@ export default function PaymentPage() {
         <ToastContainer />
         <div className={styles.centerStep}>
           <h2 className={styles.title}>✅ Order Placed Successfully!</h2>
-          <p>Thank you for your order. We will process it soon.</p>
+          <p>Please check your email for order details.</p>
           <button className="btn cancel mt-4" onClick={() => router.push('/itemspage')}>
             Back to Items
           </button>
@@ -118,125 +151,123 @@ export default function PaymentPage() {
     <div className={styles.paymentContainer}>
       <ToastContainer />
       <AnimatePresence mode="wait">
-        {step === 1 &&
-          StepBox(
-            <>
-              <h2 className={styles.title}>Select Payment Method</h2>
-              <div className={styles.paymentOptions}>
-                <label className={styles.radioLabel}>
-                  <input type="radio" onChange={() => setPaymentMethod('Online Payment')} />
-                  Online Payment
-                </label>
-                <label className={`${styles.radioLabel} ${styles.cod}`}>
-                  <input type="radio" onChange={() => setPaymentMethod('Cash on Delivery')} />
-                  Cash on Delivery
-                </label>
-              </div>
-              <button disabled={!paymentMethod} onClick={() => setStep(2)} className={styles.stepButton}>
-                Continue
-              </button>
-              <div className={styles.summary}>
-                <p>Items Total: ₹{totalAmount.toFixed(2)}</p>
-                {deliveryCharge > 0 && <p><strong>Home Delivery: ₹{deliveryCharge}</strong></p>}
-                <p className="font-semibold"><strong>Total Payable: ₹{grandTotal.toFixed(2)}</strong></p>
-              </div>
-            </>
-          )}
+        {step === 1 && StepBox(
+          <>
+            <h2 className={styles.title}>Select Payment Method</h2>
+            <div className={styles.paymentOptions}>
+              <label className={styles.radioLabel}>
+                <input
+                  type="radio"
+                  name="payment"
+                  value="Online Payment"
+                  checked={paymentMethod === 'Online Payment'}
+                  onChange={() => setPaymentMethod('Online Payment')}
+                />
+                Online Payment
+              </label>
+              <label className={`${styles.radioLabel} ${styles.cod}`}>
+                <input
+                  type="radio"
+                  name="payment"
+                  value="Cash on Delivery"
+                  checked={paymentMethod === 'Cash on Delivery'}
+                  onChange={() => setPaymentMethod('Cash on Delivery')}
+                />
+                Cash on Delivery
+              </label>
+            </div>
+            <button disabled={!paymentMethod} onClick={() => goToStep(2)} className={styles.stepButton}>
+              Continue
+            </button>
+            <div className={styles.summary}>
+              <p>Items Total: ₹{totalAmount.toFixed(2)}</p>
+              {deliveryCharge > 0 && <p><strong>Home Delivery: ₹{deliveryCharge}</strong></p>}
+              <p className="font-semibold"><strong>Total Payable: ₹{grandTotal.toFixed(2)}</strong></p>
+            </div>
+          </>
+        )}
 
-        {step === 2 &&
-          StepBox(
-            <>
-              <h2 className={styles.title}>Your Addresses</h2>
-              {addresses.map((addr) => (
-                <div key={addr._id} className={styles.addressBox}>
-                  <p className="font-bold">{addr.name}</p>
-                  <p>{addr.address}</p>
-                  <p>Mobile: {addr.mobile}</p>
-                  <div className={styles.addressActions}>
-                    <button
-                      className="btn orange"
-                      onClick={() => {
-                        setEditAddress(addr);
-                        setFormData(addr);
-                        setShowAddressModal(true);
-                      }}
-                    >
-                      Edit
-                    </button>
-                    <button className="btn red" onClick={() => deleteAddress(addr._id)}>
-                      Delete
-                    </button>
-                    <button
-                      className="btn yellow"
-                      onClick={() => {
-                        setSelectedAddress(addr);
-                        setStep(3);
-                      }}
-                    >
-                      Use This Address
-                    </button>
-                  </div>
-                </div>
-              ))}
-              <button className="btn green" onClick={() => {
-                setEditAddress(null);
-                setFormData({ name: '', address: '', mobile: '' });
-                setShowAddressModal(true);
-              }}>
-                Add Address
-              </button>
-            </>
-          )}
+       {step === 2 && StepBox(
+  <>
+    <h2 className={styles.title}>Your Addresses</h2>
+    {addresses.map((addr) => (
+      <div key={addr._id} className={styles.addressBox}>
+        <p className="font-bold">{addr.name}</p>
+        <p>{addr.address}</p>
+        <p>Mobile: {addr.mobile}</p>
+        <div className={styles.addressActions}>
+          <button className="btn orange" onClick={() => {
+            setEditAddress(addr);
+            setFormData(addr);
+            setShowAddressModal(true);
+          }}>Edit</button>
+          <button className="btn red" onClick={() => deleteAddress(addr._id)}>Delete</button>
+          <button className="btn yellow" onClick={() => {
+            setSelectedAddress(addr);
+            goToStep(3);
+          }}>Use This Address</button>
+        </div>
+      </div>
+    ))}
+    <button className="btn green" onClick={() => {
+      setEditAddress(null);
+      setFormData({ name: '', address: '', mobile: '' });
+      setShowAddressModal(true);
+    }}>Add Address</button>
+    
+    <button className="link mt-4" onClick={() => goToStep(1)}>← Back</button>
+  </>
+)}
 
-        {step === 3 &&
-          StepBox(
-            <>
-              <h2 className={styles.title}>Checkout</h2>
-              <div className={styles.checkoutDetails}>
-                <div>
-                  <p className="font-semibold mb-1">Item Details</p>
-                  <div className={styles.detailBox}>
-                    {cartItems.map((item, idx) => (
-                      <div key={idx} className={styles.checkoutItem}>
-                        <img src={item.image} alt={item.name} className={styles.checkoutImage} />
-                        <div className={styles.checkoutInfo}>
-                          <p className="font-semibold">{item.name}</p>
-                          <p>₹{item.price} × {item.quantity}</p>
-                        </div>
-                        <div className={styles.checkoutSubtotal}>₹{(item.price * item.quantity).toFixed(2)}</div>
+
+        {step === 3 && StepBox(
+          <>
+            <h2 className={styles.title}>Checkout</h2>
+            <div className={styles.checkoutDetails}>
+              <div>
+                <p className="font-semibold mb-1">Item Details</p>
+                <div className={styles.detailBox}>
+                  {cartItems.map((item, idx) => (
+                    <div key={idx} className={styles.checkoutItem}>
+                      <img src={item.image} alt={item.name} className={styles.checkoutImage} />
+                      <div className={styles.checkoutInfo}>
+                        <p className="font-semibold">{item.name}</p>
+                        <p>₹{item.price} × {item.quantity}</p>
                       </div>
-                    ))}
-                    {deliveryCharge > 0 && (
-                      <div className={styles.checkoutItem}>
-                        <div />
-                        <div className={styles.checkoutInfo}>
-                          <p className="font-semibold">Delivery Charge</p>
-                        </div>
-                        <div className={styles.checkoutSubtotal}><strong>₹{deliveryCharge}</strong></div>
-                      </div>
-                    )}
-                    <div className={`${styles.checkoutItem} ${styles.totalRow}`}>
+                      <div className={styles.checkoutSubtotal}>₹{(item.price * item.quantity).toFixed(2)}</div>
+                    </div>
+                  ))}
+                  {deliveryCharge > 0 && (
+                    <div className={styles.checkoutItem}>
                       <div />
                       <div className={styles.checkoutInfo}>
-                        <p className="font-semibold">Total Amount</p>
+                        <p className="font-semibold">Delivery Charge</p>
                       </div>
-                      <div className={styles.checkoutSubtotal}><strong>₹{grandTotal.toFixed(2)}</strong></div>
+                      <div className={styles.checkoutSubtotal}><strong>₹{deliveryCharge}</strong></div>
                     </div>
-                  </div>
-                </div>
-                <div>
-                  <p className="font-semibold mb-1">Shipping Address</p>
-                  <div className={styles.detailBox}>
-                    <p>{selectedAddress?.name}</p>
-                    <p>{selectedAddress?.address}</p>
-                    <p>Mobile: {selectedAddress?.mobile}</p>
+                  )}
+                  <div className={`${styles.checkoutItem} ${styles.totalRow}`}>
+                    <div />
+                    <div className={styles.checkoutInfo}>
+                      <p className="font-semibold">Total Amount</p>
+                    </div>
+                    <div className={styles.checkoutSubtotal}><strong>₹{grandTotal.toFixed(2)}</strong></div>
                   </div>
                 </div>
               </div>
-              <button onClick={placeOrder} className={styles.placeOrder}>Place Order</button>
-              <button className="link mt-2" onClick={() => setStep(2)}>← Back</button>
-            </>
-          )}
+              <div>
+                <p className="font-semibold mb-1">Shipping Address</p>
+                <div className={styles.detailBox}>
+                  <p>{selectedAddress?.name}</p>
+                  <p>{selectedAddress?.address}</p>
+                  <p>Mobile: {selectedAddress?.mobile}</p>
+                </div>
+              </div>
+            </div>
+            <button onClick={placeOrder} className={styles.placeOrder}>Place Order</button>
+            <button className="link mt-2" onClick={() => goToStep(2)}>← Back</button>
+          </>
+        )}
       </AnimatePresence>
 
       {showAddressModal && (

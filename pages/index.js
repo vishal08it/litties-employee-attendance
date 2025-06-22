@@ -30,6 +30,7 @@ export default function Home() {
         localStorage.setItem('role', data.role);
         localStorage.setItem('name', data.name || '');
         localStorage.setItem('image', data.image || '');
+         localStorage.setItem('emailId', data.emailId || '');
         if (data.empId) localStorage.setItem('empId', data.empId);
         if (data.mobileNumber) localStorage.setItem('mobileNumber', data.mobileNumber);
 
