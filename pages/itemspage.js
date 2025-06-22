@@ -2,7 +2,6 @@ import { useEffect, useState } from 'react';
 import Image from 'next/image';
 import styles from '../styles/Home.module.css';
 import { useRouter } from 'next/router';
-import dbConnect from '@/lib/mongodb'; // if you need server-side fetch
 
 export default function ItemsPage() {
   const [allItems, setAllItems] = useState([]);
@@ -15,18 +14,24 @@ export default function ItemsPage() {
   const [cart, setCart] = useState([]);
   const [userName, setUserName] = useState('');
   const [cartVisible, setCartVisible] = useState(false);
+  const [screenWidth, setScreenWidth] = useState(0);
 
   const ITEMS_PER_PAGE = 16;
   const router = useRouter();
 
   const categories = [
-    "Rolls","Chowmeins","Momos","Soups","Rice & Roti","Biryani",
-    "Chinese Dry & Gravy","Indian Gravy Veg","Indian Gravy Non-Veg","Litties Special"
+    "Rolls", "Chowmeins", "Momos", "Soups", "Rice & Roti", "Biryani",
+    "Chinese Dry & Gravy", "Indian Gravy Veg", "Indian Gravy Non-Veg", "Litties Special"
   ];
 
   const mobile = typeof window !== 'undefined' ? localStorage.getItem('mobileNumber') : null;
+useEffect(() => {
+  setScreenWidth(window.innerWidth);
+  const handleResize = () => setScreenWidth(window.innerWidth);
+  window.addEventListener('resize', handleResize);
+  return () => window.removeEventListener('resize', handleResize);
+}, []);
 
-  // 1️⃣ Fetch items & user info
   useEffect(() => {
     fetch('/api/items')
       .then(res => res.json())
@@ -36,7 +41,6 @@ export default function ItemsPage() {
     if (name) setUserName(name);
   }, []);
 
-  // 2️⃣ Load cart from DB on mount (once)
   useEffect(() => {
     if (!mobile) return;
     fetch(`/api/cart?mobile=${mobile}`)
@@ -46,7 +50,6 @@ export default function ItemsPage() {
       });
   }, [mobile]);
 
-  // 3️⃣ Sync filteredItems when search/category/allItems change
   useEffect(() => {
     let temp = [...allItems];
     if (category) temp = temp.filter(item => item.category === category);
@@ -107,6 +110,19 @@ export default function ItemsPage() {
   };
 
   const totalAmount = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
+
+  const handleProceedToPayment = () => {
+    if (cart.length === 0) return;
+    const cartData = cart.map(item => ({
+      name: item.name,
+      image: item.image,
+      price: item.price,
+      quantity: item.quantity,
+      total: item.price * item.quantity
+    }));
+    localStorage.setItem('cartItems', JSON.stringify(cartData));
+    router.push('/payment');
+  };
 
   return (
     <div style={{ background: 'linear-gradient(orange, white, green)', minHeight: '100vh', padding: '20px' }}>
@@ -193,57 +209,91 @@ export default function ItemsPage() {
       )}
 
       {cartVisible && (
-        <div style={{
-          position: 'fixed', top: 0, left: 0, width: '100%', height: '100%',
-          background: 'rgba(0,0,0,0.5)', display: 'flex', justifyContent: 'center',
-          alignItems: 'center', zIndex: 999
+  <div style={{
+    position: 'fixed',
+    top: 0, left: 0,
+    width: '100%', height: '100%',
+    background: 'rgba(0,0,0,0.5)',
+    display: 'flex',
+    justifyContent: 'center',
+    alignItems: 'center',
+    zIndex: 999,
+    padding: '1rem',
+    boxSizing: 'border-box'
+  }}>
+    <div style={{
+      background: 'linear-gradient(to bottom, #ffa500, #ffffff, #4caf50)',
+      padding: '1.5rem',
+      borderRadius: '30px',
+      width: '100%',
+      maxWidth: '500px',
+      maxHeight: '90vh',
+      overflowY: 'auto',
+      boxShadow: '0 4px 20px rgba(0,0,0,0.2)'
+    }}>
+      <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '1rem' }}>
+        <Image src="/litties.png" alt="Litties Logo" width={60} height={60} />
+      </div>
+      <h2 style={{ textAlign: 'center', marginBottom: '1rem' }}>🛒 Your Cart</h2>
+
+      {cart.length === 0 ? (
+        <p style={{ textAlign: 'center' }}>No items in cart.</p>
+      ) : cart.map(item => (
+        <div key={item._id} style={{
+          display: 'flex',
+          alignItems: 'center',
+          marginBottom: '1rem',
+          borderBottom: '1px solid #ccc',
+          paddingBottom: '0.5rem'
         }}>
-          <div style={{
-            background: 'linear-gradient(to bottom, #ffa500, #ffffff, #4caf50)',
-            padding: '2rem', borderRadius: '80px',
-            width: '90%', maxWidth: '500px'
-          }}>
-            <div style={{
-              display: 'flex', justifyContent: 'center', alignItems: 'center', width: '100%', height: '100%'
-            }}>
-              <Image src="/litties.png" alt="Litties Logo" width={60} height={60} />
+          <img src={item.image} alt={item.name} width={60} height={60}
+               style={{ borderRadius: '8px', marginRight: '10px' }} />
+          <div style={{ flex: 1 }}>
+            <h4>{item.name}</h4>
+            <p>₹{item.price} × {item.quantity} = ₹{item.price * item.quantity}</p>
+            <div>
+              <button onClick={() => updateQuantity(item._id, -1)}>-</button>
+              <button onClick={() => updateQuantity(item._id, 1)}>+</button>
+              <button onClick={() => removeFromCart(item._id)}
+                      style={{ color: 'red', marginLeft: '10px' }}>🗑️</button>
             </div>
-            <h2>🛒 Your Cart</h2>
-            {cart.length === 0 ? (
-              <p>No items in cart.</p>
-            ) : cart.map(item => (
-              <div key={item._id} style={{
-                display: 'flex', alignItems: 'center', marginBottom: '1rem',
-                borderBottom: '1px solid #ccc', paddingBottom: '0.5rem'
-              }}>
-                <img src={item.image} alt={item.name} width={60} height={60}
-                     style={{ borderRadius: '8px', marginRight: '10px' }} />
-                <div style={{ flex: 1 }}>
-                  <h4>{item.name}</h4>
-                  <p>₹{item.price} × {item.quantity} = ₹{item.price * item.quantity}</p>
-                  <div>
-                    <button onClick={() => updateQuantity(item._id, -1)}>-</button>
-                    <button onClick={() => updateQuantity(item._id, 1)}>+</button>
-                    <button onClick={() => removeFromCart(item._id)}
-                            style={{ color: 'red', marginLeft: '10px' }}>🗑️</button>
-                  </div>
-                </div>
-              </div>
-            ))}
-            <h3>Total: ₹{totalAmount}</h3>
-            <button style={{
-              background: 'green', color: 'white', padding: '0.5rem 1rem',
-              border: 'none', borderRadius: '8px', cursor: 'pointer', marginRight: '10px'
-            }}>
-              Proceed to Payment
-            </button>
-            <button onClick={() => setCartVisible(false)}
-                    style={{ padding: '0.5rem 1rem', background: 'gray', color: 'white', border: 'none', borderRadius: '8px' }}>
-              Close
-            </button>
           </div>
         </div>
-      )}
+      ))}
+
+      <h3 style={{ textAlign: 'center', margin: '1rem 0' }}>Total: ₹{totalAmount}</h3>
+
+      <div style={{ display: 'flex', justifyContent: 'center', gap: '10px', flexWrap: 'wrap' }}>
+        <button
+          onClick={handleProceedToPayment}
+          disabled={cart.length === 0}
+          style={{
+            background: cart.length === 0 ? 'gray' : 'green',
+            color: 'white',
+            padding: '0.5rem 1rem',
+            border: 'none',
+            borderRadius: '8px',
+            cursor: cart.length === 0 ? 'not-allowed' : 'pointer',
+            opacity: cart.length === 0 ? 0.6 : 1
+          }}
+        >
+          Proceed to Payment
+        </button>
+        <button onClick={() => setCartVisible(false)}
+                style={{
+                  padding: '0.5rem 1rem',
+                  background: 'gray',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '8px'
+                }}>
+          Close
+        </button>
+      </div>
+    </div>
+  </div>
+)}
+
     </div>
   );
 }

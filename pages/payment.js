@@ -1,131 +1,277 @@
 'use client';
-import { useState } from 'react';
-import { motion } from 'framer-motion';
+
+import { useEffect, useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
+import { useRouter } from 'next/navigation';
+import styles from '../styles/Home.module.css';
 
 export default function PaymentPage() {
+  const router = useRouter();
   const [step, setStep] = useState(1);
+  const [paymentMethod, setPaymentMethod] = useState('');
   const [selectedAddress, setSelectedAddress] = useState(null);
+  const [cartItems, setCartItems] = useState([]);
+  const [totalAmount, setTotalAmount] = useState(0);
+  const [addresses, setAddresses] = useState([]);
+  const [showSuccess, setShowSuccess] = useState(false);
+  const [showAddressModal, setShowAddressModal] = useState(false);
+  const [editAddress, setEditAddress] = useState(null);
+  const [formData, setFormData] = useState({ name: '', address: '', mobile: '' });
 
-  const addresses = [
-    {
-      id: 1,
-      name: 'Vishal Kumar',
-      address: 'Flat A-202, Gaurakshini, Near Patel chokh, Sasaram, Bihar, 821115',
-      mobile: '7541037802',
-    },
-    {
-      id: 2,
-      name: 'Akash',
-      address: '202, Gaurakshni, Near Patel chokh, Bhopal, Madhya Pradesh, 821115',
-      mobile: '9241741961',
-    },
-  ];
+  const deliveryCharge = totalAmount < 399 ? 50 : 0;
+  const grandTotal = totalAmount + deliveryCharge;
 
-  const containerClass = 'w-[350px] p-6 bg-white rounded-lg shadow-xl max-h-[90vh] overflow-y-auto';
+  useEffect(() => {
+    const storedCart = localStorage.getItem('cartItems');
+    if (storedCart) {
+      const parsed = JSON.parse(storedCart);
+      setCartItems(parsed);
+      setTotalAmount(parsed.reduce((a, i) => a + i.total, 0));
+    }
+    fetchAddresses();
+  }, []);
+
+  async function fetchAddresses() {
+    const res = await fetch('/api/address');
+    setAddresses(await res.json());
+  }
+
+  async function handleAddOrUpdateAddress() {
+    const method = editAddress ? 'PUT' : 'POST';
+    const url = editAddress ? `/api/address/${editAddress._id}` : '/api/address';
+    const res = await fetch(url, {
+      method,
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(formData),
+    });
+    if (res.ok) {
+      toast.success(editAddress ? 'Address updated' : 'Address added');
+      await fetchAddresses();
+      setShowAddressModal(false);
+      setFormData({ name: '', address: '', mobile: '' });
+      setEditAddress(null);
+    } else toast.error('Failed to save address');
+  }
+
+  async function deleteAddress(id) {
+    if (!confirm('Delete this address?')) return;
+    const res = await fetch(`/api/address/${id}`, { method: 'DELETE' });
+    if (res.ok) {
+      toast.success('Address deleted');
+      await fetchAddresses();
+    } else toast.error('Failed to delete');
+  }
+
+  async function placeOrder() {
+    const orderId = 'ORD' + Date.now();
+    const res = await fetch('/api/order', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        orderId,
+        email: 'user@example.com',
+        items: cartItems.map((i) => i.name),
+        quantity: cartItems.reduce((a, i) => a + i.quantity, 0),
+        totalAmount: grandTotal,
+      }),
+    });
+    if (res.ok) {
+      setShowSuccess(true);
+      localStorage.removeItem('cartItems');
+    } else toast.error('Order failed');
+  }
+
+  if (showSuccess) {
+    return (
+      <div className={styles.paymentContainer}>
+        <ToastContainer />
+        <div className={styles.centerStep}>
+          <h2 className={styles.title}>✅ Order Placed Successfully!</h2>
+          <p>Thank you for your order. We will process it soon.</p>
+          <button className="btn cancel mt-4" onClick={() => router.push('/itemspage')}>
+            Back to Items
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  const StepBox = (children) => (
+    <motion.div
+      key={step}
+      initial={{ opacity: 0, x: 100 }}
+      animate={{ opacity: 1, x: 0 }}
+      exit={{ opacity: 0, x: -100 }}
+      transition={{ duration: 0.3 }}
+      className={`${styles.stepBox} ${styles.centerStep}`}
+    >
+      {children}
+      <button onClick={() => router.push('/itemspage')} className="btn cancel mt-4">
+        Cancel
+      </button>
+    </motion.div>
+  );
 
   return (
-    <div className="min-h-screen bg-gradient-to-r from-orange-200 via-white to-green-300 flex items-center justify-center px-4">
-      <div className="flex gap-6 overflow-x-auto max-w-screen-lg py-10">
-
-        {/* Step 1: Payment Method */}
-        <motion.div
-          className={containerClass}
-          animate={{
-            scale: step === 1 ? 1 : 0.95,
-            opacity: step === 1 ? 1 : 0.4,
-            filter: step === 1 ? 'blur(0px)' : 'blur(2px)',
-          }}
-          transition={{ duration: 0.3 }}
-        >
-          <h2 className="text-xl font-bold text-center mb-4">Select Payment Method</h2>
-          <div className="space-y-3">
-            <label><input type="radio" name="payment" /> Online Payment</label>
-            <label><input type="radio" name="payment" /> Cash on Delivery</label>
-            <button
-              onClick={() => setStep(2)}
-              className="w-full bg-yellow-400 text-black py-2 rounded mt-4 font-bold"
-            >
-              Use this Payment Method
-            </button>
-          </div>
-          <div className="mt-6 text-sm border-t pt-4">
-            <p className="font-semibold">Items: ₹430.00</p>
-            <p className="font-bold">Total: ₹430.00</p>
-          </div>
-        </motion.div>
-
-        {/* Step 2: Select Address */}
-        <motion.div
-          className={containerClass}
-          animate={{
-            scale: step === 2 ? 1 : 0.95,
-            opacity: step === 2 ? 1 : 0.4,
-            filter: step === 2 ? 'blur(0px)' : 'blur(2px)',
-          }}
-          transition={{ duration: 0.3 }}
-        >
-          <h2 className="text-xl font-bold text-center mb-4">Select Address</h2>
-          {addresses.map((addr) => (
-            <div key={addr.id} className="mb-4 p-3 bg-gray-100 rounded shadow text-sm">
-              <p className="font-bold">{addr.name}</p>
-              <p>{addr.address}</p>
-              <p>Mobile: {addr.mobile}</p>
-              <div className="flex justify-between mt-2">
-                <button className="px-2 py-1 bg-orange-400 text-white rounded text-xs">Edit</button>
-                <button
-                  onClick={() => {
-                    setSelectedAddress(addr);
-                    setStep(3);
-                  }}
-                  className="px-2 py-1 bg-yellow-400 text-black rounded text-xs"
-                >
-                  Use This Address
-                </button>
+    <div className={styles.paymentContainer}>
+      <ToastContainer />
+      <AnimatePresence mode="wait">
+        {step === 1 &&
+          StepBox(
+            <>
+              <h2 className={styles.title}>Select Payment Method</h2>
+              <div className={styles.paymentOptions}>
+                <label className={styles.radioLabel}>
+                  <input type="radio" onChange={() => setPaymentMethod('Online Payment')} />
+                  Online Payment
+                </label>
+                <label className={`${styles.radioLabel} ${styles.cod}`}>
+                  <input type="radio" onChange={() => setPaymentMethod('Cash on Delivery')} />
+                  Cash on Delivery
+                </label>
               </div>
+              <button disabled={!paymentMethod} onClick={() => setStep(2)} className={styles.stepButton}>
+                Continue
+              </button>
+              <div className={styles.summary}>
+                <p>Items Total: ₹{totalAmount.toFixed(2)}</p>
+                {deliveryCharge > 0 && <p><strong>Home Delivery: ₹{deliveryCharge}</strong></p>}
+                <p className="font-semibold"><strong>Total Payable: ₹{grandTotal.toFixed(2)}</strong></p>
+              </div>
+            </>
+          )}
+
+        {step === 2 &&
+          StepBox(
+            <>
+              <h2 className={styles.title}>Your Addresses</h2>
+              {addresses.map((addr) => (
+                <div key={addr._id} className={styles.addressBox}>
+                  <p className="font-bold">{addr.name}</p>
+                  <p>{addr.address}</p>
+                  <p>Mobile: {addr.mobile}</p>
+                  <div className={styles.addressActions}>
+                    <button
+                      className="btn orange"
+                      onClick={() => {
+                        setEditAddress(addr);
+                        setFormData(addr);
+                        setShowAddressModal(true);
+                      }}
+                    >
+                      Edit
+                    </button>
+                    <button className="btn red" onClick={() => deleteAddress(addr._id)}>
+                      Delete
+                    </button>
+                    <button
+                      className="btn yellow"
+                      onClick={() => {
+                        setSelectedAddress(addr);
+                        setStep(3);
+                      }}
+                    >
+                      Use This Address
+                    </button>
+                  </div>
+                </div>
+              ))}
+              <button className="btn green" onClick={() => {
+                setEditAddress(null);
+                setFormData({ name: '', address: '', mobile: '' });
+                setShowAddressModal(true);
+              }}>
+                Add Address
+              </button>
+            </>
+          )}
+
+        {step === 3 &&
+          StepBox(
+            <>
+              <h2 className={styles.title}>Checkout</h2>
+              <div className={styles.checkoutDetails}>
+                <div>
+                  <p className="font-semibold mb-1">Item Details</p>
+                  <div className={styles.detailBox}>
+                    {cartItems.map((item, idx) => (
+                      <div key={idx} className={styles.checkoutItem}>
+                        <img src={item.image} alt={item.name} className={styles.checkoutImage} />
+                        <div className={styles.checkoutInfo}>
+                          <p className="font-semibold">{item.name}</p>
+                          <p>₹{item.price} × {item.quantity}</p>
+                        </div>
+                        <div className={styles.checkoutSubtotal}>₹{(item.price * item.quantity).toFixed(2)}</div>
+                      </div>
+                    ))}
+                    {deliveryCharge > 0 && (
+                      <div className={styles.checkoutItem}>
+                        <div />
+                        <div className={styles.checkoutInfo}>
+                          <p className="font-semibold">Delivery Charge</p>
+                        </div>
+                        <div className={styles.checkoutSubtotal}><strong>₹{deliveryCharge}</strong></div>
+                      </div>
+                    )}
+                    <div className={`${styles.checkoutItem} ${styles.totalRow}`}>
+                      <div />
+                      <div className={styles.checkoutInfo}>
+                        <p className="font-semibold">Total Amount</p>
+                      </div>
+                      <div className={styles.checkoutSubtotal}><strong>₹{grandTotal.toFixed(2)}</strong></div>
+                    </div>
+                  </div>
+                </div>
+                <div>
+                  <p className="font-semibold mb-1">Shipping Address</p>
+                  <div className={styles.detailBox}>
+                    <p>{selectedAddress?.name}</p>
+                    <p>{selectedAddress?.address}</p>
+                    <p>Mobile: {selectedAddress?.mobile}</p>
+                  </div>
+                </div>
+              </div>
+              <button onClick={placeOrder} className={styles.placeOrder}>Place Order</button>
+              <button className="link mt-2" onClick={() => setStep(2)}>← Back</button>
+            </>
+          )}
+      </AnimatePresence>
+
+      {showAddressModal && (
+        <div className={styles.modalOverlay}>
+          <motion.div className={styles.modalBox} initial={{ scale: 0.8 }} animate={{ scale: 1 }}>
+            <h3 className="text-lg font-bold mb-4">{editAddress ? 'Edit' : 'Add'} Address</h3>
+            <input
+              placeholder="Name"
+              value={formData.name}
+              onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+              className="w-full border p-2 mb-2 rounded"
+            />
+            <textarea
+              placeholder="Address"
+              value={formData.address}
+              onChange={(e) => setFormData({ ...formData, address: e.target.value })}
+              className="w-full border p-2 mb-2 rounded"
+            />
+            <input
+              placeholder="Mobile"
+              value={formData.mobile}
+              onChange={(e) => setFormData({ ...formData, mobile: e.target.value })}
+              className="w-full border p-2 mb-4 rounded"
+            />
+            <div className="flex justify-end gap-2">
+              <button className="btn gray" onClick={() => setShowAddressModal(false)}>
+                Cancel
+              </button>
+              <button className="btn green" onClick={handleAddOrUpdateAddress}>
+                {editAddress ? 'Update' : 'Add'}
+              </button>
             </div>
-          ))}
-          <div className="flex justify-between mt-6">
-            <button onClick={() => setStep(1)} className="text-blue-600 underline">← Back</button>
-            <button className="px-3 py-1 bg-green-500 text-white rounded text-sm">Add Address</button>
-          </div>
-        </motion.div>
-
-        {/* Step 3: Checkout */}
-        <motion.div
-          className={containerClass}
-          animate={{
-            scale: step === 3 ? 1 : 0.95,
-            opacity: step === 3 ? 1 : 0.4,
-            filter: step === 3 ? 'blur(0px)' : 'blur(2px)',
-          }}
-          transition={{ duration: 0.3 }}
-        >
-          <h2 className="text-xl font-bold text-center mb-4">Checkout</h2>
-          <div className="mb-4 text-sm">
-            <p className="font-semibold">Item Details</p>
-            <ul className="list-disc ml-6">
-              <li>Samosa x2 – ₹60</li>
-              <li>Paneer Biryani x1 – ₹370</li>
-            </ul>
-          </div>
-          <div className="mb-4 text-sm">
-            <p className="font-semibold">Shipping Address</p>
-            <p>{selectedAddress?.name}</p>
-            <p>{selectedAddress?.address}</p>
-            <p>Mobile: {selectedAddress?.mobile}</p>
-          </div>
-          <button className="w-full bg-green-500 text-white py-2 rounded font-bold hover:bg-green-600">
-            Place Order
-          </button>
-          <button
-            onClick={() => setStep(2)}
-            className="mt-4 text-sm text-blue-600 underline"
-          >
-            ← Back
-          </button>
-        </motion.div>
-
-      </div>
+          </motion.div>
+        </div>
+      )}
     </div>
   );
 }
