@@ -964,3 +964,37 @@
   margin-top: 0.5rem;
   padding-top: 0.5rem;
 }
+.addressModal {
+  background: linear-gradient(to bottom, #ffcc80, #81c784);
+  border-radius: 20px;
+  padding: 30px;
+  width: 400px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+  position: relative;
+  text-align: center;
+}
+
+.addressModal h3 {
+  font-size: 24px;
+  margin-bottom: 1rem;
+  font-weight: bold;
+  color: #222;
+}
+
+.addressModal input,
+.addressModal textarea {
+  width: 100%;
+  padding: 10px;
+  border-radius: 8px;
+  border: none;
+  box-shadow: inset 1px 1px 3px rgba(0,0,0,0.2);
+  margin-bottom: 1rem;
+}
+
+.addressModal .btn {
+  width: 120px;
+  padding: 10px;
+  margin-top: 1rem;
+  border-radius: 8px;
+  font-weight: bold;
+}

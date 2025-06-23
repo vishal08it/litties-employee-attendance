@@ -6,6 +6,7 @@ import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { useRouter } from 'next/navigation';
 import styles from '../styles/Home.module.css';
+import Image from 'next/image';
 
 export default function PaymentPage() {
   const router = useRouter();
@@ -32,13 +33,15 @@ export default function PaymentPage() {
 
     const storedCart = localStorage.getItem('cartItems');
     const storedEmail = localStorage.getItem('emailId');
+    const mobile = localStorage.getItem('mobileNumber');
+
     if (storedCart) {
       const parsed = JSON.parse(storedCart);
       setCartItems(parsed);
       setTotalAmount(parsed.reduce((a, i) => a + i.total, 0));
     }
     if (storedEmail) setEmail(storedEmail);
-    fetchAddresses();
+    if (mobile) fetchAddresses(mobile);
 
     if ('Notification' in window && Notification.permission !== 'granted') {
       Notification.requestPermission();
@@ -50,9 +53,14 @@ export default function PaymentPage() {
     localStorage.setItem('checkoutStep', s);
   };
 
-  async function fetchAddresses() {
-    const res = await fetch('/api/address');
-    setAddresses(await res.json());
+  async function fetchAddresses(mobile) {
+    try {
+      const res = await fetch(`/api/address/user?mobile=${mobile}`);
+      const data = await res.json();
+      if (Array.isArray(data)) setAddresses(data);
+    } catch (err) {
+      console.error('Failed to fetch addresses:', err);
+    }
   }
 
   async function handleAddOrUpdateAddress() {
@@ -65,7 +73,8 @@ export default function PaymentPage() {
     });
     if (res.ok) {
       toast.success(editAddress ? 'Address updated' : 'Address added');
-      await fetchAddresses();
+      const mobile = localStorage.getItem('mobileNumber');
+      if (mobile) await fetchAddresses(mobile);
       setShowAddressModal(false);
       setFormData({ name: '', address: '', mobile: '' });
       setEditAddress(null);
@@ -77,45 +86,46 @@ export default function PaymentPage() {
     const res = await fetch(`/api/address/${id}`, { method: 'DELETE' });
     if (res.ok) {
       toast.success('Address deleted');
-      await fetchAddresses();
+      const mobile = localStorage.getItem('mobileNumber');
+      if (mobile) await fetchAddresses(mobile);
     } else toast.error('Failed to delete');
   }
 
   async function placeOrder() {
-  const orderId = 'ORD' + Date.now();
-  const res = await fetch('/api/order', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      orderId,
-      userId: selectedAddress?.mobile,
-      email,
-      address: selectedAddress,
-      paymentMethod,
-      items: cartItems,
-      quantity: cartItems.reduce((a, i) => a + i.quantity, 0),
-      totalAmount: grandTotal,
-      mobile: selectedAddress?.mobile,
-    }),
-  });
+    const orderId = 'ORD' + Date.now();
+    const res = await fetch('/api/order', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        orderId,
+        userId: selectedAddress?.mobile,
+        email,
+        address: selectedAddress,
+        paymentMethod,
+        items: cartItems,
+        quantity: cartItems.reduce((a, i) => a + i.quantity, 0),
+        totalAmount: grandTotal,
+        mobile: selectedAddress?.mobile,
+      }),
+    });
 
-  const result = await res.json();
-  console.log('ORDER RESPONSE:', result); // 🔍 LOG HERE
+    const result = await res.json();
+    console.log('ORDER RESPONSE:', result);
 
-  if (res.ok) {
-    localStorage.removeItem('cartItems');
-    localStorage.removeItem('checkoutStep');
-    setCartItems([]);
-    setShowSuccess(true);
-    if ('Notification' in window && Notification.permission === 'granted') {
-      new Notification('✅ Order Successful', {
-        body: 'Your order has been placed. Please check your email for details.',
-      });
+    if (res.ok) {
+      localStorage.removeItem('cartItems');
+      localStorage.removeItem('checkoutStep');
+      setCartItems([]);
+      setShowSuccess(true);
+      if ('Notification' in window && Notification.permission === 'granted') {
+        new Notification('✅ Order Successful', {
+          body: 'Your order has been placed. Please check your email for details.',
+        });
+      }
+    } else {
+      toast.error('Order failed. Please check your email for more info.');
     }
-  } else {
-    toast.error('Order failed. Please check your email for more info.');
   }
-}
 
   if (!isHydrated) return null;
 
@@ -156,6 +166,10 @@ export default function PaymentPage() {
       <AnimatePresence mode="wait">
         {step === 1 && StepBox(
           <>
+          <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '1rem' }}>
+  <Image src="/litties.png" width={60} height={60} alt="Logo" />
+</div>
+
             <h2 className={styles.title}>Select Payment Method</h2>
             <div className={styles.paymentOptions}>
               <label className={styles.radioLabel}>
@@ -192,6 +206,10 @@ export default function PaymentPage() {
 
         {step === 2 && StepBox(
           <>
+          <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '1rem' }}>
+  <Image src="/litties.png" width={60} height={60} alt="Logo" />
+</div>
+
             <h2 className={styles.title}>Your Addresses</h2>
             {addresses.map((addr) => (
               <div key={addr._id} className={styles.addressBox}>
@@ -223,7 +241,12 @@ export default function PaymentPage() {
 
         {step === 3 && StepBox(
           <>
+          <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '1rem' }}>
+  <Image src="/litties.png" width={60} height={60} alt="Logo" />
+</div>
+
             <h2 className={styles.title}>Checkout</h2>
+            
             <div className={styles.checkoutDetails}>
               <div>
                 <p className="font-semibold mb-1">Item Details</p>
@@ -272,38 +295,35 @@ export default function PaymentPage() {
       </AnimatePresence>
 
       {showAddressModal && (
-        <div className={styles.modalOverlay}>
-          <motion.div className={styles.modalBox} initial={{ scale: 0.8 }} animate={{ scale: 1 }}>
-            <h3 className="text-lg font-bold mb-4">{editAddress ? 'Edit' : 'Add'} Address</h3>
-            <input
-              placeholder="Name"
-              value={formData.name}
-              onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-              className="w-full border p-2 mb-2 rounded"
-            />
-            <textarea
-              placeholder="Address"
-              value={formData.address}
-              onChange={(e) => setFormData({ ...formData, address: e.target.value })}
-              className="w-full border p-2 mb-2 rounded"
-            />
-            <input
-              placeholder="Mobile"
-              value={formData.mobile}
-              onChange={(e) => setFormData({ ...formData, mobile: e.target.value })}
-              className="w-full border p-2 mb-4 rounded"
-            />
-            <div className="flex justify-end gap-2">
-              <button className="btn gray" onClick={() => setShowAddressModal(false)}>
-                Cancel
-              </button>
-              <button className="btn green" onClick={handleAddOrUpdateAddress}>
-                {editAddress ? 'Update' : 'Add'}
-              </button>
-            </div>
-          </motion.div>
-        </div>
-      )}
+  <div className={styles.modalOverlay}>
+    <motion.div className={styles.addressModal} initial={{ scale: 0.8 }} animate={{ scale: 1 }}>
+      <Image src="/litties.png" width={60} height={60} alt="Logo" style={{ margin: '0 auto' }} />
+      <h3>{editAddress ? 'Edit Address' : 'Add Address'}</h3>
+      <input
+        placeholder="Name"
+        value={formData.name}
+        onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+      />
+      <textarea
+        placeholder="Full Address"
+        value={formData.address}
+        onChange={(e) => setFormData({ ...formData, address: e.target.value })}
+      />
+      <input
+        placeholder="Mobile Number"
+        value={formData.mobile}
+        onChange={(e) => setFormData({ ...formData, mobile: e.target.value })}
+      />
+      <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '1rem' }}>
+        <button className="btn gray" onClick={() => setShowAddressModal(false)}>Cancel</button>
+        <button className="btn green" onClick={handleAddOrUpdateAddress}>
+          {editAddress ? 'Update' : 'Add'}
+        </button>
+      </div>
+    </motion.div>
+  </div>
+)}
+
     </div>
   );
 }

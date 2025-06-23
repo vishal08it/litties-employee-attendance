@@ -1,3 +1,5 @@
+'use client';
+
 import { useState } from 'react';
 import { useRouter } from 'next/router';
 import styles from '../styles/Home.module.css';
@@ -8,13 +10,20 @@ import 'react-toastify/dist/ReactToastify.css';
 
 export default function Home() {
   const [showLogin, setShowLogin] = useState(false);
+  const [showRegister, setShowRegister] = useState(false);
   const [identifier, setIdentifier] = useState('');
   const [password, setPassword] = useState('');
+  const [registerForm, setRegisterForm] = useState({
+    name: '',
+    emailId: '',
+    mobileNumber: '',
+    password: '',
+  });
+
   const router = useRouter();
 
   const login = async (e) => {
     e.preventDefault();
-
     try {
       const res = await fetch('/api/login', {
         method: 'POST',
@@ -30,7 +39,7 @@ export default function Home() {
         localStorage.setItem('role', data.role);
         localStorage.setItem('name', data.name || '');
         localStorage.setItem('image', data.image || '');
-         localStorage.setItem('emailId', data.emailId || '');
+        localStorage.setItem('emailId', data.emailId || '');
         if (data.empId) localStorage.setItem('empId', data.empId);
         if (data.mobileNumber) localStorage.setItem('mobileNumber', data.mobileNumber);
 
@@ -45,11 +54,51 @@ export default function Home() {
     }
   };
 
+  const register = async (e) => {
+  e.preventDefault();
+
+  const body = {
+    name: registerForm.name,
+    password: registerForm.password,
+    emailId: registerForm.emailId,
+    mobileNumber: registerForm.mobileNumber,
+  };
+
+  try {
+    const res = await fetch('/api/register', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+    });
+
+    const data = await res.json();
+
+    if (res.ok) {
+      toast.success('Registered successfully!');
+      setShowRegister(false);
+      setRegisterForm({
+        name: '',
+        password: '',
+        emailId: '',
+        mobileNumber: '',
+      });
+    } else {
+      toast.error(data.message || 'Registration failed');
+    }
+  } catch (err) {
+    console.error('Frontend Registration Error:', err);
+    toast.error('Registration failed. Try again.');
+  }
+};
+
+
+
+
+
   return (
     <div className={styles.container}>
       <ToastContainer position="top-right" theme="colored" />
 
-      {/* Header */}
       <header className={styles.header}>
         <div className={styles.logo}>
           <Image src="/litties.png" alt="Litties Logo" width={60} height={60} />
@@ -58,9 +107,11 @@ export default function Home() {
           <h1 className={styles.title}>Litties Multi Cuisine Family Restaurant</h1>
           <p className={styles.address}>Shanti Prayag, Lalganj, Sasaram - 821115</p>
         </div>
-        <button onClick={() => setShowLogin(true)} className={styles.loginButton}>Login</button>
+        <div>
+          <button onClick={() => setShowLogin(true)} className={styles.loginButton}>Login</button>
+          <button onClick={() => setShowRegister(true)} className={styles.loginButton}>Register</button>
+        </div>
       </header>
-      
 
       {/* Login Popup */}
       {showLogin && (
@@ -68,7 +119,7 @@ export default function Home() {
           <div className={styles.overlay1} onClick={() => setShowLogin(false)} />
           <div className={styles.popup1}>
             <button className={styles.closeButton1} onClick={() => setShowLogin(false)}>&times;</button>
-            <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%', width: '100%' }}>
+            <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
               <Image src="/litties.png" alt="Litties Logo" width={60} height={60} />
             </div>
             <h2>Login</h2>
@@ -95,8 +146,57 @@ export default function Home() {
         </>
       )}
 
-      {/* Testimonials */}
-      <section className={styles.testimonials}>
+      {/* Register Popup */}
+      {showRegister && (
+        <>
+          <div className={styles.overlay1} onClick={() => setShowRegister(false)} />
+          <div className={styles.popup1}>
+            <button className={styles.closeButton1} onClick={() => setShowRegister(false)}>&times;</button>
+            <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+              <Image src="/litties.png" alt="Litties Logo" width={60} height={60} />
+            </div>
+            <h2>Register</h2>
+            <form onSubmit={register}>
+              <input
+                type="text"
+                placeholder="Name"
+                value={registerForm.name}
+                onChange={(e) => setRegisterForm({ ...registerForm, name: e.target.value })}
+                required
+                className={styles.input1}
+              />
+              <input
+                type="email"
+                placeholder="Email"
+                value={registerForm.emailId}
+                onChange={(e) => setRegisterForm({ ...registerForm, emailId: e.target.value })}
+                required
+                className={styles.input1}
+              />
+              <input
+                type="text"
+                placeholder="Mobile Number"
+                value={registerForm.mobileNumber}
+                onChange={(e) => setRegisterForm({ ...registerForm, mobileNumber: e.target.value })}
+                required
+                className={styles.input1}
+              />
+              <input
+                type="password"
+                placeholder="Password"
+                value={registerForm.password}
+                onChange={(e) => setRegisterForm({ ...registerForm, password: e.target.value })}
+                required
+                className={styles.input1}
+              />
+              <button type="submit" className={styles.submitButton1}>Register</button>
+            </form>
+          </div>
+        </>
+      )}
+
+      {/* Testimonials (unchanged) */}
+       <section className={styles.testimonials}>
         <h2>What Our Customers Say</h2>
 
         {/* 1st Testimonial: Text left, Image right */}
