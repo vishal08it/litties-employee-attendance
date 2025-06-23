@@ -82,37 +82,40 @@ export default function PaymentPage() {
   }
 
   async function placeOrder() {
-    const orderId = 'ORD' + Date.now();
-    const res = await fetch('/api/order', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        orderId,
-        userId: selectedAddress?.mobile,
-        email,
-        address: selectedAddress,
-        paymentMethod,
-        items: cartItems,
-        quantity: cartItems.reduce((a, i) => a + i.quantity, 0),
-        totalAmount: grandTotal,
-        mobile: selectedAddress?.mobile,
-      }),
-    });
+  const orderId = 'ORD' + Date.now();
+  const res = await fetch('/api/order', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      orderId,
+      userId: selectedAddress?.mobile,
+      email,
+      address: selectedAddress,
+      paymentMethod,
+      items: cartItems,
+      quantity: cartItems.reduce((a, i) => a + i.quantity, 0),
+      totalAmount: grandTotal,
+      mobile: selectedAddress?.mobile,
+    }),
+  });
 
-    if (res.ok) {
-      localStorage.removeItem('cartItems');
-      localStorage.removeItem('checkoutStep');
-      setCartItems([]);
-      setShowSuccess(true);
-      if ('Notification' in window && Notification.permission === 'granted') {
-        new Notification('✅ Order Successful', {
-          body: 'Your order has been placed. Please check your email for details.',
-        });
-      }
-    } else {
-      toast.error('Order failed. Please check your email for more info.');
+  const result = await res.json();
+  console.log('ORDER RESPONSE:', result); // 🔍 LOG HERE
+
+  if (res.ok) {
+    localStorage.removeItem('cartItems');
+    localStorage.removeItem('checkoutStep');
+    setCartItems([]);
+    setShowSuccess(true);
+    if ('Notification' in window && Notification.permission === 'granted') {
+      new Notification('✅ Order Successful', {
+        body: 'Your order has been placed. Please check your email for details.',
+      });
     }
+  } else {
+    toast.error('Order failed. Please check your email for more info.');
   }
+}
 
   if (!isHydrated) return null;
 
@@ -187,38 +190,36 @@ export default function PaymentPage() {
           </>
         )}
 
-       {step === 2 && StepBox(
-  <>
-    <h2 className={styles.title}>Your Addresses</h2>
-    {addresses.map((addr) => (
-      <div key={addr._id} className={styles.addressBox}>
-        <p className="font-bold">{addr.name}</p>
-        <p>{addr.address}</p>
-        <p>Mobile: {addr.mobile}</p>
-        <div className={styles.addressActions}>
-          <button className="btn orange" onClick={() => {
-            setEditAddress(addr);
-            setFormData(addr);
-            setShowAddressModal(true);
-          }}>Edit</button>
-          <button className="btn red" onClick={() => deleteAddress(addr._id)}>Delete</button>
-          <button className="btn yellow" onClick={() => {
-            setSelectedAddress(addr);
-            goToStep(3);
-          }}>Use This Address</button>
-        </div>
-      </div>
-    ))}
-    <button className="btn green" onClick={() => {
-      setEditAddress(null);
-      setFormData({ name: '', address: '', mobile: '' });
-      setShowAddressModal(true);
-    }}>Add Address</button>
-    
-    <button className="link mt-4" onClick={() => goToStep(1)}>← Back</button>
-  </>
-)}
-
+        {step === 2 && StepBox(
+          <>
+            <h2 className={styles.title}>Your Addresses</h2>
+            {addresses.map((addr) => (
+              <div key={addr._id} className={styles.addressBox}>
+                <p className="font-bold">{addr.name}</p>
+                <p>{addr.address}</p>
+                <p>Mobile: {addr.mobile}</p>
+                <div className={styles.addressActions}>
+                  <button className="btn orange" onClick={() => {
+                    setEditAddress(addr);
+                    setFormData(addr);
+                    setShowAddressModal(true);
+                  }}>Edit</button>
+                  <button className="btn red" onClick={() => deleteAddress(addr._id)}>Delete</button>
+                  <button className="btn yellow" onClick={() => {
+                    setSelectedAddress(addr);
+                    goToStep(3);
+                  }}>Use This Address</button>
+                </div>
+              </div>
+            ))}
+            <button className="btn green" onClick={() => {
+              setEditAddress(null);
+              setFormData({ name: '', address: '', mobile: '' });
+              setShowAddressModal(true);
+            }}>Add Address</button>
+            <button className="link mt-4" onClick={() => goToStep(1)}>← Back</button>
+          </>
+        )}
 
         {step === 3 && StepBox(
           <>

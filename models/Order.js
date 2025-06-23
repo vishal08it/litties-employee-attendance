@@ -2,9 +2,16 @@ import mongoose from 'mongoose';
 
 const OrderSchema = new mongoose.Schema({
   orderId: String,
-  userId: String, // Mobile number
+  userId: String,
   email: String,
-  items: [String],
+  items: [  
+    {
+      name: String,
+      quantity: Number,
+      price: Number,
+      image: String,
+    }
+  ],
   quantity: Number,
   totalAmount: Number,
   paymentMethod: String,
