@@ -1,5 +1,6 @@
 import dbConnect from '@/lib/mongodb';
 import Customer from '@/models/CustomerRegister';
+import nodemailer from 'nodemailer';
 
 export default async function handler(req, res) {
   await dbConnect();
@@ -26,7 +27,46 @@ export default async function handler(req, res) {
     const newCustomer = new Customer({ name, emailId, mobileNumber, password });
     await newCustomer.save();
 
+    // ✅ Send Email to User & Admin
+    const transporter = nodemailer.createTransport({
+      service: 'gmail',
+      auth: {
+        user: process.env.EMAIL_USER,       // e.g. litties.cafe2024@gmail.com
+        pass: process.env.EMAIL_PASS,       // app password from Gmail
+      },
+    });
+
+    const userMailOptions = {
+      from: `"Litties Restaurant" <${process.env.EMAIL_USER}>`,
+      to: emailId,
+      subject: '🎉 Registration Successful!',
+      html: `
+        <h3>Hello ${name},</h3>
+        <p>Your registration was successful.</p>
+        <p><strong>Login ID:</strong> ${mobileNumber}</p>
+        <p><strong>Password:</strong> ${password}</p>
+        <p>Thank you for choosing Litties Multi Cuisine Restaurant!</p>
+      `,
+    };
+
+    const adminMailOptions = {
+      from: `"Litties System" <${process.env.EMAIL_USER}>`,
+      to: process.env.ADMIN_EMAIL,
+      subject: '📥 New Customer Registered',
+      html: `
+        <h4>New Customer Details</h4>
+        <p><strong>Name:</strong> ${name}</p>
+        <p><strong>Email:</strong> ${emailId}</p>
+        <p><strong>Mobile:</strong> ${mobileNumber}</p>
+      `,
+    };
+
+    // Send both emails
+    await transporter.sendMail(userMailOptions);
+    await transporter.sendMail(adminMailOptions);
+
     return res.status(201).json({ message: 'Registration successful' });
+
   } catch (err) {
     console.error('REGISTRATION ERROR:', err);
     return res.status(500).json({ message: 'Registration failed' });

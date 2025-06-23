@@ -136,9 +136,10 @@ export default function PaymentPage() {
         <div className={styles.centerStep}>
           <h2 className={styles.title}>✅ Order Placed Successfully!</h2>
           <p>Please check your email for order details.</p>
-          <button className="btn cancel mt-4" onClick={() => router.push('/itemspage')}>
-            Back to Items
+          <button className={styles.submitButton2} onClick={() => router.push('/itemspage')}>
+         Back to Items
           </button>
+
         </div>
       </div>
     );
@@ -154,7 +155,7 @@ export default function PaymentPage() {
       className={`${styles.stepBox} ${styles.centerStep}`}
     >
       {children}
-      <button onClick={() => router.push('/itemspage')} className="btn cancel mt-4">
+      <button onClick={() => router.push('/itemspage')} className={styles.submitButton4}>
         Cancel
       </button>
     </motion.div>
@@ -193,14 +194,26 @@ export default function PaymentPage() {
                 Cash on Delivery
               </label>
             </div>
-            <button disabled={!paymentMethod} onClick={() => goToStep(2)} className={styles.stepButton}>
-              Continue
-            </button>
+            {/* <button
+            disabled={!paymentMethod}
+            onClick={() => goToStep(2)}
+            className={styles.submitButton3}
+            >
+            Continue
+          </button> */}
+
             <div className={styles.summary}>
               <p>Items Total: ₹{totalAmount.toFixed(2)}</p>
               {deliveryCharge > 0 && <p><strong>Home Delivery: ₹{deliveryCharge}</strong></p>}
               <p className="font-semibold"><strong>Total Payable: ₹{grandTotal.toFixed(2)}</strong></p>
             </div>
+            <button
+            disabled={!paymentMethod}
+            onClick={() => goToStep(2)}
+            className={styles.submitButton3}
+            >
+            Continue
+          </button>
           </>
         )}
 
@@ -217,25 +230,25 @@ export default function PaymentPage() {
                 <p>{addr.address}</p>
                 <p>Mobile: {addr.mobile}</p>
                 <div className={styles.addressActions}>
-                  <button className="btn orange" onClick={() => {
+                  <button className={styles.submitButton2} onClick={() => {
                     setEditAddress(addr);
                     setFormData(addr);
                     setShowAddressModal(true);
                   }}>Edit</button>
-                  <button className="btn red" onClick={() => deleteAddress(addr._id)}>Delete</button>
-                  <button className="btn yellow" onClick={() => {
+                  <button className={styles.submitButton2} onClick={() => deleteAddress(addr._id)}>Delete</button>
+                  <button className={styles.submitButton2} onClick={() => {
                     setSelectedAddress(addr);
                     goToStep(3);
                   }}>Use This Address</button>
                 </div>
               </div>
             ))}
-            <button className="btn green" onClick={() => {
+            <button className={styles.submitButton2} onClick={() => {
               setEditAddress(null);
               setFormData({ name: '', address: '', mobile: '' });
               setShowAddressModal(true);
             }}>Add Address</button>
-            <button className="link mt-4" onClick={() => goToStep(1)}>← Back</button>
+            <button className={styles.submitButton2} onClick={() => goToStep(1)}>← Back</button>
           </>
         )}
 
@@ -289,7 +302,7 @@ export default function PaymentPage() {
               </div>
             </div>
             <button onClick={placeOrder} className={styles.placeOrder}>Place Order</button>
-            <button className="link mt-2" onClick={() => goToStep(2)}>← Back</button>
+            <button className={styles.submitButton2} onClick={() => goToStep(2)}>← Back</button>
           </>
         )}
       </AnimatePresence>
@@ -315,8 +328,8 @@ export default function PaymentPage() {
         onChange={(e) => setFormData({ ...formData, mobile: e.target.value })}
       />
       <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '1rem' }}>
-        <button className="btn gray" onClick={() => setShowAddressModal(false)}>Cancel</button>
-        <button className="btn green" onClick={handleAddOrUpdateAddress}>
+        <button className={styles.submitButton2} onClick={() => setShowAddressModal(false)}>Cancel</button>
+        <button className={styles.submitButton2} onClick={handleAddOrUpdateAddress}>
           {editAddress ? 'Update' : 'Add'}
         </button>
       </div>

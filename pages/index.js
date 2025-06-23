@@ -54,7 +54,7 @@ export default function Home() {
     }
   };
 
-  const register = async (e) => {
+ const register = async (e) => {
   e.preventDefault();
 
   const body = {
@@ -75,13 +75,15 @@ export default function Home() {
 
     if (res.ok) {
       toast.success('Registered successfully!');
-      setShowRegister(false);
       setRegisterForm({
         name: '',
         password: '',
         emailId: '',
         mobileNumber: '',
       });
+      setTimeout(() => {
+        window.location.href = '/';
+      }, 2500);
     } else {
       toast.error(data.message || 'Registration failed');
     }
@@ -91,11 +93,7 @@ export default function Home() {
   }
 };
 
-
-
-
-
-  return (
+return (
     <div className={styles.container}>
       <ToastContainer position="top-right" theme="colored" />
 

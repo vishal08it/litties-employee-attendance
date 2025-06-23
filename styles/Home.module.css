@@ -998,3 +998,69 @@
   border-radius: 8px;
   font-weight: bold;
 }
+.submitButton2 {
+  width: 50%;
+  padding: 5px 0;
+ background: linear-gradient(to bottom, #ff9933, #ffffff, #138808);
+  border: none;
+  border-radius: 14px;
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: black;
+  cursor: pointer;
+  box-shadow:
+    0 6px 15px rgba(255, 71, 87, 0.6);
+  transition: background 0.3s ease, transform 0.2s ease;
+}
+
+.submitButton2:hover {
+  
+  background: linear-gradient(145deg, #3aca4d, #3aca4d);
+  transform: scale(1.05);
+  box-shadow:
+    0 8px 20px rgba(255, 71, 87, 0.8);
+}
+.submitButton3 {
+  width: 50%;
+  padding: 5px 0;
+ background: linear-gradient(to bottom, #ff9933, #ffffff, #138808);
+  border: none;
+  border-radius: 14px;
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: black;
+  cursor: pointer;
+  box-shadow:
+    0 6px 15px rgba(255, 71, 87, 0.6);
+  transition: background 0.3s ease, transform 0.2s ease;
+}
+
+.submitButton3:hover {
+  
+  background: linear-gradient(145deg, #3aca4d, #3aca4d);
+  transform: scale(1.05);
+  box-shadow:
+    0 8px 20px rgba(255, 71, 87, 0.8);
+}
+.submitButton4 {
+  width: 50%;
+  padding: 5px 0;
+ background: linear-gradient(to bottom, #ff9933, #ffffff, #138808);
+  border: none;
+  border-radius: 14px;
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: black;
+  cursor: pointer;
+  box-shadow:
+    0 6px 15px rgba(255, 71, 87, 0.6);
+  transition: background 0.3s ease, transform 0.2s ease;
+}
+
+.submitButton4:hover {
+  
+  background: linear-gradient(145deg, #3aca4d, #3aca4d);
+  transform: scale(1.05);
+  box-shadow:
+    0 8px 20px rgba(255, 71, 87, 0.8);
+}
