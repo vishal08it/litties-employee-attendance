@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import Image from 'next/image';
 import styles from '../styles/Home.module.css';
 import { useRouter } from 'next/router';
+import Link from 'next/link';
 
 export default function ItemsPage() {
   const [allItems, setAllItems] = useState([]);
@@ -136,7 +137,7 @@ useEffect(() => {
           <span onClick={() => setCartVisible(true)} style={{ marginRight: '1rem', cursor: 'pointer' }}>
             🛒 Cart ({cart.reduce((sum, i) => sum + i.quantity, 0)})
           </span>
-          <span style={{ marginRight: '1rem' }}><strong>{userName}</strong></span>
+          <Link href="/profile"><strong>{userName}</strong></Link>
           <button onClick={logout} className={styles.logoutButton}>Logout</button>
         </div>
       </header>

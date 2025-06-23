@@ -22,7 +22,7 @@ const OrderSchema = new mongoose.Schema({
   },
   status: {
     type: String,
-    enum: ['New', 'Accepted', 'Rejected', 'Out for Delivery', 'Delivered'],
+    enum: ['New', 'Accepted', 'Rejected', 'Out for Delivery', 'Delivered','Cancelled'],
     default: 'New',
   },
 }, { timestamps: true });

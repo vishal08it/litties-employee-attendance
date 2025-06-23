@@ -1064,3 +1064,39 @@
   box-shadow:
     0 8px 20px rgba(255, 71, 87, 0.8);
 }
+.tableWrapper {
+  overflow-x: auto;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.table th,
+.table td {
+  padding: 0.75rem;
+  border: 1px solid #ccc;
+  text-align: left;
+}
+
+.profileInfo p {
+  margin-bottom: 0.5rem;
+}
+
+.submitButton1 {
+  background-color: #f59e0b;
+  color: white;
+  border: none;
+  padding: 0.4rem 0.8rem;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.disabledButton {
+  background-color: #ddd;
+  color: #888;
+  padding: 0.4rem 0.8rem;
+  border-radius: 5px;
+  cursor: not-allowed;
+}
