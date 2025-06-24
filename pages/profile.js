@@ -25,10 +25,10 @@ export default function ProfilePage() {
 
   const fetchOrders = async (mobile) => {
     try {
-      const res = await fetch('/api/orders');
+      const res = await fetch('/api/orders'); // optional: change to `/api/orders?userId=${mobile}`
       const data = await res.json();
       const userOrders = data
-        .filter(o => o.userId === mobile)
+        .filter(order => order.userId === mobile)
         .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
       setOrders(userOrders);
     } catch (err) {
@@ -37,29 +37,36 @@ export default function ProfilePage() {
   };
 
   const handleCancel = async (orderId, createdAt) => {
-    const timePassed = Date.now() - new Date(createdAt).getTime();
-    if (timePassed > 3 * 60 * 1000) {
-      toast.error('Cancel Order time expired (3 minutes)');
-      return;
-    }
+  const timePassed = Date.now() - new Date(createdAt).getTime();
+  const cancelWindow = 3 * 60 * 1000;
 
-    const confirm = window.confirm('Are you sure you want to cancel this order?');
-    if (!confirm) return;
+  if (timePassed > cancelWindow) {
+    toast.error('Cancel window expired (3 minutes)');
+    return;
+  }
 
+  if (!window.confirm('Are you sure you want to cancel this order?')) return;
+
+  try {
     const res = await fetch(`/api/order/${orderId}`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ status: 'Cancelled' }),
+      body: JSON.stringify({ status: 'Cancelled', cancelledBy: 'user' }),
     });
 
+    const result = await res.json();
+
     if (res.ok) {
-      toast.success('Order cancelled');
+      toast.success('Order cancelled. Confirmation email sent.');
       fetchOrders(user.mobile);
     } else {
-      const data = await res.json();
-      toast.error(data.error || 'Cancel failed');
+      toast.error(result.message || 'Cancel failed');
     }
-  };
+  } catch (err) {
+    toast.error('Server error');
+  }
+};
+
 
   const filteredOrders = orders.filter(order =>
     order.orderId.toLowerCase().includes(search.toLowerCase())
@@ -80,12 +87,13 @@ export default function ProfilePage() {
           <p className={styles.address}>Shanti Prayag, Lalganj, Sasaram - 821115</p>
         </div>
         <div className={styles.rightSection}>
-          <button onClick={() => router.push('/itemspage')} className={styles.logoutButton}>Back to Menu</button>
+          <button onClick={() => router.push('/itemspage')} className={styles.logoutButton}>
+            Back to Menu
+          </button>
         </div>
       </header>
 
       <div style={{ display: 'flex', flexDirection: 'column', margin: '2rem' }}>
-        {/* Profile */}
         <div style={{
           border: '2px solid #facc15',
           borderRadius: '10px',
@@ -99,7 +107,6 @@ export default function ProfilePage() {
           <p><strong>Mobile:</strong> {user.mobile}</p>
         </div>
 
-        {/* Search and Table */}
         <input
           type="text"
           placeholder="Search Order ID"
@@ -114,7 +121,6 @@ export default function ProfilePage() {
           }}
         />
 
-        {/* ✅ Scrollable container for mobile */}
         <div style={{ overflowX: 'auto', width: '100%' }}>
           <table style={{
             minWidth: '700px',
@@ -130,10 +136,10 @@ export default function ProfilePage() {
               <tr>
                 <th style={{ padding: '10px 15px', whiteSpace: 'nowrap' }}>Order ID</th>
                 <th style={{ whiteSpace: 'nowrap' }}>Items</th>
-                <th style={{ whiteSpace: 'nowrap' }}>Total</th>
-                <th style={{ whiteSpace: 'nowrap' }}>Payment</th>
-                <th style={{ whiteSpace: 'nowrap' }}>Status</th>
-                <th style={{ whiteSpace: 'nowrap' }}>Action</th>
+                <th>Total</th>
+                <th>Payment</th>
+                <th>Status</th>
+                <th>Action</th>
               </tr>
             </thead>
             <tbody>
@@ -144,7 +150,7 @@ export default function ProfilePage() {
                   </td>
                 </tr>
               ) : paginated.map(order => (
-                <tr key={order._id} style={{
+                <tr key={order.orderId} style={{
                   background: '#1f2937',
                   textAlign: 'center',
                   boxShadow: 'inset 2px 2px 5px #111827, inset -2px -2px 5px #4b5563',
@@ -160,7 +166,7 @@ export default function ProfilePage() {
                   <td>
                     {order.status === 'New' && (
                       <button
-                        onClick={() => handleCancel(order.orderId, order.createdAt)}
+                        onClick={() => handleCancel(order._id, order.createdAt)}
                         style={{
                           background: '#dc2626',
                           color: 'white',
@@ -179,7 +185,6 @@ export default function ProfilePage() {
           </table>
         </div>
 
-        {/* Pagination */}
         {totalPages > 1 && (
           <div style={{ textAlign: 'center', marginTop: '1rem' }}>
             {[...Array(totalPages)].map((_, i) => (
