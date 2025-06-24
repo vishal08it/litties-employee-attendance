@@ -436,7 +436,7 @@ const handleDeleteAttendance = async () => {
   );
 
   return (
-    <div className={styles.container}>
+     <div className={styles.container}>
       <header className={styles.header}>
         <div className={styles.logo}>
           <Image src="/litties.png" alt="Litties Logo" width={60} height={60} />
@@ -448,49 +448,23 @@ const handleDeleteAttendance = async () => {
         <button onClick={logout} className={styles.logoutButton}>Logout</button>
       </header>
 
-      <div style={{ padding: '2rem' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-          <h2 style={{ color: '#facc15' }}>Admin Dashboard</h2>
-          <div>
-              <button
-  onClick={() => window.location.href = '/items'} // Replace with your actual path
-  className={styles.addemployeeButton}
-  style={{ minWidth: '140px', height: '40px' }}
->
-  Item Menu
-</button>
-            <button
-  onClick={() => window.location.href = '/orders'} // Replace with your actual path
-  className={styles.addemployeeButton}
-  style={{ minWidth: '140px', height: '40px' }}
->
-  Control Panel
-</button>
-
-            <button
-              onClick={() => setShowForm(true)}
-              className={styles.addemployeeButton}
-              style={{ minWidth: '140px', height: '40px' }}
-            >
-              Add New Employee
-            </button>
-            <button onClick={() => setShowDeleteModal(true)} className={styles.addemployeeButton}>
-             Delete Employee
-            </button>
-            <button
-               onClick={() => setShowDeleteAttendanceModal(true)}
-               className={styles.addemployeeButton}
-              style={{ minWidth: '140px', height: '40px', marginLeft: '10px' }}
-              >
-             Delete Attendance
-          </button>
-            <button
-              onClick={handleDownloadClick}
-              className={styles.addemployeeButton}
-              style={{ minWidth: '140px', height: '40px', marginLeft: '10px' }}
-            >
-              Download Attendance
-            </button>
+      <div style={{ padding: '1rem', overflowX: 'auto' }}>
+        <div style={{
+          display: 'flex',
+          flexWrap: 'wrap',
+          justifyContent: 'space-between',
+          gap: '1rem',
+          alignItems: 'center',
+          marginBottom: '1rem'
+        }}>
+          <h2 style={{ color: '#facc15', minWidth: '200px' }}>Admin Dashboard</h2>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px', justifyContent: 'flex-end' }}>
+            <button onClick={() => window.location.href = '/items'} className={styles.addemployeeButton}>Item Menu</button>
+            <button onClick={() => window.location.href = '/orders'} className={styles.addemployeeButton}>Control Panel</button>
+            <button onClick={() => setShowForm(true)} className={styles.addemployeeButton}>Add Employee</button>
+            <button onClick={() => setShowDeleteModal(true)} className={styles.addemployeeButton}>Delete Employee</button>
+            <button onClick={() => setShowDeleteAttendanceModal(true)} className={styles.addemployeeButton}>Delete Attendance</button>
+            <button onClick={handleDownloadClick} className={styles.addemployeeButton}>Download Attendance</button>
           </div>
         </div>
 

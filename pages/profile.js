@@ -29,7 +29,7 @@ export default function ProfilePage() {
       const data = await res.json();
       const userOrders = data
         .filter(o => o.userId === mobile)
-        .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)); // Latest first
+        .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
       setOrders(userOrders);
     } catch (err) {
       console.error('Error fetching orders:', err);
@@ -37,10 +37,9 @@ export default function ProfilePage() {
   };
 
   const handleCancel = async (orderId, createdAt) => {
-    debugger
     const timePassed = Date.now() - new Date(createdAt).getTime();
     if (timePassed > 3 * 60 * 1000) {
-      toast.error('Cancel Order time  expired (3 minutes)');
+      toast.error('Cancel Order time expired (3 minutes)');
       return;
     }
 
@@ -85,15 +84,14 @@ export default function ProfilePage() {
         </div>
       </header>
 
-      <div style={{ display: 'flex', justifyContent: 'space-between', margin: '2rem' }}>
-        {/* Profile box */}
+      <div style={{ display: 'flex', flexDirection: 'column', margin: '2rem' }}>
+        {/* Profile */}
         <div style={{
           border: '2px solid #facc15',
           borderRadius: '10px',
           padding: '1rem 2rem',
           background: '#1f2937',
-          flex: 1,
-          marginRight: '2rem'
+          marginBottom: '2rem'
         }}>
           <h2 style={{ color: '#facc15', marginBottom: '1rem' }}>My Profile</h2>
           <p><strong>Name:</strong> {user.name}</p>
@@ -101,41 +99,41 @@ export default function ProfilePage() {
           <p><strong>Mobile:</strong> {user.mobile}</p>
         </div>
 
-        {/* Orders table */}
-        <div style={{ flex: 2 }}>
-          <input
-            type="text"
-            placeholder="Search Order ID"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            style={{
-              width: '100%',
-              padding: '0.6rem',
-              borderRadius: '8px',
-              border: '1px solid #ccc',
-              marginBottom: '1rem'
-            }}
-          />
+        {/* Search and Table */}
+        <input
+          type="text"
+          placeholder="Search Order ID"
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          style={{
+            width: '100%',
+            padding: '0.6rem',
+            borderRadius: '8px',
+            border: '1px solid #ccc',
+            marginBottom: '1rem'
+          }}
+        />
 
-          <table
-            style={{
-              width: '100%',
-              borderCollapse: 'separate',
-              borderSpacing: '0 10px',
-              background: '#111827',
-              borderRadius: '10px',
-              boxShadow: '0 4px 15px rgba(250, 204, 21, 0.6), inset 0 0 10px #facc15',
-              color: 'white'
-            }}
-          >
+        {/* ✅ Scrollable container for mobile */}
+        <div style={{ overflowX: 'auto', width: '100%' }}>
+          <table style={{
+            minWidth: '700px',
+            width: '100%',
+            borderCollapse: 'separate',
+            borderSpacing: '0 10px',
+            background: '#111827',
+            borderRadius: '10px',
+            boxShadow: '0 4px 15px rgba(250, 204, 21, 0.6), inset 0 0 10px #facc15',
+            color: 'white'
+          }}>
             <thead style={{ backgroundColor: '#facc15', color: '#111827' }}>
               <tr>
-                <th style={{ padding: '10px 15px' }}>Order ID</th>
-                <th>Items</th>
-                <th>Total</th>
-                <th>Payment</th>
-                <th>Status</th>
-                <th>Action</th>
+                <th style={{ padding: '10px 15px', whiteSpace: 'nowrap' }}>Order ID</th>
+                <th style={{ whiteSpace: 'nowrap' }}>Items</th>
+                <th style={{ whiteSpace: 'nowrap' }}>Total</th>
+                <th style={{ whiteSpace: 'nowrap' }}>Payment</th>
+                <th style={{ whiteSpace: 'nowrap' }}>Status</th>
+                <th style={{ whiteSpace: 'nowrap' }}>Action</th>
               </tr>
             </thead>
             <tbody>
@@ -154,8 +152,8 @@ export default function ProfilePage() {
                 }}
                   onMouseEnter={e => e.currentTarget.style.transform = 'scale(1.01)'}
                   onMouseLeave={e => e.currentTarget.style.transform = 'scale(1)'}>
-                  <td style={{ padding: '10px' }}>{order.orderId}</td>
-                  <td>{order.items.map(i => i.name).join(', ')}</td>
+                  <td style={{ padding: '10px', whiteSpace: 'nowrap' }}>{order.orderId}</td>
+                  <td style={{ whiteSpace: 'nowrap' }}>{order.items.map(i => i.name).join(', ')}</td>
                   <td>₹{order.totalAmount}</td>
                   <td>{order.paymentMethod}</td>
                   <td>{order.status}</td>
@@ -179,29 +177,29 @@ export default function ProfilePage() {
               ))}
             </tbody>
           </table>
-
-          {/* Pagination */}
-          {totalPages > 1 && (
-            <div style={{ textAlign: 'center', marginTop: '1rem' }}>
-              {[...Array(totalPages)].map((_, i) => (
-                <button
-                  key={i}
-                  onClick={() => setCurrentPage(i + 1)}
-                  style={{
-                    background: currentPage === i + 1 ? '#facc15' : '#1f2937',
-                    color: currentPage === i + 1 ? '#111827' : 'white',
-                    margin: '0 5px',
-                    padding: '6px 12px',
-                    border: 'none',
-                    borderRadius: '4px',
-                    cursor: 'pointer'
-                  }}>
-                  {i + 1}
-                </button>
-              ))}
-            </div>
-          )}
         </div>
+
+        {/* Pagination */}
+        {totalPages > 1 && (
+          <div style={{ textAlign: 'center', marginTop: '1rem' }}>
+            {[...Array(totalPages)].map((_, i) => (
+              <button
+                key={i}
+                onClick={() => setCurrentPage(i + 1)}
+                style={{
+                  background: currentPage === i + 1 ? '#facc15' : '#1f2937',
+                  color: currentPage === i + 1 ? '#111827' : 'white',
+                  margin: '0 5px',
+                  padding: '6px 12px',
+                  border: 'none',
+                  borderRadius: '4px',
+                  cursor: 'pointer'
+                }}>
+                {i + 1}
+              </button>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );
