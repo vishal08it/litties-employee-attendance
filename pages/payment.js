@@ -29,7 +29,8 @@ export default function PaymentPage() {
   useEffect(() => {
     setIsHydrated(true);
     const storedStep = localStorage.getItem('checkoutStep');
-    if (storedStep) setStep(parseInt(storedStep));
+    if (storedStep && !isNaN(storedStep)) setStep(parseInt(storedStep));
+    else setStep(1);
 
     const storedCart = localStorage.getItem('cartItems');
     const storedEmail = localStorage.getItem('emailId');
@@ -137,9 +138,8 @@ export default function PaymentPage() {
           <h2 className={styles.title}>✅ Order Placed Successfully!</h2>
           <p>Please check your email for order details.</p>
           <button className={styles.submitButton2} onClick={() => router.push('/itemspage')}>
-         Back to Items
+            Back to Items
           </button>
-
         </div>
       </div>
     );
@@ -155,7 +155,10 @@ export default function PaymentPage() {
       className={`${styles.stepBox} ${styles.centerStep}`}
     >
       {children}
-      <button onClick={() => router.push('/itemspage')} className={styles.submitButton4}>
+      <button onClick={() => {
+        localStorage.removeItem('checkoutStep');
+        router.push('/itemspage');
+      }} className={styles.submitButton4}>
         Cancel
       </button>
     </motion.div>
@@ -167,10 +170,9 @@ export default function PaymentPage() {
       <AnimatePresence mode="wait">
         {step === 1 && StepBox(
           <>
-          <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '1rem' }}>
-  <Image src="/litties.png" width={60} height={60} alt="Logo" />
-</div>
-
+            <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '1rem' }}>
+              <Image src="/litties.png" width={60} height={60} alt="Logo" />
+            </div>
             <h2 className={styles.title}>Select Payment Method</h2>
             <div className={styles.paymentOptions}>
               <label className={styles.radioLabel}>
@@ -194,35 +196,26 @@ export default function PaymentPage() {
                 Cash on Delivery
               </label>
             </div>
-            {/* <button
-            disabled={!paymentMethod}
-            onClick={() => goToStep(2)}
-            className={styles.submitButton3}
-            >
-            Continue
-          </button> */}
-
             <div className={styles.summary}>
               <p>Items Total: ₹{totalAmount.toFixed(2)}</p>
               {deliveryCharge > 0 && <p><strong>Home Delivery: ₹{deliveryCharge}</strong></p>}
-              <p className="font-semibold"><strong>Total Payable: ₹{grandTotal.toFixed(2)}</strong></p>
+              <p><strong>Total Payable: ₹{grandTotal.toFixed(2)}</strong></p>
             </div>
             <button
-            disabled={!paymentMethod}
-            onClick={() => goToStep(2)}
-            className={styles.submitButton3}
+              disabled={!paymentMethod}
+              onClick={() => goToStep(2)}
+              className={styles.submitButton3}
             >
-            Continue
-          </button>
+              Continue
+            </button>
           </>
         )}
 
         {step === 2 && StepBox(
           <>
-          <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '1rem' }}>
-  <Image src="/litties.png" width={60} height={60} alt="Logo" />
-</div>
-
+            <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '1rem' }}>
+              <Image src="/litties.png" width={60} height={60} alt="Logo" />
+            </div>
             <h2 className={styles.title}>Your Addresses</h2>
             {addresses.map((addr) => (
               <div key={addr._id} className={styles.addressBox}>
@@ -254,12 +247,10 @@ export default function PaymentPage() {
 
         {step === 3 && StepBox(
           <>
-          <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '1rem' }}>
-  <Image src="/litties.png" width={60} height={60} alt="Logo" />
-</div>
-
+            <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '1rem' }}>
+              <Image src="/litties.png" width={60} height={60} alt="Logo" />
+            </div>
             <h2 className={styles.title}>Checkout</h2>
-            
             <div className={styles.checkoutDetails}>
               <div>
                 <p className="font-semibold mb-1">Item Details</p>
@@ -308,35 +299,34 @@ export default function PaymentPage() {
       </AnimatePresence>
 
       {showAddressModal && (
-  <div className={styles.modalOverlay}>
-    <motion.div className={styles.addressModal} initial={{ scale: 0.8 }} animate={{ scale: 1 }}>
-      <Image src="/litties.png" width={60} height={60} alt="Logo" style={{ margin: '0 auto' }} />
-      <h3>{editAddress ? 'Edit Address' : 'Add Address'}</h3>
-      <input
-        placeholder="Name"
-        value={formData.name}
-        onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-      />
-      <textarea
-        placeholder="Full Address"
-        value={formData.address}
-        onChange={(e) => setFormData({ ...formData, address: e.target.value })}
-      />
-      <input
-        placeholder="Mobile Number"
-        value={formData.mobile}
-        onChange={(e) => setFormData({ ...formData, mobile: e.target.value })}
-      />
-      <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '1rem' }}>
-        <button className={styles.submitButton2} onClick={() => setShowAddressModal(false)}>Cancel</button>
-        <button className={styles.submitButton2} onClick={handleAddOrUpdateAddress}>
-          {editAddress ? 'Update' : 'Add'}
-        </button>
-      </div>
-    </motion.div>
-  </div>
-)}
-
+        <div className={styles.modalOverlay}>
+          <motion.div className={styles.addressModal} initial={{ scale: 0.8 }} animate={{ scale: 1 }}>
+            <Image src="/litties.png" width={60} height={60} alt="Logo" style={{ margin: '0 auto' }} />
+            <h3>{editAddress ? 'Edit Address' : 'Add Address'}</h3>
+            <input
+              placeholder="Name"
+              value={formData.name}
+              onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+            />
+            <textarea
+              placeholder="Full Address"
+              value={formData.address}
+              onChange={(e) => setFormData({ ...formData, address: e.target.value })}
+            />
+            <input
+              placeholder="Mobile Number"
+              value={formData.mobile}
+              onChange={(e) => setFormData({ ...formData, mobile: e.target.value })}
+            />
+            <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '1rem' }}>
+              <button className={styles.submitButton2} onClick={() => setShowAddressModal(false)}>Cancel</button>
+              <button className={styles.submitButton2} onClick={handleAddOrUpdateAddress}>
+                {editAddress ? 'Update' : 'Add'}
+              </button>
+            </div>
+          </motion.div>
+        </div>
+      )}
     </div>
   );
 }
