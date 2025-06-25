@@ -17,7 +17,7 @@ export default function ItemsPage() {
   const [cartVisible, setCartVisible] = useState(false);
   const [screenWidth, setScreenWidth] = useState(0);
 
-  const ITEMS_PER_PAGE = 16;
+  const ITEMS_PER_PAGE = 18;
   const router = useRouter();
 
   const categories = [
@@ -26,12 +26,13 @@ export default function ItemsPage() {
   ];
 
   const mobile = typeof window !== 'undefined' ? localStorage.getItem('mobileNumber') : null;
-useEffect(() => {
-  setScreenWidth(window.innerWidth);
-  const handleResize = () => setScreenWidth(window.innerWidth);
-  window.addEventListener('resize', handleResize);
-  return () => window.removeEventListener('resize', handleResize);
-}, []);
+
+  useEffect(() => {
+    setScreenWidth(window.innerWidth);
+    const handleResize = () => setScreenWidth(window.innerWidth);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   useEffect(() => {
     fetch('/api/items')
@@ -84,7 +85,8 @@ useEffect(() => {
   };
 
   const handleAddToCart = async () => {
-    if (!selectedItem || !quantity) return;
+    if (!selectedItem || !quantity || selectedItem.stock === 'Out of Stock') return;
+
     const idx = cart.findIndex(c => c._id === selectedItem._id);
     let newCart = [...cart];
 
@@ -144,9 +146,9 @@ useEffect(() => {
 
       <div style={{ display: 'flex', justifyContent: 'center', gap: '1rem', marginBottom: '1rem', marginTop: '2rem' }}>
         <input type="text" placeholder="Search by name" value={search}
-               onChange={e => setSearch(e.target.value)} style={{ padding: '0.5rem', borderRadius: '8px', width: '200px' }} />
+          onChange={e => setSearch(e.target.value)} style={{ padding: '0.5rem', borderRadius: '8px', width: '200px' }} />
         <select value={category} onChange={e => setCategory(e.target.value)}
-                style={{ padding: '0.5rem', borderRadius: '8px' }}>
+          style={{ padding: '0.5rem', borderRadius: '8px' }}>
           <option value="">All Categories</option>
           {categories.map(cat => <option key={cat} value={cat}>{cat}</option>)}
         </select>
@@ -154,16 +156,35 @@ useEffect(() => {
 
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(160px, 1fr))', gap: '20px' }}>
         {paginatedItems.map(item => (
-          <div key={item._id} onClick={() => { setSelectedItem(item); setQuantity(1); }}
-               style={{
-                 background: 'linear-gradient(to bottom, #ffa500, #ffffff, #4caf50)',
-                 padding: '10px', textAlign: 'center', boxShadow: '0 4px 8px rgba(0,0,0,0.1)',
-                 cursor: 'pointer', borderRadius: '12px'
-               }}>
+          <div key={item._id}
+            onClick={() => {
+              if (item.stock === 'In Stock') {
+                setSelectedItem(item);
+                setQuantity(1);
+              }
+            }}
+            style={{
+              background: 'linear-gradient(to bottom, #ffa500, #ffffff, #4caf50)',
+              padding: '10px',
+              textAlign: 'center',
+              boxShadow: '0 4px 8px rgba(0,0,0,0.1)',
+              cursor: item.stock === 'In Stock' ? 'pointer' : 'not-allowed',
+              borderRadius: '12px',
+              opacity: item.stock === 'In Stock' ? 1 : 0.5
+            }}>
             <img src={item.image} alt={item.name}
-                 style={{ width: '100%', height: '120px', objectFit: 'cover', borderRadius: '40px' }} />
+              style={{ width: '100%', height: '120px', objectFit: 'cover', borderRadius: '40px' }} />
             <h3>{item.name}</h3>
             <p>₹{item.price}</p>
+            {item.stock === 'Out of Stock' && (
+              <p style={{
+                backgroundColor: 'red',
+                color: 'white',
+                padding: '4px 8px',
+                borderRadius: '40px',
+                display: 'inline-block'
+              }}>Out of Stock</p>
+            )}
           </div>
         ))}
       </div>
@@ -188,7 +209,7 @@ useEffect(() => {
             width: '70%', maxWidth: '300px', textAlign: 'center'
           }}>
             <img src={selectedItem.image} alt={selectedItem.name}
-                 style={{ width: '100%', borderRadius: '80px', marginBottom: '1rem' }} />
+              style={{ width: '100%', borderRadius: '80px', marginBottom: '1rem' }} />
             <h2>{selectedItem.name}</h2>
             <p style={{ margin: '1rem 0' }}>₹{selectedItem.price}</p>
             <div style={{ display: 'flex', justifyContent: 'center', gap: '10px', marginBottom: '1rem' }}>
@@ -196,13 +217,22 @@ useEffect(() => {
               <span>{quantity}</span>
               <button onClick={() => setQuantity(quantity + 1)}>+</button>
             </div>
-            <button onClick={handleAddToCart}
-                    style={{ background: 'orange', color: 'white', padding: '0.5rem 1rem', border: 'none', borderRadius: '8px', cursor: 'pointer' }}>
-              Add to Cart
+            <button
+              onClick={handleAddToCart}
+              disabled={selectedItem.stock !== 'In Stock'}
+              style={{
+                background: selectedItem.stock === 'In Stock' ? 'orange' : 'gray',
+                color: 'white',
+                padding: '0.5rem 1rem',
+                border: 'none',
+                borderRadius: '8px',
+                cursor: selectedItem.stock === 'In Stock' ? 'pointer' : 'not-allowed'
+              }}>
+              {selectedItem.stock === 'In Stock' ? 'Add to Cart' : 'Out of Stock'}
             </button>
             <br />
             <button onClick={() => setSelectedItem(null)}
-                    style={{ marginTop: '1rem', background: 'transparent', border: 'none', color: 'red' }}>
+              style={{ marginTop: '1rem', background: 'transparent', border: 'none', color: 'red' }}>
               Close
             </button>
           </div>
@@ -210,91 +240,68 @@ useEffect(() => {
       )}
 
       {cartVisible && (
-  <div style={{
-    position: 'fixed',
-    top: 0, left: 0,
-    width: '100%', height: '100%',
-    background: 'rgba(0,0,0,0.5)',
-    display: 'flex',
-    justifyContent: 'center',
-    alignItems: 'center',
-    zIndex: 999,
-    padding: '1rem',
-    boxSizing: 'border-box'
-  }}>
-    <div style={{
-      background: 'linear-gradient(to bottom, #ffa500, #ffffff, #4caf50)',
-      padding: '1.5rem',
-      borderRadius: '30px',
-      width: '100%',
-      maxWidth: '500px',
-      maxHeight: '90vh',
-      overflowY: 'auto',
-      boxShadow: '0 4px 20px rgba(0,0,0,0.2)'
-    }}>
-      <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '1rem' }}>
-        <Image src="/litties.png" alt="Litties Logo" width={60} height={60} />
-      </div>
-      <h2 style={{ textAlign: 'center', marginBottom: '1rem' }}>🛒 Your Cart</h2>
-
-      {cart.length === 0 ? (
-        <p style={{ textAlign: 'center' }}>No items in cart.</p>
-      ) : cart.map(item => (
-        <div key={item._id} style={{
-          display: 'flex',
-          alignItems: 'center',
-          marginBottom: '1rem',
-          borderBottom: '1px solid #ccc',
-          paddingBottom: '0.5rem'
+        <div style={{
+          position: 'fixed', top: 0, left: 0, width: '100%', height: '100%',
+          background: 'rgba(0,0,0,0.5)', display: 'flex', justifyContent: 'center',
+          alignItems: 'center', zIndex: 999, padding: '1rem', boxSizing: 'border-box'
         }}>
-          <img src={item.image} alt={item.name} width={60} height={60}
-               style={{ borderRadius: '8px', marginRight: '10px' }} />
-          <div style={{ flex: 1 }}>
-            <h4>{item.name}</h4>
-            <p>₹{item.price} × {item.quantity} = ₹{item.price * item.quantity}</p>
-            <div>
-              <button onClick={() => updateQuantity(item._id, -1)}>-</button>
-              <button onClick={() => updateQuantity(item._id, 1)}>+</button>
-              <button onClick={() => removeFromCart(item._id)}
+          <div style={{
+            background: 'linear-gradient(to bottom, #ffa500, #ffffff, #4caf50)',
+            padding: '1.5rem', borderRadius: '30px', width: '100%', maxWidth: '500px',
+            maxHeight: '90vh', overflowY: 'auto', boxShadow: '0 4px 20px rgba(0,0,0,0.2)'
+          }}>
+            <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '1rem' }}>
+              <Image src="/litties.png" alt="Litties Logo" width={60} height={60} />
+            </div>
+            <h2 style={{ textAlign: 'center', marginBottom: '1rem' }}>🛒 Your Cart</h2>
+
+            {cart.length === 0 ? (
+              <p style={{ textAlign: 'center' }}>No items in cart.</p>
+            ) : cart.map(item => (
+              <div key={item._id} style={{
+                display: 'flex', alignItems: 'center', marginBottom: '1rem',
+                borderBottom: '1px solid #ccc', paddingBottom: '0.5rem'
+              }}>
+                <img src={item.image} alt={item.name} width={60} height={60}
+                  style={{ borderRadius: '8px', marginRight: '10px' }} />
+                <div style={{ flex: 1 }}>
+                  <h4>{item.name}</h4>
+                  <p>₹{item.price} × {item.quantity} = ₹{item.price * item.quantity}</p>
+                  <div>
+                    <button onClick={() => updateQuantity(item._id, -1)}>-</button>
+                    <button onClick={() => updateQuantity(item._id, 1)}>+</button>
+                    <button onClick={() => removeFromCart(item._id)}
                       style={{ color: 'red', marginLeft: '10px' }}>🗑️</button>
+                  </div>
+                </div>
+              </div>
+            ))}
+
+            <h3 style={{ textAlign: 'center', margin: '1rem 0' }}>Total: ₹{totalAmount}</h3>
+
+            <div style={{ display: 'flex', justifyContent: 'center', gap: '10px', flexWrap: 'wrap' }}>
+              <button
+                onClick={handleProceedToPayment}
+                disabled={cart.length === 0}
+                style={{
+                  background: cart.length === 0 ? 'gray' : 'green',
+                  color: 'white',
+                  padding: '0.5rem 1rem',
+                  border: 'none',
+                  borderRadius: '8px',
+                  cursor: cart.length === 0 ? 'not-allowed' : 'pointer',
+                  opacity: cart.length === 0 ? 0.6 : 1
+                }}>
+                Proceed to Payment
+              </button>
+              <button onClick={() => setCartVisible(false)}
+                style={{ padding: '0.5rem 1rem', background: 'gray', color: 'white', border: 'none', borderRadius: '8px' }}>
+                Close
+              </button>
             </div>
           </div>
         </div>
-      ))}
-
-      <h3 style={{ textAlign: 'center', margin: '1rem 0' }}>Total: ₹{totalAmount}</h3>
-
-      <div style={{ display: 'flex', justifyContent: 'center', gap: '10px', flexWrap: 'wrap' }}>
-        <button
-          onClick={handleProceedToPayment}
-          disabled={cart.length === 0}
-          style={{
-            background: cart.length === 0 ? 'gray' : 'green',
-            color: 'white',
-            padding: '0.5rem 1rem',
-            border: 'none',
-            borderRadius: '8px',
-            cursor: cart.length === 0 ? 'not-allowed' : 'pointer',
-            opacity: cart.length === 0 ? 0.6 : 1
-          }}
-        >
-          Proceed to Payment
-        </button>
-        <button onClick={() => setCartVisible(false)}
-                style={{
-                  padding: '0.5rem 1rem',
-                  background: 'gray',
-                  color: 'white',
-                  border: 'none',
-                  borderRadius: '8px'
-                }}>
-          Close
-        </button>
-      </div>
-    </div>
-  </div>
-)}
-
+      )}
     </div>
   );
 }

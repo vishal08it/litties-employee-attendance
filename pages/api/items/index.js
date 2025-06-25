@@ -1,18 +1,25 @@
-import dbConnect from '../../../lib/mongodb';
-import Item from '../../../models/Item';
+import dbConnect from '@/lib/mongodb';
+import Item from '@/models/Item';
 
 export default async function handler(req, res) {
   await dbConnect();
 
   if (req.method === 'POST') {
     try {
-      const { name, price, image, category } = req.body;
+      const { name, price, image, category, stock } = req.body;
 
       if (!name || !price || !image || !category) {
         return res.status(400).json({ error: 'All fields are required' });
       }
 
-      const item = new Item({ name, price, image, category }); // ✅ Category included
+      const item = new Item({
+        name,
+        price,
+        image,
+        category,
+        stock: stock || 'In Stock',  // ✅ Ensure default
+      });
+
       await item.save();
       return res.status(201).json(item);
     } catch (error) {
