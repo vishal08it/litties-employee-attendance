@@ -1,3 +1,5 @@
+'use client';
+
 import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
 import styles from '../styles/Home.module.css';
@@ -28,9 +30,9 @@ export default function OrdersGet() {
   }, []);
 
   const fetchOrders = async () => {
-    const res = await fetch('/api/orders');
+    const res = await fetch('/api/order');
     const data = await res.json();
-    setOrders(data.reverse()); // show latest first
+    setOrders(data); // already sorted by createdAt: -1 from backend
   };
 
   const updateOrderStatus = async (orderId, status) => {
@@ -58,12 +60,10 @@ export default function OrdersGet() {
     return order.status;
   };
 
-  // ✅ Apply search first
   const searchedOrders = orders.filter(order =>
     order.orderId.toLowerCase().includes(search.toLowerCase())
   );
 
-  // ✅ Then apply selected status filtering
   const filteredOrders =
     selectedStatus === 'All'
       ? searchedOrders
@@ -73,7 +73,6 @@ export default function OrdersGet() {
           )
         : searchedOrders.filter(order => order.status === selectedStatus);
 
-  // ✅ Pagination
   const totalPages = Math.ceil(filteredOrders.length / perPage);
   const paginatedOrders = filteredOrders.slice((currentPage - 1) * perPage, currentPage * perPage);
 

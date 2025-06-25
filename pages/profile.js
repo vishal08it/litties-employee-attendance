@@ -25,7 +25,7 @@ export default function ProfilePage() {
 
   const fetchOrders = async (mobile) => {
     try {
-      const res = await fetch('/api/orders'); // optional: change to `/api/orders?userId=${mobile}`
+      const res = await fetch('/api/orders');
       const data = await res.json();
       const userOrders = data
         .filter(order => order.userId === mobile)
@@ -37,36 +37,35 @@ export default function ProfilePage() {
   };
 
   const handleCancel = async (orderId, createdAt) => {
-  const timePassed = Date.now() - new Date(createdAt).getTime();
-  const cancelWindow = 3 * 60 * 1000;
+    const timePassed = Date.now() - new Date(createdAt).getTime();
+    const cancelWindow = 3 * 60 * 1000;
 
-  if (timePassed > cancelWindow) {
-    toast.error('Cancel window expired (3 minutes)');
-    return;
-  }
-
-  if (!window.confirm('Are you sure you want to cancel this order?')) return;
-
-  try {
-    const res = await fetch(`/api/order/${orderId}`, {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ status: 'Cancelled', cancelledBy: 'user' }),
-    });
-
-    const result = await res.json();
-
-    if (res.ok) {
-      toast.success('Order cancelled. Confirmation email sent.');
-      fetchOrders(user.mobile);
-    } else {
-      toast.error(result.message || 'Cancel failed');
+    if (timePassed > cancelWindow) {
+      toast.error('Cancel window expired (3 minutes)');
+      return;
     }
-  } catch (err) {
-    toast.error('Server error');
-  }
-};
 
+    if (!window.confirm('Are you sure you want to cancel this order?')) return;
+
+    try {
+      const res = await fetch(`/api/order/${orderId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status: 'Cancelled', cancelledBy: 'user' }),
+      });
+
+      const result = await res.json();
+
+      if (res.ok) {
+        toast.success('Order cancelled. Confirmation email sent.');
+        fetchOrders(user.mobile);
+      } else {
+        toast.error(result.message || 'Cancel failed');
+      }
+    } catch (err) {
+      toast.error('Server error');
+    }
+  };
 
   const filteredOrders = orders.filter(order =>
     order.orderId.toLowerCase().includes(search.toLowerCase())
@@ -149,38 +148,43 @@ export default function ProfilePage() {
                     No orders found.
                   </td>
                 </tr>
-              ) : paginated.map(order => (
-                <tr key={order.orderId} style={{
-                  background: '#1f2937',
-                  textAlign: 'center',
-                  boxShadow: 'inset 2px 2px 5px #111827, inset -2px -2px 5px #4b5563',
-                  transition: 'transform 0.2s'
-                }}
-                  onMouseEnter={e => e.currentTarget.style.transform = 'scale(1.01)'}
-                  onMouseLeave={e => e.currentTarget.style.transform = 'scale(1)'}>
-                  <td style={{ padding: '10px', whiteSpace: 'nowrap' }}>{order.orderId}</td>
-                  <td style={{ whiteSpace: 'nowrap' }}>{order.items.map(i => i.name).join(', ')}</td>
-                  <td>₹{order.totalAmount}</td>
-                  <td>{order.paymentMethod}</td>
-                  <td>{order.status}</td>
-                  <td>
-                    {order.status === 'New' && (
-                      <button
-                        onClick={() => handleCancel(order._id, order.createdAt)}
-                        style={{
-                          background: '#dc2626',
-                          color: 'white',
-                          padding: '5px 10px',
-                          border: 'none',
-                          borderRadius: '4px',
-                          cursor: 'pointer'
-                        }}>
-                        Cancel
-                      </button>
-                    )}
-                  </td>
-                </tr>
-              ))}
+              ) : paginated.map(order => {
+                const timePassed = Date.now() - new Date(order.createdAt).getTime();
+                const withinCancelWindow = timePassed < 3 * 60 * 1000;
+
+                return (
+                  <tr key={order.orderId} style={{
+                    background: '#1f2937',
+                    textAlign: 'center',
+                    boxShadow: 'inset 2px 2px 5px #111827, inset -2px -2px 5px #4b5563',
+                    transition: 'transform 0.2s'
+                  }}
+                    onMouseEnter={e => e.currentTarget.style.transform = 'scale(1.01)'}
+                    onMouseLeave={e => e.currentTarget.style.transform = 'scale(1)'}>
+                    <td style={{ padding: '10px', whiteSpace: 'nowrap' }}>{order.orderId}</td>
+                    <td style={{ whiteSpace: 'nowrap' }}>{order.items.map(i => i.name).join(', ')}</td>
+                    <td>₹{order.totalAmount}</td>
+                    <td>{order.paymentMethod}</td>
+                    <td>{order.status}</td>
+                    <td>
+                      {order.status === 'New' && withinCancelWindow && (
+                        <button
+                          onClick={() => handleCancel(order._id, order.createdAt)}
+                          style={{
+                            background: '#dc2626',
+                            color: 'white',
+                            padding: '5px 10px',
+                            border: 'none',
+                            borderRadius: '4px',
+                            cursor: 'pointer'
+                          }}>
+                          Cancel
+                        </button>
+                      )}
+                    </td>
+                  </tr>
+                );
+              })}
             </tbody>
           </table>
         </div>

@@ -80,13 +80,17 @@ export default async function handler(req, res) {
     case 'PUT': {
       try {
         const { orderId, status } = req.body;
-        const allowed = ['New', 'Accepted', 'Rejected', 'Out for Delivery', 'Delivered','Cancelled'];
+        const allowed = ['New', 'Accepted', 'Rejected', 'Out for Delivery', 'Delivered', 'Cancelled'];
 
         if (!orderId || !allowed.includes(status)) {
           return res.status(400).json({ error: 'Invalid status or orderId' });
         }
 
-        const updatedOrder = await Order.findOneAndUpdate({ orderId }, { status }, { new: true });
+        const updatedOrder = await Order.findOneAndUpdate(
+          { orderId },
+          { status },
+          { new: true }
+        );
 
         if (!updatedOrder) {
           return res.status(404).json({ error: 'Order not found' });
@@ -102,7 +106,7 @@ export default async function handler(req, res) {
         await sendEmail(
           updatedOrder.email,
           `📦 Order Update - ${status}`,
-          `<p>Your order <strong>${orderId}</strong> is now <strong>${status}</strong>.</p><p>${statusText[status]}</p>`
+          `<p>Your order <strong>${orderId}</strong> is now <strong>${status}</strong>.</p><p>${statusText[status] || ''}</p>`
         );
 
         return res.status(200).json({ message: 'Status updated', order: updatedOrder });
@@ -113,16 +117,20 @@ export default async function handler(req, res) {
       }
     }
 
-    // ✅ GET USER'S ORDERS BY MOBILE (userId)
+    // ✅ GET ORDERS (User or Admin)
     case 'GET': {
       try {
         const { mobile } = query;
 
-        if (!mobile) {
-          return res.status(400).json({ error: 'Mobile number required' });
+        let orders;
+        if (mobile) {
+          // User-specific orders
+          orders = await Order.find({ userId: mobile }).sort({ createdAt: -1 });
+        } else {
+          // Admin - all orders
+          orders = await Order.find().sort({ createdAt: -1 });
         }
 
-        const orders = await Order.find({ userId: mobile }).sort({ createdAt: -1 });
         return res.status(200).json(orders);
 
       } catch (err) {

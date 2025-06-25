@@ -22,6 +22,7 @@ export default function PaymentPage() {
   const [editAddress, setEditAddress] = useState(null);
   const [formData, setFormData] = useState({ name: '', address: '', mobile: '' });
   const [email, setEmail] = useState('');
+  const [orderId, setOrderId] = useState('');
 
   const deliveryCharge = totalAmount < 399 ? 50 : 0;
   const grandTotal = totalAmount + deliveryCharge;
@@ -93,12 +94,12 @@ export default function PaymentPage() {
   }
 
   async function placeOrder() {
-    const orderId = 'ORD' + Date.now();
+    const generatedOrderId = 'ORD' + Date.now();
     const res = await fetch('/api/order', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        orderId,
+        orderId: generatedOrderId,
         userId: selectedAddress?.mobile,
         email,
         address: selectedAddress,
@@ -117,12 +118,19 @@ export default function PaymentPage() {
       localStorage.removeItem('cartItems');
       localStorage.removeItem('checkoutStep');
       setCartItems([]);
+      setOrderId(generatedOrderId);
       setShowSuccess(true);
+
       if ('Notification' in window && Notification.permission === 'granted') {
         new Notification('✅ Order Successful', {
           body: 'Your order has been placed. Please check your email for details.',
         });
       }
+
+      // Auto-redirect to itemspage after 10 seconds
+      setTimeout(() => {
+        router.push('/itemspage');
+      }, 10000);
     } else {
       toast.error('Order failed. Please check your email for more info.');
     }
@@ -135,11 +143,10 @@ export default function PaymentPage() {
       <div className={styles.paymentContainer}>
         <ToastContainer />
         <div className={styles.centerStep}>
-          <h2 className={styles.title}>✅ Order Placed Successfully!</h2>
-          <p>Please check your email for order details.</p>
-          <button className={styles.submitButton2} onClick={() => router.push('/itemspage')}>
-            Back to Items
-          </button>
+          <h2 className={styles.title}>
+            ✅ Your order <span style={{ color: 'green' }}>{orderId}</span> placed successfully!
+          </h2>
+          <p>Please check your email for details</p>
         </div>
       </div>
     );
