@@ -953,34 +953,41 @@ const goToPrevPage = () => {
     onClick={goToPrevPage}
     disabled={currentPage === 1}
     style={{
-      backgroundColor: '#facc15',
-      color: '#111827',
+      padding: '10px 25px',
+      borderRadius: '999px', // fully oval
       border: 'none',
-      padding: '8px 16px',
-      borderRadius: '8px',
-      cursor: currentPage === 1 ? 'not-allowed' : 'pointer'
+      fontWeight: 'bold',
+      color: 'black',
+      cursor: currentPage === 1 ? 'not-allowed' : 'pointer',
+      background: 'linear-gradient(to right, #FF9933, white, #138808)',
+      opacity: currentPage === 1 ? 0.6 : 1,
     }}
   >
-    Prev
+    Previous
   </button>
-  <span style={{ alignSelf: 'center', color: 'white' }}>
+
+  <span style={{ fontWeight: 'bold', color: 'white', alignSelf: 'center' }}>
     Page {currentPage} of {totalPages}
   </span>
+
   <button
     onClick={goToNextPage}
     disabled={currentPage === totalPages}
     style={{
-      backgroundColor: '#facc15',
-      color: '#111827',
+      padding: '10px 25px',
+      borderRadius: '999px',
       border: 'none',
-      padding: '8px 16px',
-      borderRadius: '8px',
-      cursor: currentPage === totalPages ? 'not-allowed' : 'pointer'
+      fontWeight: 'bold',
+      color: 'black',
+      cursor: currentPage === totalPages ? 'not-allowed' : 'pointer',
+      background: 'linear-gradient(to right, #FF9933, white, #138808)',
+      opacity: currentPage === totalPages ? 0.6 : 1,
     }}
   >
     Next
   </button>
 </div>
+
 
       </div>
     </div>

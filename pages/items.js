@@ -28,7 +28,6 @@ export default function ItemsPage() {
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 5;
   const [searchTerm, setSearchTerm] = useState('');
-  const [message, setMessage] = useState({ type: '', text: '' });
 
   useEffect(() => {
     fetchItems();
@@ -36,7 +35,7 @@ export default function ItemsPage() {
 
   useEffect(() => {
     filterSortPaginate();
-  }, [items, searchTerm, currentPage]);
+  }, [items, searchTerm]);
 
   const fetchItems = async () => {
     try {
@@ -56,6 +55,7 @@ export default function ItemsPage() {
       data = data.filter(item => item.name.toLowerCase().includes(lower));
     }
     setFilteredItems(data);
+    setCurrentPage(1); // Reset to first page on new filter
   };
 
   const totalPages = Math.ceil(filteredItems.length / itemsPerPage);
@@ -95,7 +95,7 @@ export default function ItemsPage() {
       const res = await fetch(endpoint, {
         method,
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name, price: parseFloat(price), category, image: uploadedUrl,stock: isEditing ? undefined : 'In Stock' }),
+        body: JSON.stringify({ name, price: parseFloat(price), category, image: uploadedUrl, stock: isEditing ? undefined : 'In Stock' }),
       });
 
       if (!res.ok) throw new Error('Save failed');
@@ -174,17 +174,15 @@ export default function ItemsPage() {
 
       <h1 style={{ color: '#facc15', marginBottom: '1rem' }}>Menu Item Management</h1>
 
-      <div style={{ marginBottom: '1rem', display: 'flex', gap: '1rem', alignItems: 'center' }}>
-        <input
-          type="text"
-          placeholder="Search by name..."
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-          style={{ padding: '8px', borderRadius: '6px', border: '1px solid #ccc', flexGrow: 1 }}
-        />
-      </div>
+      <input
+        type="text"
+        placeholder="Search by name..."
+        value={searchTerm}
+        onChange={(e) => setSearchTerm(e.target.value)}
+        style={{ padding: '8px', borderRadius: '6px', border: '1px solid #ccc', width: '100%', marginBottom: '1rem' }}
+      />
 
-      <table style={{ width: '100%', borderCollapse: 'separate', borderSpacing: '0 10px', background: '#111827', borderRadius: '10px', boxShadow: '0 4px 15px rgba(250, 204, 21, 0.6), inset 0 0 10px #facc15', color: 'white', marginTop: '2rem' }}>
+      <table style={{ width: '100%', borderCollapse: 'separate', borderSpacing: '0 10px', background: '#111827', borderRadius: '10px', boxShadow: '0 4px 15px rgba(250, 204, 21, 0.6), inset 0 0 10px #facc15', color: 'white' }}>
         <thead style={{ backgroundColor: '#facc15', color: '#111827' }}>
           <tr>
             <th>Name</th>
@@ -204,35 +202,71 @@ export default function ItemsPage() {
                 <button
                   onClick={() => toggleStock(item)}
                   style={{
-                        backgroundColor: item.stock === 'In Stock' ? 'green' : 'red',
-                        color: 'white',
-                        padding: '6px 16px',
-                        borderRadius: '999px', // ✅ Fully oval
-                        border: 'none',
-                        cursor: 'pointer',
-                        fontWeight: 'bold',
-                        transition: '0.3s',
-                        }}
-                 >
+                    backgroundColor: item.stock === 'In Stock' ? 'green' : 'red',
+                    color: 'white',
+                    padding: '6px 16px',
+                    borderRadius: '999px',
+                    border: 'none',
+                    cursor: 'pointer',
+                    fontWeight: 'bold',
+                  }}
+                >
                   {item.stock}
                 </button>
               </td>
               <td>
                 <button onClick={() => handleEdit(item)} style={{ backgroundColor: '#facc15', color: '#000', padding: '4px 12px', borderRadius: '9999px', marginRight: '10px', border: 'none', cursor: 'pointer' }}>✏️</button>
-<button onClick={() => handleDelete(item._id)} style={{ backgroundColor: '#dc2626', color: 'white', padding: '4px 12px', borderRadius: '9999px', border: 'none', cursor: 'pointer' }}>🗑️</button>
-
+                <button onClick={() => handleDelete(item._id)} style={{ backgroundColor: '#dc2626', color: 'white', padding: '4px 12px', borderRadius: '9999px', border: 'none', cursor: 'pointer' }}>🗑️</button>
               </td>
             </tr>
           ))}
         </tbody>
       </table>
 
-      <div style={{ marginTop: '1rem', display: 'flex', justifyContent: 'center', gap: '0.5rem' }}>
-        <button onClick={() => setCurrentPage((p) => Math.max(1, p - 1))} disabled={currentPage === 1}>Prev</button>
-        <span>Page {currentPage} of {totalPages}</span>
-        <button onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))} disabled={currentPage === totalPages}>Next</button>
-      </div>
+      {/* ✅ Tricolor Oval Pagination */}
+      {totalPages > 1 && (
+        <div style={{ marginTop: '2rem', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '1rem' }}>
+          <button
+            onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+            disabled={currentPage === 1}
+            style={{
+              padding: '10px 25px',
+              borderRadius: '999px',
+              border: 'none',
+              fontWeight: 'bold',
+              color: 'black',
+              cursor: currentPage === 1 ? 'not-allowed' : 'pointer',
+              background: 'linear-gradient(to right, #FF9933, white, #138808)',
+              opacity: currentPage === 1 ? 0.6 : 1
+            }}
+          >
+            Previous
+          </button>
 
+          <span style={{ fontWeight: 'bold', color: 'white' }}>
+            Page {currentPage} of {totalPages}
+          </span>
+
+          <button
+            onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+            disabled={currentPage === totalPages}
+            style={{
+              padding: '10px 25px',
+              borderRadius: '999px',
+              border: 'none',
+              fontWeight: 'bold',
+              color: 'black',
+              cursor: currentPage === totalPages ? 'not-allowed' : 'pointer',
+              background: 'linear-gradient(to right, #FF9933, white, #138808)',
+              opacity: currentPage === totalPages ? 0.6 : 1
+            }}
+          >
+            Next
+          </button>
+        </div>
+      )}
+
+      {/* Modal for Add/Edit */}
       {showForm && (
         <>
           <div className={styles.overlay1} onClick={(e) => e.target === e.currentTarget && resetForm()} />

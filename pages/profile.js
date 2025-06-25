@@ -161,6 +161,7 @@ export default function ProfilePage() {
                   }}
                     onMouseEnter={e => e.currentTarget.style.transform = 'scale(1.01)'}
                     onMouseLeave={e => e.currentTarget.style.transform = 'scale(1)'}>
+
                     <td style={{ padding: '10px', whiteSpace: 'nowrap' }}>{order.orderId}</td>
                     <td style={{ whiteSpace: 'nowrap' }}>{order.items.map(i => i.name).join(', ')}</td>
                     <td>₹{order.totalAmount}</td>
@@ -189,24 +190,46 @@ export default function ProfilePage() {
           </table>
         </div>
 
+        {/* Tricolor Oval Pagination Controls */}
         {totalPages > 1 && (
-          <div style={{ textAlign: 'center', marginTop: '1rem' }}>
-            {[...Array(totalPages)].map((_, i) => (
-              <button
-                key={i}
-                onClick={() => setCurrentPage(i + 1)}
-                style={{
-                  background: currentPage === i + 1 ? '#facc15' : '#1f2937',
-                  color: currentPage === i + 1 ? '#111827' : 'white',
-                  margin: '0 5px',
-                  padding: '6px 12px',
-                  border: 'none',
-                  borderRadius: '4px',
-                  cursor: 'pointer'
-                }}>
-                {i + 1}
-              </button>
-            ))}
+          <div style={{ textAlign: 'center', marginTop: '1.5rem' }}>
+            <button
+              disabled={currentPage === 1}
+              onClick={() => setCurrentPage(currentPage - 1)}
+              style={{
+                padding: '10px 25px',
+                borderRadius: '50px',
+                marginRight: '10px',
+                border: 'none',
+                fontWeight: 'bold',
+                color: 'white',
+                cursor: currentPage === 1 ? 'not-allowed' : 'pointer',
+                background: 'linear-gradient(to right, #FF9933, white, #138808)'
+              }}
+            >
+              Previous
+            </button>
+
+            <span style={{ fontWeight: 'bold', margin: '0 10px' }}>
+              Page {currentPage} of {totalPages}
+            </span>
+
+            <button
+              disabled={currentPage === totalPages}
+              onClick={() => setCurrentPage(currentPage + 1)}
+              style={{
+                padding: '10px 25px',
+                borderRadius: '50px',
+                marginLeft: '10px',
+                border: 'none',
+                fontWeight: 'bold',
+                color: 'white',
+                cursor: currentPage === totalPages ? 'not-allowed' : 'pointer',
+                background: 'linear-gradient(to right, #FF9933, white, #138808)'
+              }}
+            >
+              Next
+            </button>
           </div>
         )}
       </div>

@@ -190,11 +190,44 @@ export default function ItemsPage() {
       </div>
 
       {totalPages > 1 && (
-        <div style={{ marginTop: '2rem', textAlign: 'center' }}>
-          <button disabled={page === 1} onClick={() => setPage(page - 1)} style={{ marginRight: '10px' }}>Previous</button>
-          <span>Page {page} of {totalPages}</span>
-          <button disabled={page === totalPages} onClick={() => setPage(page + 1)} style={{ marginLeft: '10px' }}>Next</button>
-        </div>
+       <div style={{ marginTop: '2rem', textAlign: 'center' }}>
+  <button
+    disabled={page === 1}
+    onClick={() => setPage(page - 1)}
+    style={{
+      marginRight: '10px',
+      padding: '10px 25px',
+      borderRadius: '50px',
+      border: 'none',
+      color: 'black',
+      fontWeight: 'bold',
+      background: 'linear-gradient(to right, #FF9933, white, #138808)',
+      cursor: page === 1 ? 'not-allowed' : 'pointer'
+    }}
+  >
+    Previous
+  </button>
+
+  <span>Page {page} of {totalPages}</span>
+
+  <button
+    disabled={page === totalPages}
+    onClick={() => setPage(page + 1)}
+    style={{
+      marginLeft: '10px',
+      padding: '10px 25px',
+      borderRadius: '50px',
+      border: 'none',
+      color: 'black',
+      fontWeight: 'bold',
+      background: 'linear-gradient(to right, #FF9933, white, #138808)',
+      cursor: page === totalPages ? 'not-allowed' : 'pointer'
+    }}
+  >
+    Next
+  </button>
+</div>
+
       )}
 
       {selectedItem && (
