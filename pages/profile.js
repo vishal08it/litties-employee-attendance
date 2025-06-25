@@ -8,12 +8,13 @@ import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import withAuth from '@/lib/withAuth';
 
- function ProfilePage() {
+function ProfilePage() {
   const router = useRouter();
   const [orders, setOrders] = useState([]);
   const [user, setUser] = useState({ name: '', email: '', mobile: '' });
   const [search, setSearch] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
+  const [cancelInfo, setCancelInfo] = useState(null); 
   const perPage = 5;
 
   useEffect(() => {
@@ -37,17 +38,18 @@ import withAuth from '@/lib/withAuth';
     }
   };
 
-  const handleCancel = async (orderId, createdAt) => {
+  const requestCancel = (orderId, createdAt) => {
     const timePassed = Date.now() - new Date(createdAt).getTime();
     const cancelWindow = 3 * 60 * 1000;
-
     if (timePassed > cancelWindow) {
-      toast.error('Cancel window expired (3 minutes)');
+      toast.error('Order Cancel Only Valid for 3 Minutes!');
       return;
     }
+    setCancelInfo({ orderId, createdAt }); 
+  };
 
-    if (!window.confirm('Are you sure you want to cancel this order?')) return;
-
+  const confirmCancel = async () => {
+    const { orderId } = cancelInfo;
     try {
       const res = await fetch(`/api/order/${orderId}`, {
         method: 'PUT',
@@ -65,6 +67,8 @@ import withAuth from '@/lib/withAuth';
       }
     } catch (err) {
       toast.error('Server error');
+    } finally {
+      setCancelInfo(null); 
     }
   };
 
@@ -167,12 +171,13 @@ import withAuth from '@/lib/withAuth';
                     <td style={{ whiteSpace: 'nowrap' }}>{order.items.map(i => i.name).join(', ')}</td>
                     <td>₹{order.totalAmount}</td>
                     <td>{order.paymentMethod}</td>
-                   <td
-                     style={ order.status === 'New'? {fontWeight: 'bold',color: '#BA8E23',}: {} }>{order.status === 'New' ? 'Wait for Accept' : order.status}</td>
-                     <td>
+                    <td style={order.status === 'New' ? { fontWeight: 'bold', color: '#BA8E23' } : {}}>
+                      {order.status === 'New' ? 'Wait for Accept' : order.status}
+                    </td>
+                    <td>
                       {order.status === 'New' && withinCancelWindow && (
                         <button
-                          onClick={() => handleCancel(order._id, order.createdAt)}
+                          onClick={() => requestCancel(order._id, order.createdAt)}
                           style={{
                             background: '#dc2626',
                             color: 'white',
@@ -192,7 +197,6 @@ import withAuth from '@/lib/withAuth';
           </table>
         </div>
 
-        {/* Tricolor Oval Pagination Controls */}
         {totalPages > 1 && (
           <div style={{ textAlign: 'center', marginTop: '1.5rem' }}>
             <button
@@ -234,8 +238,45 @@ import withAuth from '@/lib/withAuth';
             </button>
           </div>
         )}
+
+        {/* ✅ Confirmation Modal */}
+        {cancelInfo && (
+          <div style={{
+            position: 'fixed', top: 0, left: 0, width: '100%', height: '100%',
+            backgroundColor: 'rgba(0, 0, 0, 0.7)', display: 'flex',
+            alignItems: 'center', justifyContent: 'center', zIndex: 9999
+          }}>
+            <div style={{
+              background: '#1f2937', padding: '20px 30px', borderRadius: '12px',
+              textAlign: 'center', color: 'white', maxWidth: '90%'
+            }}>
+              <p style={{ marginBottom: '20px', fontSize: '1.1rem' }}>
+                Are you sure you want to cancel this order?
+              </p>
+              <button
+                onClick={confirmCancel}
+                style={{
+                  marginRight: '10px', background: '#dc2626', color: 'white',
+                  padding: '8px 16px', borderRadius: '5px', border: 'none'
+                }}
+              >
+                Yes, Cancel
+              </button>
+              <button
+                onClick={() => setCancelInfo(null)}
+                style={{
+                  background: '#4b5563', color: 'white',
+                  padding: '8px 16px', borderRadius: '5px', border: 'none'
+                }}
+              >
+                No, Go Back
+              </button>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
 }
+
 export default withAuth(ProfilePage);
