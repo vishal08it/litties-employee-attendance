@@ -15,7 +15,7 @@ export default function OrdersGet() {
     toast.success('Logout Successfully');
   };
 
-  const statuses = ['New', 'Accepted', 'Rejected', 'Out for Delivery', 'Delivered', 'Cancelled'];
+  const statuses = ['New', 'Accepted', 'Rejected', 'Out for Delivery', 'Delivered'];
 
   useEffect(() => {
     fetchOrders();
@@ -62,6 +62,15 @@ export default function OrdersGet() {
     margin: '2px',
     borderRadius: '4px',
   });
+const getStatusLabel = (order) => {
+  if (order.status === 'Cancelled') {
+    const created = new Date(order.createdAt).getTime();
+    const updated = new Date(order.updatedAt).getTime();
+    const isUserCancelled = updated - created <= 3 * 60 * 1000; // 3 minutes
+    return isUserCancelled ? 'Cancelled (By User)' : 'Cancelled';
+  }
+  return order.status;
+};
 
   return (
     <div className={styles.ordersContainer}>
@@ -150,7 +159,8 @@ export default function OrdersGet() {
                   <td>{order.userId}</td>
                   <td>{order.quantity}</td>
                   <td>₹{order.totalAmount}</td>
-                  <td>{order.status}</td>
+                  <td>{getStatusLabel(order)}</td>
+
                   <td>
                     {order.status === 'New' && (
                       <>
