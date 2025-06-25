@@ -218,8 +218,9 @@ export default function ItemsPage() {
                 </button>
               </td>
               <td>
-                <button onClick={() => handleEdit(item)} style={{ color: '#facc15', marginRight: '10px' }}>✏️</button>
-                <button onClick={() => handleDelete(item._id)} style={{ backgroundColor: '#dc2626', color: 'white', padding: '4px 8px', borderRadius: '4px' }}>🗑️</button>
+                <button onClick={() => handleEdit(item)} style={{ backgroundColor: '#facc15', color: '#000', padding: '4px 12px', borderRadius: '9999px', marginRight: '10px', border: 'none', cursor: 'pointer' }}>✏️</button>
+<button onClick={() => handleDelete(item._id)} style={{ backgroundColor: '#dc2626', color: 'white', padding: '4px 12px', borderRadius: '9999px', border: 'none', cursor: 'pointer' }}>🗑️</button>
+
               </td>
             </tr>
           ))}
