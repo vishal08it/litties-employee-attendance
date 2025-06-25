@@ -6,8 +6,9 @@ import styles from '../styles/Home.module.css';
 import Image from 'next/image';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import withAuth from '@/lib/withAuth';
 
-export default function ProfilePage() {
+ function ProfilePage() {
   const router = useRouter();
   const [orders, setOrders] = useState([]);
   const [user, setUser] = useState({ name: '', email: '', mobile: '' });
@@ -166,8 +167,9 @@ export default function ProfilePage() {
                     <td style={{ whiteSpace: 'nowrap' }}>{order.items.map(i => i.name).join(', ')}</td>
                     <td>₹{order.totalAmount}</td>
                     <td>{order.paymentMethod}</td>
-                    <td>{order.status}</td>
-                    <td>
+                   <td
+                     style={ order.status === 'New'? {fontWeight: 'bold',color: '#BA8E23',}: {} }>{order.status === 'New' ? 'Wait for Accept' : order.status}</td>
+                     <td>
                       {order.status === 'New' && withinCancelWindow && (
                         <button
                           onClick={() => handleCancel(order._id, order.createdAt)}
@@ -236,3 +238,4 @@ export default function ProfilePage() {
     </div>
   );
 }
+export default withAuth(ProfilePage);

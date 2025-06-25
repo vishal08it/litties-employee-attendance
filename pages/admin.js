@@ -10,10 +10,11 @@ import styles from '../styles/Home.module.css';
 import { FaEdit } from 'react-icons/fa';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import withAdminAuth from '@/lib/withAdminAuth';
 
 
 
-export default function Admin() {
+ function Admin() {
   const [data, setData] = useState([]);
   const [dateFrom, setDateFrom] = useState(null);
   const [dateTo, setDateTo] = useState(null);
@@ -993,3 +994,4 @@ const goToPrevPage = () => {
     </div>
   );
 }
+export default withAdminAuth(Admin);

@@ -7,8 +7,9 @@ import 'react-toastify/dist/ReactToastify.css';
 import { useRouter } from 'next/navigation';
 import styles from '../styles/Home.module.css';
 import Image from 'next/image';
+import withAuth from '@/lib/withAuth';
 
-export default function PaymentPage() {
+ function PaymentPage() {
   const router = useRouter();
   const [isHydrated, setIsHydrated] = useState(false);
   const [step, setStep] = useState(1);
@@ -337,3 +338,4 @@ export default function PaymentPage() {
     </div>
   );
 }
+export default withAuth(PaymentPage);

@@ -4,8 +4,9 @@ import { useRouter } from 'next/router';
 import Image from 'next/image';
 import styles from '../styles/Home.module.css';
 import { toast } from 'react-toastify';
+import withAdminAuth from '@/lib/withAdminAuth';
 
-export default function ItemsPage() {
+function ItemsPage() {
   const router = useRouter();
 
   const logout = () => {
@@ -305,3 +306,4 @@ export default function ItemsPage() {
     </div>
   );
 }
+export default withAdminAuth(ItemsPage); 

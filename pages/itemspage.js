@@ -3,8 +3,9 @@ import Image from 'next/image';
 import styles from '../styles/Home.module.css';
 import { useRouter } from 'next/router';
 import Link from 'next/link';
+import withAuth from '@/lib/withAuth';
 
-export default function ItemsPage() {
+function ItemsPage() {
   const [allItems, setAllItems] = useState([]);
   const [filteredItems, setFilteredItems] = useState([]);
   const [search, setSearch] = useState('');
@@ -338,3 +339,4 @@ export default function ItemsPage() {
     </div>
   );
 }
+export default withAuth(ItemsPage);

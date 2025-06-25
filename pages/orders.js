@@ -6,8 +6,9 @@ import styles from '../styles/Home.module.css';
 import Image from 'next/image';
 import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import withAdminAuth from '@/lib/withAdminAuth';
 
-export default function OrdersGet() {
+ function OrdersGet() {
   const [orders, setOrders] = useState([]);
   const [selectedStatus, setSelectedStatus] = useState('All');
   const [expandedOrderId, setExpandedOrderId] = useState(null);
@@ -282,3 +283,4 @@ export default function OrdersGet() {
     </div>
   );
 }
+export default withAdminAuth(OrdersGet);
