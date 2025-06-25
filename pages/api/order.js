@@ -80,7 +80,7 @@ export default async function handler(req, res) {
     case 'PUT': {
       try {
         const { orderId, status } = req.body;
-        const allowed = ['New', 'Accepted', 'Rejected', 'Out for Delivery', 'Delivered'];
+        const allowed = ['New', 'Accepted', 'Rejected', 'Out for Delivery', 'Delivered','Cancelled'];
 
         if (!orderId || !allowed.includes(status)) {
           return res.status(400).json({ error: 'Invalid status or orderId' });
