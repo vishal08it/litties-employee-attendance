@@ -139,19 +139,107 @@ import withAuth from '@/lib/withAuth';
 
   if (!isHydrated) return null;
 
-  if (showSuccess) {
-    return (
-      <div className={styles.paymentContainer}>
-        <ToastContainer />
-        <div className={styles.centerStep}>
-          <h2 className={styles.title}>
-            ✅ Your order <span style={{ color: 'green' }}>{orderId}</span> placed successfully!
-          </h2>
-          <p>Please check your email for details</p>
+ if (showSuccess) {
+  return (
+    <div style={{
+      display: 'flex',
+      justifyContent: 'center',
+      alignItems: 'center',
+      minHeight: '480px',
+      background: 'linear-gradient(to right, #6a85b6, #bac8e0)',
+      padding: '20px'
+    }}>
+      <ToastContainer />
+      <div style={{
+        display: 'flex',
+        flexDirection: 'row',
+        backgroundColor: '#fff',
+        borderRadius: '20px',
+        boxShadow: '0 10px 30px rgba(0,0,0,0.2)',
+        overflow: 'hidden',
+        width: '100%',
+        maxWidth: '960px',
+        height: '480px' // FIXED: full fixed height for both sections
+      }}>
+        {/* Left - Image & Thank You */}
+        <div style={{
+          background: 'linear-gradient(to bottom, #ff9933, #ffffff, #138808)',
+          color: '#fff',
+          padding: '30px',
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          justifyContent: 'center',
+          width: '50%',
+          textAlign: 'center',
+        }}>
+          <Image
+            src="/test.jpg"
+            alt="Thank you"
+            width={440}
+            height={440}
+            style={{ borderRadius: '16px' }}
+          />
         </div>
+
+        {/* Right - Order Info */}
+        <div style={{
+          width: '50%',
+          padding: '40px',
+          display: 'flex',
+          flexDirection: 'column',
+          justifyContent: 'center',
+          backgroundColor: 'linear-gradient(to bottom, #ff9933, #ffffff, #138808)',
+          height: '100%' // match height
+        }}>
+          <h2 style={{
+            fontWeight: 'bold',
+            fontSize: '1.8rem',
+            marginBottom: '12px'
+          }}>ORDER CONFIRMED</h2>
+
+          <p style={{ marginBottom: '8px' }}>
+  Hello, <span style={{ fontWeight: 'bold' }}>{localStorage.getItem('name') || ''}</span>
+</p>
+
+          <p style={{ marginBottom: '18px' }}>
+            Your order has been confirmed and will be sent to your email shortly.
+          </p>
+
+          <p style={{ fontWeight: 'bold', marginBottom: '5px' }}>Order Number</p>
+          <p style={{ color: '#b91c1c', fontSize: '1.2rem', marginBottom: '20px' }}>
+            {orderId}
+          </p>
+
+          {cartItems.map((item, i) => (
+            <div key={i} style={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              marginBottom: '10px',
+              fontSize: '0.95rem'
+            }}>
+              <p>{item.quantity} × {item.name}</p>
+              <p>₹{(item.price * item.quantity).toFixed(2)}</p>
+            </div>
+          ))}
+
+          <hr style={{ margin: '20px 0' }} />
+
+          <div style={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            fontWeight: 'bold',
+            fontSize: '1.1rem'
+          }}>
+            <p>Total Amount</p>
+            <p>₹{grandTotal.toFixed(2)}</p>
+          </div>
+       </div>
       </div>
-    );
-  }
+    </div>
+  );
+}
+
 
   const StepBox = (children) => (
     <motion.div
