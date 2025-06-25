@@ -2,7 +2,8 @@ import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
 import styles from '../styles/Home.module.css';
 import Image from 'next/image';
-import { toast } from 'react-toastify';
+import { toast, ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 export default function OrdersGet() {
   const [orders, setOrders] = useState([]);
@@ -19,8 +20,6 @@ export default function OrdersGet() {
 
   useEffect(() => {
     fetchOrders();
-
-    // Auto refresh every 5 minutes
     const interval = setInterval(fetchOrders, 5 * 60 * 1000);
     return () => clearInterval(interval);
   }, []);
@@ -46,7 +45,6 @@ export default function OrdersGet() {
     }
   };
 
-  // Filter orders based on selected status
   const filteredOrders =
     selectedStatus === 'Rejected'
       ? orders.filter(order => order.status === 'Rejected' || order.status === 'Cancelled')
@@ -62,15 +60,16 @@ export default function OrdersGet() {
     margin: '2px',
     borderRadius: '4px',
   });
-const getStatusLabel = (order) => {
-  if (order.status === 'Cancelled') {
-    const created = new Date(order.createdAt).getTime();
-    const updated = new Date(order.updatedAt).getTime();
-    const isUserCancelled = updated - created <= 3 * 60 * 1000; // 3 minutes
-    return isUserCancelled ? 'Cancelled (By User)' : 'Cancelled';
-  }
-  return order.status;
-};
+
+  const getStatusLabel = (order) => {
+    if (order.status === 'Cancelled') {
+      const created = new Date(order.createdAt).getTime();
+      const updated = new Date(order.updatedAt).getTime();
+      const isUserCancelled = updated - created <= 3 * 60 * 1000;
+      return isUserCancelled ? 'Cancelled (By User)' : 'Cancelled';
+    }
+    return order.status;
+  };
 
   return (
     <div className={styles.ordersContainer}>
@@ -130,7 +129,9 @@ const getStatusLabel = (order) => {
             <th>Quantity</th>
             <th>Total</th>
             <th>Status</th>
-            <th>Actions</th>
+            {!(selectedStatus === 'Rejected' || selectedStatus === 'Delivered') && (
+              <th>Actions</th>
+            )}
             <th style={{ borderRadius: '0 10px 10px 0' }}>View</th>
           </tr>
         </thead>
@@ -161,20 +162,23 @@ const getStatusLabel = (order) => {
                   <td>₹{order.totalAmount}</td>
                   <td>{getStatusLabel(order)}</td>
 
-                  <td>
-                    {order.status === 'New' && (
-                      <>
-                        <button onClick={() => updateOrderStatus(order.orderId, 'Accepted')} style={buttonStyle('#22c55e')}>Accept</button>
-                        <button onClick={() => updateOrderStatus(order.orderId, 'Rejected')} style={buttonStyle('#dc2626')}>Reject</button>
-                      </>
-                    )}
-                    {order.status === 'Accepted' && (
-                      <button onClick={() => updateOrderStatus(order.orderId, 'Out for Delivery')} style={buttonStyle('#3b82f6')}>Dispatch</button>
-                    )}
-                    {order.status === 'Out for Delivery' && (
-                      <button onClick={() => updateOrderStatus(order.orderId, 'Delivered')} style={buttonStyle('#000000')}>Delivered</button>
-                    )}
-                  </td>
+                  {!(selectedStatus === 'Rejected' || selectedStatus === 'Delivered') && (
+                    <td>
+                      {order.status === 'New' && (
+                        <>
+                          <button onClick={() => updateOrderStatus(order.orderId, 'Accepted')} style={buttonStyle('#22c55e')}>Accept</button>
+                          <button onClick={() => updateOrderStatus(order.orderId, 'Rejected')} style={buttonStyle('#dc2626')}>Reject</button>
+                        </>
+                      )}
+                      {order.status === 'Accepted' && (
+                        <button onClick={() => updateOrderStatus(order.orderId, 'Out for Delivery')} style={buttonStyle('#3b82f6')}>Dispatch</button>
+                      )}
+                      {order.status === 'Out for Delivery' && (
+                        <button onClick={() => updateOrderStatus(order.orderId, 'Delivered')} style={buttonStyle('#000000')}>Delivered</button>
+                      )}
+                    </td>
+                  )}
+
                   <td>
                     <button
                       onClick={() =>
@@ -222,6 +226,8 @@ const getStatusLabel = (order) => {
           )}
         </tbody>
       </table>
+
+      <ToastContainer position="top-right" autoClose={3000} />
     </div>
   );
 }

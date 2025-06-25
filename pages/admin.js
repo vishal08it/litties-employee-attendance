@@ -449,24 +449,41 @@ const handleDeleteAttendance = async () => {
       </header>
 
       <div style={{ padding: '1rem', overflowX: 'auto' }}>
-        <div style={{
-          display: 'flex',
-          flexWrap: 'wrap',
-          justifyContent: 'space-between',
-          gap: '1rem',
-          alignItems: 'center',
-          marginBottom: '1rem'
-        }}>
-          <h2 style={{ color: '#facc15', minWidth: '200px' }}>Admin Dashboard</h2>
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px', justifyContent: 'flex-end' }}>
-            <button onClick={() => window.location.href = '/items'} className={styles.addemployeeButton}>Item Menu</button>
-            <button onClick={() => window.location.href = '/orders'} className={styles.addemployeeButton}>Control Panel</button>
-            <button onClick={() => setShowForm(true)} className={styles.addemployeeButton}>Add Employee</button>
-            <button onClick={() => setShowDeleteModal(true)} className={styles.addemployeeButton}>Delete Employee</button>
-            <button onClick={() => setShowDeleteAttendanceModal(true)} className={styles.addemployeeButton}>Delete Attendance</button>
-            <button onClick={handleDownloadClick} className={styles.addemployeeButton}>Download Attendance</button>
-          </div>
-        </div>
+       <div style={{ marginBottom: '2rem' }}>
+  <h2 style={{ color: '#facc15', fontWeight: 'bold', marginBottom: '1rem' }}>
+    Admin Dashboard
+  </h2>
+
+  <div
+    style={{
+      display: 'flex',
+      flexWrap: 'wrap',
+      gap: '1rem',
+      justifyContent: 'flex-start',
+      alignItems: 'flex-start',
+    }}
+  >
+    <button onClick={() => window.location.href = '/items'} className={styles.addemployeeButton}>
+      Item Menu
+    </button>
+    <button onClick={() => window.location.href = '/orders'} className={styles.addemployeeButton}>
+      Control Panel
+    </button>
+    <button onClick={() => setShowForm(true)} className={styles.addemployeeButton}>
+      Add Employee
+    </button>
+    <button onClick={() => setShowDeleteModal(true)} className={styles.addemployeeButton}>
+      Delete Employee
+    </button>
+    <button onClick={() => setShowDeleteAttendanceModal(true)} className={styles.addemployeeButton}>
+      Delete Attendance
+    </button>
+    <button onClick={handleDownloadClick} className={styles.addemployeeButton}>
+      Download Attendance
+    </button>
+  </div>
+</div>
+
 
         {showForm && (
           <>
@@ -814,112 +831,111 @@ const handleDeleteAttendance = async () => {
           </select>
         </div>
 
-        <table
-          style={{
-            width: '100%',
-            borderCollapse: 'separate',
-            borderSpacing: '0 10px',
-            background: '#111827',
-            borderRadius: '10px',
-            boxShadow:
-              '0 4px 15px rgba(250, 204, 21, 0.6), inset 0 0 10px #facc15',
-            color: 'white',
-          }}
-        >
-          <thead style={{ backgroundColor: '#facc15', color: '#111827', borderRadius: '10px' }}>
-            <tr>
-              <th style={{ padding: '10px 15px', borderRadius: '10px 0 0 10px' }}>Date</th>
-              <th>Emp ID</th>
-              <th>Name</th>
-              <th>Punch In</th>
-              <th>Punch Out</th>
-              <th>Time Diff</th>
-              <th>Day Type</th>
-              <th>Action</th>
-            </tr>
-          </thead>
-          <tbody>
-            {filteredData.length === 0 && (
-              <tr>
-                <td colSpan={7} style={{ textAlign: 'center', padding: '20px' }}>
-                  No attendance records found.
-                </td>
-              </tr>
-            )}
-            {filteredData.map((record, i) => {
-              const punchInTime = record.punchIn ? new Date(record.punchIn).toLocaleTimeString() : '';
-              const punchOutTime = record.punchOut ? new Date(record.punchOut).toLocaleTimeString() : '';
-
-              let timeDiff = '';
-              let dayType = '';
-
-              if (record.punchIn && record.punchOut) {
-                const inTime = new Date(record.punchIn);
-                const outTime = new Date(record.punchOut);
-                const diffMs = outTime - inTime;
-                const hrs = Math.floor(diffMs / 3600000);
-                const mins = Math.floor((diffMs % 3600000) / 60000);
-                timeDiff = `${hrs.toString().padStart(2, '0')}:${mins.toString().padStart(2, '0')}`;
-                dayType = diffMs / 3600000 >= 6 ? 1.0 : 0.5;
-              } else {
-                dayType = 0.0;
-              }
-
-              return (
-                <tr
-                  key={i}
-                  style={{
-                    background: i % 2 === 0 ? '#1f2937' : '#374151',
-                    borderRadius: '8px',
-                    boxShadow:
-                      'inset 2px 2px 5px #111827, inset -2px -2px 5px #4b5563',
-                    transition: 'transform 0.2s',
-                    textAlign:'center',
-                  }}
-                  onMouseEnter={e => e.currentTarget.style.transform = 'scale(1.02)'}
-                  onMouseLeave={e => e.currentTarget.style.transform = 'scale(1)'}
-                >
-                  <td style={{ padding: '10px 15px' }}>{formatDate(record.date)}</td>
-                  <td>{record.empId}</td>
-                  <td>{record.name}</td>
-                  <td>{punchInTime}</td>
-                  <td>{punchOutTime}</td>
-                  <td>{timeDiff}</td>
-                  <td>{dayType}</td>
-                  
- <td>
-  <button
-    onClick={() => {
-      setEditData({
-        empId: record.empId,
-        name: record.name,
-        date: record.date,
-        punchIn: record.punchIn?.slice(11, 16) || '',
-        punchOut: record.punchOut?.slice(11, 16) || ''
-      });
-      setShowEditForm(true);
-    }}
+       <div style={{ overflowX: 'auto', width: '100%' }}>
+  <table
     style={{
-      background: 'none',
-      border: 'none',
-      cursor: 'pointer',
-      color: '#facc15',
-      fontSize: '18px'
+      minWidth: '800px', // allows scrolling on small screens
+      borderCollapse: 'separate',
+      borderSpacing: '0 10px',
+      background: '#111827',
+      borderRadius: '10px',
+      boxShadow: '0 4px 15px rgba(250, 204, 21, 0.6), inset 0 0 10px #facc15',
+      color: 'white',
+      width: '100%'
     }}
-    title="Edit"
   >
-    ✏️
-  </button>
-</td>
+    <thead style={{ backgroundColor: '#facc15', color: '#111827' }}>
+      <tr>
+        <th style={{ padding: '10px 15px', borderRadius: '10px 0 0 10px' }}>Date</th>
+        <th>Emp ID</th>
+        <th>Name</th>
+        <th>Punch In</th>
+        <th>Punch Out</th>
+        <th>Time Diff</th>
+        <th>Day Type</th>
+        <th>Action</th>
+      </tr>
+    </thead>
+    <tbody>
+      {filteredData.length === 0 ? (
+        <tr>
+          <td colSpan={8} style={{ textAlign: 'center', padding: '20px' }}>
+            No attendance records found.
+          </td>
+        </tr>
+      ) : (
+        filteredData.map((record, i) => {
+          const punchInTime = record.punchIn ? new Date(record.punchIn).toLocaleTimeString() : '';
+          const punchOutTime = record.punchOut ? new Date(record.punchOut).toLocaleTimeString() : '';
 
+          let timeDiff = '';
+          let dayType = '';
 
+          if (record.punchIn && record.punchOut) {
+            const inTime = new Date(record.punchIn);
+            const outTime = new Date(record.punchOut);
+            const diffMs = outTime - inTime;
+            const hrs = Math.floor(diffMs / 3600000);
+            const mins = Math.floor((diffMs % 3600000) / 60000);
+            timeDiff = `${hrs.toString().padStart(2, '0')}:${mins.toString().padStart(2, '0')}`;
+            dayType = diffMs / 3600000 >= 6 ? 1.0 : 0.5;
+          } else {
+            dayType = 0.0;
+          }
 
+          return (
+            <tr
+              key={i}
+              style={{
+                background: i % 2 === 0 ? '#1f2937' : '#374151',
+                borderRadius: '8px',
+                boxShadow:
+                  'inset 2px 2px 5px #111827, inset -2px -2px 5px #4b5563',
+                transition: 'transform 0.2s',
+                textAlign: 'center',
+              }}
+              onMouseEnter={(e) => (e.currentTarget.style.transform = 'scale(1.02)')}
+              onMouseLeave={(e) => (e.currentTarget.style.transform = 'scale(1)')}
+            >
+              <td style={{ padding: '10px 15px' }}>{formatDate(record.date)}</td>
+              <td>{record.empId}</td>
+              <td>{record.name}</td>
+              <td>{punchInTime}</td>
+              <td>{punchOutTime}</td>
+              <td>{timeDiff}</td>
+              <td>{dayType}</td>
+              <td>
+                <button
+                  onClick={() => {
+                    setEditData({
+                      empId: record.empId,
+                      name: record.name,
+                      date: record.date,
+                      punchIn: record.punchIn?.slice(11, 16) || '',
+                      punchOut: record.punchOut?.slice(11, 16) || ''
+                    });
+                    setShowEditForm(true);
+                  }}
+                  style={{
+                    background: 'none',
+                    border: 'none',
+                    cursor: 'pointer',
+                    color: '#facc15',
+                    fontSize: '18px'
+                  }}
+                  title="Edit"
+                >
+                  ✏️
+                </button>
+              </td>
+            </tr>
+          );
+        })
+      )}
+    </tbody>
+  </table>
+</div>
 
-                </tr>
-              );
-            })}
-          </tbody>
-        </table>
       </div>
     </div>
   );
