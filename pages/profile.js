@@ -14,7 +14,9 @@ function ProfilePage() {
   const [user, setUser] = useState({ name: '', email: '', mobile: '' });
   const [search, setSearch] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
-  const [cancelInfo, setCancelInfo] = useState(null); 
+  const [cancelInfo, setCancelInfo] = useState(null);
+  const [viewedOrderId, setViewedOrderId] = useState(null);
+  const [hoverCancelId, setHoverCancelId] = useState(null);
   const perPage = 5;
 
   useEffect(() => {
@@ -45,7 +47,7 @@ function ProfilePage() {
       toast.error('Order Cancel Only Valid for 3 Minutes!');
       return;
     }
-    setCancelInfo({ orderId, createdAt }); 
+    setCancelInfo({ orderId, createdAt });
   };
 
   const confirmCancel = async () => {
@@ -68,7 +70,7 @@ function ProfilePage() {
     } catch (err) {
       toast.error('Server error');
     } finally {
-      setCancelInfo(null); 
+      setCancelInfo(null);
     }
   };
 
@@ -97,7 +99,7 @@ function ProfilePage() {
         </div>
       </header>
 
-      <div style={{ display: 'flex', flexDirection: 'column', margin: '2rem' }}>
+      <div style={{ margin: '2rem' }}>
         <div style={{
           border: '2px solid #facc15',
           borderRadius: '10px',
@@ -125,7 +127,7 @@ function ProfilePage() {
           }}
         />
 
-        <div style={{ overflowX: 'auto', width: '100%' }}>
+        <div style={{ overflowX: 'auto' }}>
           <table style={{
             minWidth: '700px',
             width: '100%',
@@ -138,65 +140,131 @@ function ProfilePage() {
           }}>
             <thead style={{ backgroundColor: '#facc15', color: '#111827' }}>
               <tr>
-                <th style={{ padding: '10px 15px', whiteSpace: 'nowrap' }}>Order ID</th>
-                <th style={{ whiteSpace: 'nowrap' }}>Items</th>
+                <th>Order ID</th>
+                <th>Items</th>
                 <th>Total</th>
                 <th>Payment</th>
                 <th>Status</th>
                 <th>Action</th>
+                <th>View</th>
               </tr>
             </thead>
             <tbody>
               {paginated.length === 0 ? (
                 <tr>
-                  <td colSpan="6" style={{ textAlign: 'center', padding: '1rem' }}>
-                    No orders found.
-                  </td>
+                  <td colSpan="7" style={{ textAlign: 'center', padding: '1rem' }}>No orders found.</td>
                 </tr>
               ) : paginated.map(order => {
                 const timePassed = Date.now() - new Date(order.createdAt).getTime();
                 const withinCancelWindow = timePassed < 3 * 60 * 1000;
 
                 return (
-                  <tr key={order.orderId} style={{
-                    background: '#1f2937',
-                    textAlign: 'center',
-                    boxShadow: 'inset 2px 2px 5px #111827, inset -2px -2px 5px #4b5563',
-                    transition: 'transform 0.2s'
-                  }}
-                    onMouseEnter={e => e.currentTarget.style.transform = 'scale(1.01)'}
-                    onMouseLeave={e => e.currentTarget.style.transform = 'scale(1)'}>
-
-                    <td style={{ padding: '10px', whiteSpace: 'nowrap' }}>{order.orderId}</td>
-                    <td style={{ whiteSpace: 'nowrap' }}>{order.items.map(i => i.name).join(', ')}</td>
-                    <td>₹{order.totalAmount}</td>
-                    <td>{order.paymentMethod}</td>
-                    <td style={order.status === 'New' ? { fontWeight: 'bold', color: '#BA8E23' } : {}}>
-                      {order.status === 'New' ? 'Wait for Accept' : order.status}
-                    </td>
-                    <td>
-                      {order.status === 'New' && withinCancelWindow && (
-                        <button
-                          onClick={() => requestCancel(order._id, order.createdAt)}
-                          style={{
-                            background: '#dc2626',
-                            color: 'white',
-                            padding: '5px 10px',
-                            border: 'none',
-                            borderRadius: '4px',
-                            cursor: 'pointer'
-                          }}>
-                          Cancel
+                  <>
+                    <tr key={order.orderId} style={{
+                      background: '#1f2937',
+                      textAlign: 'center',
+                      boxShadow: 'inset 2px 2px 5px #111827, inset -2px -2px 5px #4b5563',
+                      transition: 'transform 0.2s'
+                    }}
+                      onMouseEnter={e => e.currentTarget.style.transform = 'scale(1.01)'}
+                      onMouseLeave={e => e.currentTarget.style.transform = 'scale(1)'}
+                    >
+                      <td>{order.orderId}</td>
+                      <td>{order.items.map(i => i.name).join(', ')}</td>
+                      <td>₹{order.totalAmount}</td>
+                      <td>{order.paymentMethod}</td>
+                      <td style={order.status === 'New' ? { fontWeight: 'bold', color: '#BA8E23' } : {}}>
+                        {order.status === 'New' ? 'Wait for Accept' : order.status}
+                      </td>
+                      <td>
+                        {order.status === 'New' && withinCancelWindow && (
+                          <div style={{ position: 'relative' }}>
+                            <button
+                              onClick={() => requestCancel(order._id, order.createdAt)}
+                              onMouseEnter={() => setHoverCancelId(order._id)}
+                              onMouseLeave={() => setHoverCancelId(null)}
+                              style={{
+                                background: '#dc2626',
+                                color: 'white',
+                                padding: '5px 10px',
+                                border: 'none',
+                                borderRadius: '4px',
+                                cursor: 'pointer'
+                              }}
+                            >
+                              Cancel
+                            </button>
+                            {hoverCancelId === order._id && (
+                              <div style={{
+                                position: 'absolute',
+                                top: '-30px',
+                                left: '50%',
+                                transform: 'translateX(-50%)',
+                                background: '#333',
+                                padding: '4px 8px',
+                                borderRadius: '4px',
+                                fontSize: '12px',
+                                whiteSpace: 'nowrap'
+                              }}>
+                               After Placed Order Cancel  Within 3 min 
+                              </div>
+                            )}
+                          </div>
+                        )}
+                      </td>
+                      <td>
+                        <button onClick={() => setViewedOrderId(viewedOrderId === order.orderId ? null : order.orderId)} style={{
+                          background: '#facc15',
+                          color: '#111827',
+                          padding: '5px 12px',
+                          border: 'none',
+                          borderRadius: '4px',
+                          cursor: 'pointer'
+                        }}>
+                          {viewedOrderId === order.orderId ? 'Hide' : 'View'}
                         </button>
-                      )}
-                    </td>
-                  </tr>
+                      </td>
+                    </tr>
+
+                    {viewedOrderId === order.orderId && (
+                      <tr>
+                        <td colSpan="7" style={{ background: '#1f2937', padding: '1rem' }}>
+                          <table style={{ width: '100%', borderCollapse: 'collapse', marginTop: '1rem' }}>
+                            <thead>
+                              <tr style={{ color: '#facc15', textAlign: 'left', borderBottom: '1px solid #333' }}>
+                                <th style={{ padding: '8px' }}>Image</th>
+                                <th style={{ padding: '8px' }}>Name</th>
+                                <th style={{ padding: '8px' }}>Qty</th>
+                                <th style={{ padding: '8px' }}>Price</th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              {order.items.map((item, index) => (
+                                <tr key={index} style={{
+                                  borderBottom: '1px solid #2d3748',
+                                  textAlign: 'left'
+                                }}>
+                                  <td style={{ padding: '8px' }}>
+                                    <Image src={item.image} alt={item.name} width={50} height={50} />
+                                  </td>
+                                  <td style={{ padding: '8px' }}>{item.name}</td>
+                                  <td style={{ padding: '8px' }}>{item.quantity}</td>
+                                  <td style={{ padding: '8px' }}>₹{item.price}</td>
+                                </tr>
+                              ))}
+                            </tbody>
+                          </table>
+                        </td>
+                      </tr>
+                    )}
+                  </>
                 );
               })}
             </tbody>
           </table>
         </div>
 
+        {/* Pagination */}
         {totalPages > 1 && (
           <div style={{ textAlign: 'center', marginTop: '1.5rem' }}>
             <button
@@ -209,16 +277,11 @@ function ProfilePage() {
                 border: 'none',
                 fontWeight: 'bold',
                 color: 'white',
-                cursor: currentPage === 1 ? 'not-allowed' : 'pointer',
                 background: 'linear-gradient(to right, #FF9933, white, #138808)'
               }}
-            >
-              Previous
-            </button>
+            >Previous</button>
 
-            <span style={{ fontWeight: 'bold', margin: '0 10px' }}>
-              Page {currentPage} of {totalPages}
-            </span>
+            <span style={{ fontWeight: 'bold', margin: '0 10px' }}>Page {currentPage} of {totalPages}</span>
 
             <button
               disabled={currentPage === totalPages}
@@ -230,16 +293,13 @@ function ProfilePage() {
                 border: 'none',
                 fontWeight: 'bold',
                 color: 'white',
-                cursor: currentPage === totalPages ? 'not-allowed' : 'pointer',
                 background: 'linear-gradient(to right, #FF9933, white, #138808)'
               }}
-            >
-              Next
-            </button>
+            >Next</button>
           </div>
         )}
 
-        {/* ✅ Confirmation Modal */}
+        {/* Cancel Confirmation Modal */}
         {cancelInfo && (
           <div style={{
             position: 'fixed', top: 0, left: 0, width: '100%', height: '100%',
@@ -257,20 +317,22 @@ function ProfilePage() {
                 onClick={confirmCancel}
                 style={{
                   marginRight: '10px', background: '#dc2626', color: 'white',
-                  padding: '8px 16px', borderRadius: '5px', border: 'none'
+                  padding: '8px 16px', borderRadius: '5px', border: 'none',
+                  cursor: 'pointer', transition: 'transform 0.2s'
                 }}
-              >
-                Yes, Cancel
-              </button>
+                onMouseEnter={e => e.currentTarget.style.transform = 'scale(1.05)'}
+                onMouseLeave={e => e.currentTarget.style.transform = 'scale(1)'}
+              >Yes, Cancel</button>
               <button
                 onClick={() => setCancelInfo(null)}
                 style={{
                   background: '#4b5563', color: 'white',
-                  padding: '8px 16px', borderRadius: '5px', border: 'none'
+                  padding: '8px 16px', borderRadius: '5px', border: 'none',
+                  cursor: 'pointer', transition: 'transform 0.2s'
                 }}
-              >
-                No, Go Back
-              </button>
+                onMouseEnter={e => e.currentTarget.style.transform = 'scale(1.05)'}
+                onMouseLeave={e => e.currentTarget.style.transform = 'scale(1)'}
+              >No, Go Back</button>
             </div>
           </div>
         )}

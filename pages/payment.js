@@ -127,7 +127,7 @@ function PaymentPage() {
         });
       }
 
-      setTimeout(() => router.push('/itemspage'), 10000);
+      setTimeout(() => router.push('/profile'), 10000);
     } else {
       toast.error('Order failed. Please check your email for more info.');
     }

@@ -233,7 +233,7 @@ import withAdminAuth from '@/lib/withAdminAuth';
                               <th>Name</th>
                               <th>Qty</th>
                               <th>Price</th>
-                              <th>Total</th>
+                              {/* <th>Total</th> */}
                             </tr>
                           </thead>
                           <tbody>
@@ -243,7 +243,7 @@ import withAdminAuth from '@/lib/withAdminAuth';
                                 <td>{item.name}</td>
                                 <td>{item.quantity}</td>
                                 <td>₹{item.price}</td>
-                                <td>₹{(item.price * item.quantity).toFixed(2)}</td>
+                                {/* <td>₹{(item.price * item.quantity).toFixed(2)}</td> */}
                               </tr>
                             ))}
                           </tbody>
