@@ -10,9 +10,9 @@ export default async function handler(req, res) {
   }
 
   try {
-    const { name, emailId, mobileNumber, password } = req.body;
+    const { name, emailId, mobileNumber, password, image } = req.body;
 
-    if (!name || !emailId || !mobileNumber || !password) {
+    if (!name || !emailId || !mobileNumber || !password || !image) {
       return res.status(400).json({ message: 'Missing required fields' });
     }
 
@@ -24,15 +24,14 @@ export default async function handler(req, res) {
       return res.status(409).json({ message: 'User already exists' });
     }
 
-    const newCustomer = new Customer({ name, emailId, mobileNumber, password });
+    const newCustomer = new Customer({ name, emailId, mobileNumber, password, image });
     await newCustomer.save();
 
-    // ✅ Send Email to User & Admin
     const transporter = nodemailer.createTransport({
       service: 'gmail',
       auth: {
-        user: process.env.EMAIL_USER,       // e.g. litties.cafe2024@gmail.com
-        pass: process.env.EMAIL_PASS,       // app password from Gmail
+        user: process.env.EMAIL_USER,
+        pass: process.env.EMAIL_PASS,
       },
     });
 
@@ -45,7 +44,6 @@ export default async function handler(req, res) {
         <p>Your registration was successful.</p>
         <p><strong>Login ID:</strong> ${mobileNumber}</p>
         <p><strong>Password:</strong> ${password}</p>
-        <p>Thank you for choosing Litties Multi Cuisine Restaurant!</p>
       `,
     };
 
@@ -54,14 +52,12 @@ export default async function handler(req, res) {
       to: process.env.ADMIN_EMAIL,
       subject: '📥 New Customer Registered',
       html: `
-        <h4>New Customer Details</h4>
         <p><strong>Name:</strong> ${name}</p>
         <p><strong>Email:</strong> ${emailId}</p>
         <p><strong>Mobile:</strong> ${mobileNumber}</p>
       `,
     };
 
-    // Send both emails
     await transporter.sendMail(userMailOptions);
     await transporter.sendMail(adminMailOptions);
 

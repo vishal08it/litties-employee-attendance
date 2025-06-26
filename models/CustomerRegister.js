@@ -6,8 +6,9 @@ const customerSchema = new mongoose.Schema({
   role: { type: String, default: 'customer' },
   emailId: { type: String, required: true, unique: true, sparse: true },
   mobileNumber: { type: String, required: true, unique: true, sparse: true },
+  image: { type: String, required: true }, // ✅ Add this
 }, {
-  collection: 'employees'  // use same collection as employees
+  collection: 'employees'
 });
 
 export default mongoose.models.Customer || mongoose.model('Customer', customerSchema);
