@@ -482,6 +482,9 @@ const goToPrevPage = () => {
     <button onClick={() => window.location.href = '/items'} className={styles.addemployeeButton}>
       Item Menu
     </button>
+    <button onClick={() => window.location.href = '/add-category'} className={styles.addemployeeButton}>
+      Add Category
+    </button>
     <button onClick={() => window.location.href = '/orders'} className={styles.addemployeeButton}>
       Control Panel
     </button>

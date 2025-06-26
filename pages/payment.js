@@ -9,7 +9,7 @@ import styles from '../styles/Home.module.css';
 import Image from 'next/image';
 import withAuth from '@/lib/withAuth';
 
- function PaymentPage() {
+function PaymentPage() {
   const router = useRouter();
   const [isHydrated, setIsHydrated] = useState(false);
   const [step, setStep] = useState(1);
@@ -31,8 +31,7 @@ import withAuth from '@/lib/withAuth';
   useEffect(() => {
     setIsHydrated(true);
     const storedStep = localStorage.getItem('checkoutStep');
-    if (storedStep && !isNaN(storedStep)) setStep(parseInt(storedStep));
-    else setStep(1);
+    setStep(storedStep && !isNaN(storedStep) ? parseInt(storedStep) : 1);
 
     const storedCart = localStorage.getItem('cartItems');
     const storedEmail = localStorage.getItem('emailId');
@@ -128,10 +127,7 @@ import withAuth from '@/lib/withAuth';
         });
       }
 
-      // Auto-redirect to itemspage after 10 seconds
-      setTimeout(() => {
-        router.push('/itemspage');
-      }, 10000);
+      setTimeout(() => router.push('/itemspage'), 10000);
     } else {
       toast.error('Order failed. Please check your email for more info.');
     }
@@ -139,107 +135,42 @@ import withAuth from '@/lib/withAuth';
 
   if (!isHydrated) return null;
 
- if (showSuccess) {
-  return (
-    <div style={{
-      display: 'flex',
-      justifyContent: 'center',
-      alignItems: 'center',
-      minHeight: '480px',
-      background: 'linear-gradient(to right, #6a85b6, #bac8e0)',
-      padding: '20px'
-    }}>
-      <ToastContainer />
-      <div style={{
-        display: 'flex',
-        flexDirection: 'row',
-        backgroundColor: '#fff',
-        borderRadius: '20px',
-        boxShadow: '0 10px 30px rgba(0,0,0,0.2)',
-        overflow: 'hidden',
-        width: '100%',
-        maxWidth: '960px',
-        height: '480px' // FIXED: full fixed height for both sections
-      }}>
-        {/* Left - Image & Thank You */}
-        <div style={{
-          background: 'linear-gradient(to bottom, #ff9933, #ffffff, #138808)',
-          color: '#fff',
-          padding: '30px',
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          justifyContent: 'center',
-          width: '50%',
-          textAlign: 'center',
-        }}>
-          <Image
-            src="/test.jpg"
-            alt="Thank you"
-            width={440}
-            height={440}
-            style={{ borderRadius: '16px' }}
-          />
-        </div>
-
-        {/* Right - Order Info */}
-        <div style={{
-          width: '50%',
-          padding: '40px',
-          display: 'flex',
-          flexDirection: 'column',
-          justifyContent: 'center',
-          backgroundColor: 'linear-gradient(to bottom, #ff9933, #ffffff, #138808)',
-          height: '100%' // match height
-        }}>
-          <h2 style={{
-            fontWeight: 'bold',
-            fontSize: '1.8rem',
-            marginBottom: '12px'
-          }}>ORDER CONFIRMED</h2>
-
-          <p style={{ marginBottom: '8px' }}>
-  Hello, <span style={{ fontWeight: 'bold' }}>{localStorage.getItem('name') || ''}</span>
-</p>
-
-          <p style={{ marginBottom: '18px' }}>
-            Your order has been confirmed and will be sent to your email shortly.
-          </p>
-
-          <p style={{ fontWeight: 'bold', marginBottom: '5px' }}>Order Number</p>
-          <p style={{ color: '#b91c1c', fontSize: '1.2rem', marginBottom: '20px' }}>
-            {orderId}
-          </p>
-
-          {cartItems.map((item, i) => (
-            <div key={i} style={{
-              display: 'flex',
-              justifyContent: 'space-between',
-              marginBottom: '10px',
-              fontSize: '0.95rem'
-            }}>
-              <p>{item.quantity} × {item.name}</p>
-              <p>₹{(item.price * item.quantity).toFixed(2)}</p>
-            </div>
-          ))}
-
-          <hr style={{ margin: '20px 0' }} />
-
-          <div style={{
-            display: 'flex',
-            justifyContent: 'space-between',
-            fontWeight: 'bold',
-            fontSize: '1.1rem'
-          }}>
-            <p>Total Amount</p>
-            <p>₹{grandTotal.toFixed(2)}</p>
+  if (showSuccess) {
+    return (
+      <div className={styles.successWrapper}>
+        <ToastContainer />
+        <div className={styles.successCard}>
+          <div className={styles.successImageSection}>
+            <Image
+              src="/test.jpg"
+              alt="Thank you"
+              width={400}
+              height={400}
+              className={styles.successImage}
+            />
           </div>
-       </div>
+          <div className={styles.successInfoSection}>
+            <h2>ORDER CONFIRMED</h2>
+            <p>Hello, <strong>{localStorage.getItem('name') || ''}</strong></p>
+            <p>Your order has been confirmed and will be sent to your email shortly.</p>
+            <p style={{ fontWeight: 'bold', marginTop: '10px' }}>Order Number</p>
+            <p className={styles.orderId}>{orderId}</p>
+            {cartItems.map((item, i) => (
+              <div key={i} className={styles.cartRow}>
+                <p>{item.quantity} × {item.name}</p>
+                <p>₹{(item.price * item.quantity).toFixed(2)}</p>
+              </div>
+            ))}
+            <hr className={styles.divider} />
+            <div className={styles.totalRow}>
+              <p>Total Amount</p>
+              <p>₹{grandTotal.toFixed(2)}</p>
+            </div>
+          </div>
+        </div>
       </div>
-    </div>
-  );
-}
-
+    );
+  }
 
   const StepBox = (children) => (
     <motion.div
@@ -315,7 +246,7 @@ import withAuth from '@/lib/withAuth';
             <h2 className={styles.title}>Your Addresses</h2>
             {addresses.map((addr) => (
               <div key={addr._id} className={styles.addressBox}>
-                <p className="font-bold">{addr.name}</p>
+                <p><strong>{addr.name}</strong></p>
                 <p>{addr.address}</p>
                 <p>Mobile: {addr.mobile}</p>
                 <div className={styles.addressActions}>
@@ -355,7 +286,7 @@ import withAuth from '@/lib/withAuth';
                     <div key={idx} className={styles.checkoutItem}>
                       <img src={item.image} alt={item.name} className={styles.checkoutImage} />
                       <div className={styles.checkoutInfo}>
-                        <p className="font-semibold">{item.name}</p>
+                        <p><strong>{item.name}</strong></p>
                         <p>₹{item.price} × {item.quantity}</p>
                       </div>
                       <div className={styles.checkoutSubtotal}>₹{(item.price * item.quantity).toFixed(2)}</div>
@@ -365,7 +296,7 @@ import withAuth from '@/lib/withAuth';
                     <div className={styles.checkoutItem}>
                       <div />
                       <div className={styles.checkoutInfo}>
-                        <p className="font-semibold">Delivery Charge</p>
+                        <p><strong>Delivery Charge</strong></p>
                       </div>
                       <div className={styles.checkoutSubtotal}><strong>₹{deliveryCharge}</strong></div>
                     </div>
@@ -373,7 +304,7 @@ import withAuth from '@/lib/withAuth';
                   <div className={`${styles.checkoutItem} ${styles.totalRow}`}>
                     <div />
                     <div className={styles.checkoutInfo}>
-                      <p className="font-semibold">Total Amount</p>
+                      <p><strong>Total Amount</strong></p>
                     </div>
                     <div className={styles.checkoutSubtotal}><strong>₹{grandTotal.toFixed(2)}</strong></div>
                   </div>
@@ -426,4 +357,5 @@ import withAuth from '@/lib/withAuth';
     </div>
   );
 }
+
 export default withAuth(PaymentPage);

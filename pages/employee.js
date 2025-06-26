@@ -10,6 +10,9 @@ export default function Employee() {
   const [name, setName] = useState('');
   const [photoUrl, setPhotoUrl] = useState('');
   const [records, setRecords] = useState([]);
+  const [currentPage, setCurrentPage] = useState(1);
+  const recordsPerPage = 5;
+
   const router = useRouter();
 
   useEffect(() => {
@@ -51,12 +54,11 @@ export default function Employee() {
       const all = await res.json();
       const empId = localStorage.getItem('empId');
       const filtered = all.filter(record => record.empId === empId);
-      setRecords(filtered);
+      setRecords(filtered.reverse());
     } catch (error) {
       toast.error('Failed to fetch attendance records.');
     }
   };
-  
 
   const punch = async () => {
     try {
@@ -87,7 +89,7 @@ export default function Employee() {
   const logout = () => {
     localStorage.clear();
     router.push('/');
-     toast.success('Logout successfully!', { autoClose: 2000 });
+    toast.success('Logout successfully!', { autoClose: 2000 });
   };
 
   const tableHeader = {
@@ -126,6 +128,12 @@ export default function Employee() {
     return 'Absent';
   };
 
+  const totalPages = Math.ceil(records.length / recordsPerPage);
+  const paginatedRecords = records.slice(
+    (currentPage - 1) * recordsPerPage,
+    currentPage * recordsPerPage
+  );
+
   return (
     <div className={styles.container}>
       <ToastContainer position="top-right" autoClose={3000} />
@@ -147,7 +155,7 @@ export default function Employee() {
         <button onClick={logout} className={styles.logoutButton}>Logout</button>
       </header>
 
-      <div style={{ marginTop: '1rem', textAlign: 'left', maxWidth: '1200px', margin: '0 auto', paddingLeft: '2rem' }}>
+      <div style={{ marginTop: '4rem', textAlign: 'left', maxWidth: '1200px', margin: '0 auto', paddingLeft: '2rem' }}>
         <h2 style={{ color: '#eab308', margin: 0, fontSize: '1.5rem' }}>
           Welcome, {name}
         </h2>
@@ -210,13 +218,13 @@ export default function Employee() {
               </tr>
             </thead>
             <tbody>
-              {records.length === 0 ? (
+              {paginatedRecords.length === 0 ? (
                 <tr>
                   <td colSpan="4" style={tableCell}>No records found.</td>
                 </tr>
               ) : (
-                records.map((rec, index) => (
-                  <tr key={index} style={{ backgroundColor: index % 2 ? '#1f2937' : '#111827' }}>
+                paginatedRecords.map((rec, index) => (
+                  <tr key={(currentPage - 1) * recordsPerPage + index} style={{ backgroundColor: index % 2 ? '#1f2937' : '#111827' }}>
                     <td style={tableCell}>{formatDate(rec.date)}</td>
                     <td style={tableCell}>{formatTime(rec.punchIn)}</td>
                     <td style={tableCell}>{rec.punchOut ? formatTime(rec.punchOut) : '—'}</td>
@@ -226,6 +234,51 @@ export default function Employee() {
               )}
             </tbody>
           </table>
+
+          {/* Pagination */}
+          <div style={{ display: 'flex', justifyContent: 'center', marginTop: '1rem', gap: '10px' }}>
+            <button
+              onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+              disabled={currentPage === 1}
+              style={{
+                padding: '10px 20px',
+                background: 'linear-gradient(to right, #ff9933, #ffffff, #138808)',
+                color: '#000',
+                fontWeight: 'bold',
+                border: 'none',
+                borderRadius: '40px',
+                cursor: currentPage === 1 ? 'not-allowed' : 'pointer',
+                opacity: currentPage === 1 ? 0.6 : 1,
+                transition: 'transform 0.2s ease',
+              }}
+              onMouseOver={e => (e.currentTarget.style.transform = 'scale(1.05)')}
+              onMouseOut={e => (e.currentTarget.style.transform = 'scale(1)')}
+            >
+              Previous
+            </button>
+            <span style={{ color: '#fefce8', fontWeight: 'bold', lineHeight: '40px' }}>
+              Page {currentPage} of {totalPages}
+            </span>
+            <button
+              onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+              disabled={currentPage === totalPages}
+              style={{
+                padding: '10px 20px',
+                background: 'linear-gradient(to right, #ff9933, #ffffff, #138808)',
+                color: '#000',
+                fontWeight: 'bold',
+                border: 'none',
+                borderRadius: '40px',
+                cursor: currentPage === totalPages ? 'not-allowed' : 'pointer',
+                opacity: currentPage === totalPages ? 0.6 : 1,
+                transition: 'transform 0.2s ease',
+              }}
+              onMouseOver={e => (e.currentTarget.style.transform = 'scale(1.05)')}
+              onMouseOut={e => (e.currentTarget.style.transform = 'scale(1)')}
+            >
+              Next
+            </button>
+          </div>
         </div>
       </div>
     </div>
