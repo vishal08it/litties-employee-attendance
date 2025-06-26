@@ -155,7 +155,7 @@ export default function Employee() {
         <button onClick={logout} className={styles.logoutButton}>Logout</button>
       </header>
 
-      <div style={{ marginTop: '4rem', textAlign: 'left', maxWidth: '1200px', margin: '0 auto', paddingLeft: '2rem' }}>
+      <div style={{ marginTop: '6rem', textAlign: 'left', maxWidth: '1200px', margin: '0 auto', paddingLeft: '2rem' }}>
         <h2 style={{ color: '#eab308', margin: 0, fontSize: '1.5rem' }}>
           Welcome, {name}
         </h2>

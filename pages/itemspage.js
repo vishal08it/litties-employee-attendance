@@ -1,4 +1,3 @@
-// pages/itemspage.js
 import { useEffect, useState } from 'react';
 import Image from 'next/image';
 import styles from '../styles/Home.module.css';
@@ -19,10 +18,15 @@ function ItemsPage() {
   const [userName, setUserName] = useState('');
   const [cartVisible, setCartVisible] = useState(false);
   const [screenWidth, setScreenWidth] = useState(0);
+  const [mobile, setMobile] = useState(null);
+
+  const [showFeedback, setShowFeedback] = useState(false);
+  const [lastDeliveredItem, setLastDeliveredItem] = useState(null);
+  const [feedbackText, setFeedbackText] = useState('');
+  const [rating, setRating] = useState(0);
 
   const ITEMS_PER_PAGE = 18;
   const router = useRouter();
-  const mobile = typeof window !== 'undefined' ? localStorage.getItem('mobileNumber') : null;
 
   useEffect(() => {
     setScreenWidth(window.innerWidth);
@@ -32,12 +36,17 @@ function ItemsPage() {
   }, []);
 
   useEffect(() => {
+    const m = localStorage.getItem('mobileNumber');
+    const n = localStorage.getItem('name');
+    if (m) setMobile(m);
+    if (n) setUserName(n);
+  }, []);
+
+  useEffect(() => {
     fetch('/api/items').then(r => r.json()).then(setAllItems);
     fetch('/api/categories').then(r => r.json()).then(json => {
       if (json.success) setCategories(json.data.map(c => c.name));
     });
-    const name = localStorage.getItem('name');
-    if (name) setUserName(name);
   }, []);
 
   useEffect(() => {
@@ -45,6 +54,17 @@ function ItemsPage() {
     fetch(`/api/cart?mobile=${mobile}`).then(r => r.json()).then(json => {
       if (json.success) setCart(json.items);
     });
+
+    setTimeout(() => {
+      fetch(`/api/lastDelivered?mobile=${mobile}`)
+        .then(res => res.json())
+        .then(json => {
+          if (json.success && json.item && !json.feedbackGiven) {
+            setLastDeliveredItem(json.item);
+            setShowFeedback(true);
+          }
+        });
+    }, 800); // Feedback popup delay
   }, [mobile]);
 
   useEffect(() => {
@@ -80,9 +100,7 @@ function ItemsPage() {
     if (!selectedItem || selectedItem.stock === 'Out of Stock') return;
     const idx = cart.findIndex(c => c._id === selectedItem._id);
     const newCart = [...cart];
-    idx >= 0
-      ? (newCart[idx].quantity += quantity)
-      : newCart.push({ ...selectedItem, quantity });
+    idx >= 0 ? (newCart[idx].quantity += quantity) : newCart.push({ ...selectedItem, quantity });
     setSelectedItem(null);
     syncCart(newCart);
   };
@@ -111,7 +129,39 @@ function ItemsPage() {
     router.push('/payment');
   };
 
-  return (
+ const handleSubmitFeedback = async () => {
+  debugger
+  if (!feedbackText.trim() || rating === 0) return;
+
+  const userId = localStorage.getItem('mobileNumber');
+  const { itemId, orderId } = lastDeliveredItem || {};
+
+  const res = await fetch('/api/submitFeedback', {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({
+    userId,
+    itemId,
+    orderId,
+    feedback: feedbackText,
+    rating, // ✅ Send rating
+  }),
+});
+
+  const json = await res.json();
+
+  if (json.success) {
+    alert('Thanks for your feedback!');
+    setShowFeedback(false);
+    setFeedbackText('');
+    setRating(0);
+  } else {
+    alert(json.message || 'Submission failed');
+  }
+};
+
+
+return (
     <div style={{ background: 'linear-gradient(orange, white, green)', minHeight: '100vh', padding: 20 }}>
       <header className={styles.header}>
         <div className={styles.logo}><Image src="/litties.png" alt="Litties" width={60} height={60} /></div>
@@ -342,7 +392,60 @@ function ItemsPage() {
           </div>
         </div>
       )}
+
+ {showFeedback && lastDeliveredItem && (
+  <div className={styles.feedbackOverlay}>
+    <div className={styles.feedbackModal}>
+      <button
+        onClick={() => setShowFeedback(false)}
+        style={{
+          position: 'absolute',
+          top: 10,
+          right: 10,
+          background: 'transparent',
+          border: 'none',
+          fontSize: 20,
+          cursor: 'pointer',
+        }}
+      >
+        ❌
+      </button>
+      <h3>Hello {userName},</h3>
+      <p>Please give feedback for:<span style={{ fontSize: '0.9rem', color: '#333' }}>Order ID: <strong>{lastDeliveredItem.orderId}</strong></span></p> 
+      <strong>{lastDeliveredItem.name}</strong>
+      <img src={lastDeliveredItem.image} alt={lastDeliveredItem.name} />
+      
+      <div style={{ margin: '0.5rem 0' }}>
+        {[1, 2, 3, 4, 5].map(star => (
+          <span
+            key={star}
+            onClick={() => setRating(star)}
+            style={{
+              cursor: 'pointer',
+              fontSize: 24,
+              color: star <= rating ? 'gold' : 'gray',
+              marginRight: 4
+            }}
+          >
+            ★
+          </span>
+        ))}
+      </div>
+
+      <textarea
+        value={feedbackText}
+        onChange={(e) => setFeedbackText(e.target.value)}
+        placeholder="Your feedback..."
+      />
+    <button onClick={handleSubmitFeedback} className={styles.submitButton2}>
+  Submit Feedback
+</button>
+
+
     </div>
+  </div>
+)}
+</div>
   );
 }
 

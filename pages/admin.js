@@ -486,7 +486,7 @@ const goToPrevPage = () => {
       Add Category
     </button>
     <button onClick={() => window.location.href = '/orders'} className={styles.addemployeeButton}>
-      Control Panel
+     Order Management
     </button>
     <button onClick={() => setShowForm(true)} className={styles.addemployeeButton}>
       Add Employee
