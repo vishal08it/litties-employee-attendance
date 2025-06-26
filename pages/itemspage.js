@@ -24,6 +24,7 @@ function ItemsPage() {
   const [lastDeliveredItem, setLastDeliveredItem] = useState(null);
   const [feedbackText, setFeedbackText] = useState('');
   const [rating, setRating] = useState(0);
+  const [showThanksBox, setShowThanksBox] = useState(false); // ✅
 
   const ITEMS_PER_PAGE = 18;
   const router = useRouter();
@@ -130,35 +131,39 @@ function ItemsPage() {
   };
 
  const handleSubmitFeedback = async () => {
-  debugger
   if (!feedbackText.trim() || rating === 0) return;
 
   const userId = localStorage.getItem('mobileNumber');
   const { itemId, orderId } = lastDeliveredItem || {};
 
   const res = await fetch('/api/submitFeedback', {
-  method: 'POST',
-  headers: { 'Content-Type': 'application/json' },
-  body: JSON.stringify({
-    userId,
-    itemId,
-    orderId,
-    feedback: feedbackText,
-    rating, // ✅ Send rating
-  }),
-});
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      userId,
+      itemId,
+      orderId,
+      feedback: feedbackText,
+      rating,
+    }),
+  });
 
   const json = await res.json();
 
   if (json.success) {
-    alert('Thanks for your feedback!');
     setShowFeedback(false);
     setFeedbackText('');
     setRating(0);
+    setShowThanksBox(true);
+
+    setTimeout(() => {
+      setShowThanksBox(false);
+    }, 3000);
   } else {
     alert(json.message || 'Submission failed');
   }
 };
+
 
 
 return (
@@ -445,6 +450,28 @@ return (
     </div>
   </div>
 )}
+
+{showThanksBox && (
+  <div style={{
+    position: 'fixed',
+    top: '20px',
+    right: '20px',
+    backgroundColor: '#e0ffe0',
+    border: '2px solid #8bc34a',
+    borderRadius: '12px',
+    padding: '16px 24px',
+    boxShadow: '0 2px 8px rgba(0,0,0,0.2)',
+    fontSize: '18px',
+    fontWeight: 'bold',
+    color: '#4caf50',
+    zIndex: 9999,
+    transition: 'opacity 0.3s ease-in-out',
+  }}>
+    🙏 Thank you for your feedback!
+  </div>
+)}
+
+
 </div>
   );
 }

@@ -1302,3 +1302,77 @@
   box-shadow:
     0 8px 20px rgba(255, 71, 87, 0.8);
 }
+.testimonials {
+  padding: 40px 40px;
+  text-align: center;
+  position: relative;
+}
+
+.testimonialTitle {
+  font-size: 24px;
+  font-weight: bold;
+  margin-bottom: 2em; /* ✅ 2 lines of gap (based on font size) */
+  position: relative;
+  z-index: 2;
+}
+
+.testimonialViewport {
+  height: 320px;
+  overflow: hidden;
+  position: relative;
+  z-index: 1;
+  margin-top: 0; /* ✅ keep this 0 to avoid extra spacing from both sides */
+}
+
+
+/* Scrolls content slowly upward */
+.testimonialScroller {
+  display: flex;
+  flex-direction: column;
+  animation: scrollTestimonials 60s linear infinite;
+  animation-delay: 3s; /* ✅ Add this line for 1-second delay */
+  gap: 40px;
+}
+
+@keyframes scrollTestimonials {
+  0% {
+    transform: translateY(0%);
+  }
+  100% {
+    transform: translateY(-100%);
+  }
+}
+
+.testimonialBox {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 30px;
+  width: 100%;
+  max-width: 1000px; /* changed from 800px */
+  margin: 0 auto;
+}
+
+.testimonialText {
+  flex: 1;
+  text-align: left;
+}
+
+.testimonialText .name {
+  font-weight: bold;
+  font-size: 18px;
+  margin-bottom: 8px;
+}
+
+.testimonialText .review {
+  font-style: italic;
+  font-size: 16px;
+  line-height: 1.6;
+}
+
+.squareImage {
+  width: 125px;
+  height: 125px;
+  object-fit: cover;
+  border-radius: 15px;
+}

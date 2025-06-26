@@ -1,22 +1,29 @@
-'use client';
+"use client";
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
+import dynamic from 'next/dynamic';
 import { useRouter } from 'next/router';
-import styles from '../styles/Home.module.css';
 import Image from 'next/image';
+
+import styles from '../styles/Home.module.css';
 import '@/styles/globals.css';
-import { ToastContainer, toast } from 'react-toastify';
+
+const ToastContainer = dynamic(() => import('react-toastify').then(mod => mod.ToastContainer), { ssr: false });
+import { toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
 export default function Home() {
   const [showLogin, setShowLogin] = useState(false);
   const [showRegister, setShowRegister] = useState(false);
   const [showForgotPassword, setShowForgotPassword] = useState(false);
+
   const [identifier, setIdentifier] = useState('');
   const [password, setPassword] = useState('');
   const [email, setEmail] = useState('');
   const [message, setMessage] = useState('');
+
   const [feedbackList, setFeedbackList] = useState([]);
+
   const [registerForm, setRegisterForm] = useState({
     name: '',
     emailId: '',
@@ -24,9 +31,19 @@ export default function Home() {
     password: '',
     image: ''
   });
+
   const [uploading, setUploading] = useState(false);
 
   const router = useRouter();
+
+  const initialsFromName = useCallback((name) => {
+    if (!name) return '';
+    const parts = name.trim().split(' ');
+    if (parts.length >= 2) {
+      return (parts[0][0] + parts[1][0]).toUpperCase();
+    }
+    return name.slice(0, 2).toUpperCase();
+  }, []);
 
   useEffect(() => {
     const mobile = localStorage.getItem('mobileNumber');
@@ -34,14 +51,15 @@ export default function Home() {
     if (mobile) {
       router.replace(role === 'admin' ? '/admin' : '/itemspage');
     }
-  }, []);
+  }, [router]);
 
   useEffect(() => {
     fetch('/api/getFeedbacks')
       .then(res => res.json())
       .then(data => {
         if (data.success) setFeedbackList(data.feedbacks);
-      });
+      })
+      .catch(console.error);
   }, []);
 
   const login = async (e) => {
@@ -59,7 +77,7 @@ export default function Home() {
       localStorage.setItem('image', data.image || '');
       localStorage.setItem('emailId', data.emailId || '');
       localStorage.setItem('mobileNumber', data.mobileNumber || '');
-      setTimeout(() => router.push(data.destination), 2500);
+      setTimeout(() => router.push(data.destination), 2000);
     } else {
       toast.error(data.message || 'Login failed');
     }
@@ -70,18 +88,23 @@ export default function Home() {
     formData.append('file', file);
     formData.append('upload_preset', 'litties_unsigned');
     setUploading(true);
-    const res = await fetch('https://api.cloudinary.com/v1_1/depov4b4l/image/upload', {
-      method: 'POST',
-      body: formData,
-    });
-    const data = await res.json();
-    if (data.secure_url) {
-      setRegisterForm(prev => ({ ...prev, image: data.secure_url }));
-      toast.success('Image uploaded!');
-    } else {
-      toast.error('Image upload failed');
+    try {
+      const res = await fetch('https://api.cloudinary.com/v1_1/depov4b4l/image/upload', {
+        method: 'POST',
+        body: formData,
+      });
+      const data = await res.json();
+      if (data.secure_url) {
+        setRegisterForm(prev => ({ ...prev, image: data.secure_url }));
+        toast.success('Image uploaded!');
+      } else {
+        toast.error('Image upload failed');
+      }
+    } catch (e) {
+      toast.error('Upload error');
+    } finally {
+      setUploading(false);
     }
-    setUploading(false);
   };
 
   const register = async (e) => {
@@ -113,14 +136,32 @@ export default function Home() {
     setMessage(data.message);
   };
 
-  const initialsFromName = (name) => {
-    if (!name) return '';
-    const parts = name.trim().split(' ');
-    if (parts.length >= 2) {
-      return (parts[0][0] + parts[1][0]).toUpperCase();
-    }
-    return name.slice(0, 2).toUpperCase();
-  };
+  const FeedbackBoxes = useMemo(() =>
+    feedbackList.map((fb, i) => (
+      <div className={styles.testimonialBox} key={i} style={{ flexDirection: i % 2 === 0 ? 'row' : 'row-reverse' }}>
+        <div className={styles.testimonialText}>
+          <p className={styles.name}>
+            {fb.name}
+            <span style={{ marginLeft: 8 }}>
+              {[1, 2, 3, 4, 5].map(s => (
+                <span key={s} style={{ color: s <= fb.rating ? 'gold' : '#ccc', fontSize: 18, marginLeft: 2 }}>★</span>
+              ))}
+            </span>
+          </p>
+          <p className={styles.review}>“{fb.feedback}”</p>
+        </div>
+        {fb.image ? (
+          <img src={fb.image} className={styles.squareImage} alt={fb.name} onError={(e) => (e.currentTarget.src = '/litties.png')} loading="lazy" />
+        ) : (
+          <div className={styles.squareImage} style={{
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            background: '#ccc', color: '#fff', fontWeight: 'bold', fontSize: '20px'
+          }}>
+            {initialsFromName(fb.name)}
+          </div>
+        )}
+      </div>
+    )), [feedbackList, initialsFromName]);
 
   return (
     <div className={styles.container}>
@@ -128,15 +169,13 @@ export default function Home() {
 
       <header className={styles.header}>
         <div className={styles.logo}>
-          <Image src="/litties.png" alt="Logo" width={60} height={60} />
+          <Image src="/litties.png" alt="Logo" width={60} height={60} priority />
         </div>
         <div className={styles.headerText}>
           <h1 className={styles.title}>Litties Multi Cuisine Family Restaurant</h1>
           <p className={styles.address}>Shanti Prayag, Lalganj, Sasaram - 821115</p>
         </div>
-        <div>
-          <button onClick={() => setShowLogin(true)} className={styles.loginButton}>Login</button>
-        </div>
+        <button onClick={() => setShowLogin(true)} className={styles.loginButton}>Login</button>
       </header>
 
       {/* === Login Modal === */}
@@ -152,8 +191,8 @@ export default function Home() {
               <input className={styles.input1} type="password" placeholder="Password" value={password} onChange={e => setPassword(e.target.value)} required />
               <button type="submit" className={styles.submitButton1}>Login</button>
               <div style={{ textAlign: 'center', marginTop: '8px' }}>
-                <span style={{ cursor:'pointer', color:'#0070f3' }} onClick={() => { setShowLogin(false); setShowRegister(true); }}>Register</span> |{' '}
-                <span style={{ cursor:'pointer', color:'#0070f3' }} onClick={() => { setShowLogin(false); setShowForgotPassword(true); }}>Forgot?</span>
+                <span style={{ cursor: 'pointer', color: '#0070f3' }} onClick={() => { setShowLogin(false); setShowRegister(true); }}>Register</span> |{' '}
+                <span style={{ cursor: 'pointer', color: '#0070f3' }} onClick={() => { setShowLogin(false); setShowForgotPassword(true); }}>Forgot?</span>
               </div>
             </form>
           </div>
@@ -175,7 +214,7 @@ export default function Home() {
               <input className={styles.input1} placeholder="Password" type="password" value={registerForm.password} onChange={e => setRegisterForm(prev => ({ ...prev, password: e.target.value }))} required />
               <input type="file" className={styles.input1} accept="image/*" onChange={e => handleImageUpload(e.target.files[0])} />
               {uploading && <p>Uploading image...</p>}
-              {registerForm.image && <img src={registerForm.image} alt="Preview" style={{ width: 60, height:60, borderRadius: '50%', margin:'8px auto' }} />}
+              {registerForm.image && <img src={registerForm.image} alt="Preview" style={{ width: 60, height: 60, borderRadius: '50%', margin: '8px auto' }} />}
               <button type="submit" className={styles.submitButton1}>Register</button>
             </form>
           </div>
@@ -193,40 +232,20 @@ export default function Home() {
               <input className={styles.input1} type="email" placeholder="Your email" value={email} onChange={e => setEmail(e.target.value)} required />
               <button type="submit" className={styles.submitButton1}>Send Password</button>
             </form>
-            {message && <p style={{ textAlign:'center', marginTop:10 }}>{message}</p>}
+            {message && <p style={{ textAlign: 'center', marginTop: 10 }}>{message}</p>}
           </div>
         </div>
       )}
 
-      {/* === Testimonials Section (Alternating) === */}
-      <section className={styles.testimonials}>
-        <h2>What Our Customers Say</h2>
-        {feedbackList.map((fb, idx) => (
-          <div className={styles.testimonialBox} key={idx} style={{ flexDirection: idx % 2 === 0 ? 'row' : 'row-reverse' }}>
-            <div className={styles.testimonialText}>
-              <p className={styles.name}>
-                {fb.name}
-                <span style={{ marginLeft: 8 }}>
-                  {[1, 2, 3, 4, 5].map(s => (
-                    <span key={s} style={{ color: s <= fb.rating ? 'gold' : '#ccc', fontSize: 18, marginLeft: 2 }}>★</span>
-                  ))}
-                </span>
-              </p>
-              <p className={styles.review}>"{fb.feedback}"</p>
-            </div>
-            {fb.image ? (
-              <img src={fb.image} className={styles.squareImage} alt={fb.name} onError={(e) => (e.currentTarget.src = '/litties.png')} />
-            ) : (
-              <div className={styles.squareImage} style={{
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                background: '#ccc', color: '#fff', fontWeight: 'bold', fontSize: '20px'
-              }}>
-                {initialsFromName(fb.name)}
-              </div>
-            )}
-          </div>
-        ))}
-      </section>
+     <section className={styles.testimonials}>
+  <h2 className={styles.testimonialTitle}>What Our Customers Say</h2>
+  <div className={styles.testimonialViewport}>
+    <div className={styles.testimonialScroller}>
+      {FeedbackBoxes}
+    </div>
+  </div>
+</section>
+
     </div>
   );
 }
