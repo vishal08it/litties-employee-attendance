@@ -528,6 +528,10 @@ return (
           alt="Special Offer"
           className={styles.specialPopupImage}
         />
+        <p style={{ textAlign: 'center', fontStyle: 'italic' }}>
+  Valid on: {specialOffer?.dayOfWeek || 'Today'}
+</p>
+
 
         {/* ✅ Order Now Button */}
         <button
