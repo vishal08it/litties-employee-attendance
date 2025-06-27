@@ -1,13 +1,13 @@
+"use client";
+
 import { useEffect, useState } from 'react';
 import Image from 'next/image';
 import styles from '../styles/Home.module.css';
 import { useRouter } from 'next/router';
 import Link from 'next/link';
 import withAuth from '@/lib/withAuth';
-import { ToastContainer } from 'react-toastify';
+import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
-import { toast } from 'react-toastify';
-
 
 function ItemsPage() {
   const [allItems, setAllItems] = useState([]);
@@ -50,17 +50,24 @@ function ItemsPage() {
   }, []);
 
   useEffect(() => {
-    fetch('/api/items').then(r => r.json()).then(setAllItems);
-    fetch('/api/categories').then(r => r.json()).then(json => {
-      if (json.success) setCategories(json.data.map(c => c.name));
-    });
+    fetch('/api/items', { cache: 'no-store' })
+      .then(r => r.json())
+      .then(setAllItems);
+
+    fetch('/api/categories', { cache: 'no-store' })
+      .then(r => r.json())
+      .then(json => {
+        if (json.success) setCategories(json.data.map(c => c.name));
+      });
   }, []);
 
   useEffect(() => {
     if (!mobile) return;
-    fetch(`/api/cart?mobile=${mobile}`).then(r => r.json()).then(json => {
-      if (json.success) setCart(json.items);
-    });
+    fetch(`/api/cart?mobile=${mobile}`, { cache: 'no-store' })
+      .then(r => r.json())
+      .then(json => {
+        if (json.success) setCart(json.items);
+      });
   }, [mobile]);
 
   useEffect(() => {
@@ -87,7 +94,8 @@ function ItemsPage() {
       fetch('/api/cart', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ mobile, items: newCart })
+        body: JSON.stringify({ mobile, items: newCart }),
+        cache: 'no-store'
       });
     }
   };
@@ -134,13 +142,8 @@ function ItemsPage() {
     const res = await fetch('/api/submitFeedback', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        userId,
-        itemId,
-        orderId,
-        feedback: feedbackText,
-        rating,
-      }),
+      body: JSON.stringify({ userId, itemId, orderId, feedback: feedbackText, rating }),
+      cache: 'no-store'
     });
 
     const json = await res.json();
@@ -160,51 +163,43 @@ function ItemsPage() {
     }
   };
 
-const checkSpecialOfferTrigger = () => {
-  const mobile = localStorage.getItem('mobileNumber');
-  if (!mobile) return;
+  const checkSpecialOfferTrigger = () => {
+    const mobile = localStorage.getItem('mobileNumber');
+    if (!mobile) return;
 
-  const seen = localStorage.getItem(`specialOfferSeen_${mobile}`);
-  if (seen === 'yes') return; // 👈 skip if already seen for this user
+    const seen = localStorage.getItem(`specialOfferSeen_${mobile}`);
+    if (seen === 'yes') return;
 
-  fetch('/api/specialoffer/getValid')
-    .then(res => res.json())
-    .then(json => {
-      if (json.success && json.offer) {
-        setSpecialOffer(json.offer);
-        setShowSpecialPopup(true);
-      }
-    });
-};
+    fetch('/api/specialoffer/getValid', { cache: 'no-store' })
+      .then(res => res.json())
+      .then(json => {
+        if (json.success && json.offer) {
+          setSpecialOffer(json.offer);
+          setShowSpecialPopup(true);
+        }
+      });
+  };
 
+  useEffect(() => {
+    if (!mobile) return;
 
+    fetch(`/api/lastDelivered?mobile=${mobile}`, { cache: 'no-store' })
+      .then(res => res.json())
+      .then(json => {
+        if (json.success && json.item && !json.feedbackGiven) {
+          setLastDeliveredItem(json.item);
+          setShowFeedback(true);
+        } else {
+          checkSpecialOfferTrigger();
+        }
+      });
+  }, [mobile]);
 
-useEffect(() => {
-  if (!mobile) return;
-
-  fetch(`/api/lastDelivered?mobile=${mobile}`)
-    .then(res => res.json())
-    .then(json => {
-      if (json.success && json.item && !json.feedbackGiven) {
-        setLastDeliveredItem(json.item);
-        setShowFeedback(true);
-      } else {
-        checkSpecialOfferTrigger(); // ✅ show special offer only if no feedback
-      }
-    });
-}, [mobile]);
-
-
-useEffect(() => {
-  if (!mobile || showFeedback) return;
-
-  const timeout = setTimeout(() => {
-    checkSpecialOfferTrigger();
-  }, 3000); // wait 3s just in case feedback didn't appear
-
-  return () => clearTimeout(timeout);
-}, [mobile, showFeedback]);
-
+  useEffect(() => {
+    if (!mobile || showFeedback) return;
+    const timeout = setTimeout(() => checkSpecialOfferTrigger(), 3000);
+    return () => clearTimeout(timeout);
+  }, [mobile, showFeedback]);
 return (
     <div style={{ background: 'linear-gradient(orange, white, green)', minHeight: '100vh', padding: 20 }}>
       <header className={styles.header}>

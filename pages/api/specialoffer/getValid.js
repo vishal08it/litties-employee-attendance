@@ -2,6 +2,8 @@ import dbConnect from '@/lib/mongodb';
 import SpecialOffer from '@/models/SpecialOffer';
 
 export default async function handler(req, res) {
+  res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+
   await dbConnect();
 
   const now = new Date();
