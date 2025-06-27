@@ -485,6 +485,9 @@ const goToPrevPage = () => {
     <button onClick={() => window.location.href = '/add-category'} className={styles.addemployeeButton}>
       Add Category
     </button>
+    <button onClick={() => window.location.href = '/specialoffer'} className={styles.addemployeeButton}>
+      Special Offer
+    </button>
     <button onClick={() => window.location.href = '/orders'} className={styles.addemployeeButton}>
      Order Management
     </button>

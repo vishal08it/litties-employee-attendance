@@ -4,6 +4,10 @@ import styles from '../styles/Home.module.css';
 import { useRouter } from 'next/router';
 import Link from 'next/link';
 import withAuth from '@/lib/withAuth';
+import { ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
+import { toast } from 'react-toastify';
+
 
 function ItemsPage() {
   const [allItems, setAllItems] = useState([]);
@@ -24,7 +28,9 @@ function ItemsPage() {
   const [lastDeliveredItem, setLastDeliveredItem] = useState(null);
   const [feedbackText, setFeedbackText] = useState('');
   const [rating, setRating] = useState(0);
-  const [showThanksBox, setShowThanksBox] = useState(false); // ✅
+  const [showThanksBox, setShowThanksBox] = useState(false);
+  const [showSpecialPopup, setShowSpecialPopup] = useState(false);
+  const [specialOffer, setSpecialOffer] = useState(null);
 
   const ITEMS_PER_PAGE = 18;
   const router = useRouter();
@@ -55,17 +61,6 @@ function ItemsPage() {
     fetch(`/api/cart?mobile=${mobile}`).then(r => r.json()).then(json => {
       if (json.success) setCart(json.items);
     });
-
-    setTimeout(() => {
-      fetch(`/api/lastDelivered?mobile=${mobile}`)
-        .then(res => res.json())
-        .then(json => {
-          if (json.success && json.item && !json.feedbackGiven) {
-            setLastDeliveredItem(json.item);
-            setShowFeedback(true);
-          }
-        });
-    }, 800); // Feedback popup delay
   }, [mobile]);
 
   useEffect(() => {
@@ -130,41 +125,85 @@ function ItemsPage() {
     router.push('/payment');
   };
 
- const handleSubmitFeedback = async () => {
-  if (!feedbackText.trim() || rating === 0) return;
+  const handleSubmitFeedback = async () => {
+    if (!feedbackText.trim() || rating === 0) return;
 
-  const userId = localStorage.getItem('mobileNumber');
-  const { itemId, orderId } = lastDeliveredItem || {};
+    const userId = localStorage.getItem('mobileNumber');
+    const { itemId, orderId } = lastDeliveredItem || {};
 
-  const res = await fetch('/api/submitFeedback', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      userId,
-      itemId,
-      orderId,
-      feedback: feedbackText,
-      rating,
-    }),
-  });
+    const res = await fetch('/api/submitFeedback', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        userId,
+        itemId,
+        orderId,
+        feedback: feedbackText,
+        rating,
+      }),
+    });
 
-  const json = await res.json();
+    const json = await res.json();
 
-  if (json.success) {
-    setShowFeedback(false);
-    setFeedbackText('');
-    setRating(0);
-    setShowThanksBox(true);
+    if (json.success) {
+      setShowFeedback(false);
+      setFeedbackText('');
+      setRating(0);
+      setShowThanksBox(true);
 
-    setTimeout(() => {
-      setShowThanksBox(false);
-    }, 3000);
-  } else {
-    alert(json.message || 'Submission failed');
-  }
+      setTimeout(() => {
+        setShowThanksBox(false);
+        checkSpecialOfferTrigger();
+      }, 3000);
+    } else {
+      alert(json.message || 'Submission failed');
+    }
+  };
+
+const checkSpecialOfferTrigger = () => {
+  const mobile = localStorage.getItem('mobileNumber');
+  if (!mobile) return;
+
+  const seen = localStorage.getItem(`specialOfferSeen_${mobile}`);
+  if (seen === 'yes') return; // 👈 skip if already seen for this user
+
+  fetch('/api/specialoffer/getValid')
+    .then(res => res.json())
+    .then(json => {
+      if (json.success && json.offer) {
+        setSpecialOffer(json.offer);
+        setShowSpecialPopup(true);
+      }
+    });
 };
 
 
+
+useEffect(() => {
+  if (!mobile) return;
+
+  fetch(`/api/lastDelivered?mobile=${mobile}`)
+    .then(res => res.json())
+    .then(json => {
+      if (json.success && json.item && !json.feedbackGiven) {
+        setLastDeliveredItem(json.item);
+        setShowFeedback(true);
+      } else {
+        checkSpecialOfferTrigger(); // ✅ show special offer only if no feedback
+      }
+    });
+}, [mobile]);
+
+
+useEffect(() => {
+  if (!mobile || showFeedback) return;
+
+  const timeout = setTimeout(() => {
+    checkSpecialOfferTrigger();
+  }, 3000); // wait 3s just in case feedback didn't appear
+
+  return () => clearTimeout(timeout);
+}, [mobile, showFeedback]);
 
 return (
     <div style={{ background: 'linear-gradient(orange, white, green)', minHeight: '100vh', padding: 20 }}>
@@ -470,6 +509,68 @@ return (
     🙏 Thank you for your feedback!
   </div>
 )}
+
+{showSpecialPopup && specialOffer && (
+  <div className={styles.specialPopupOverlay}>
+    <div className={styles.specialPopupBox}>
+      <div className={styles.imageContainer}>
+        {/* 🎀 Ribbon */}
+        <div className={styles.ribbon}>Special Offer</div>
+
+        {/* ❌ Close */}
+        <button
+          className={styles.closeIcon}
+          onClick={() => {
+            setShowSpecialPopup(false);
+            if (mobile) localStorage.setItem(`specialOfferSeen_${mobile}`, 'yes');
+          }}
+        >
+          ❌
+        </button>
+
+        <img
+          src={specialOffer.image}
+          alt="Special Offer"
+          className={styles.specialPopupImage}
+        />
+
+        {/* ✅ Order Now Button */}
+        <button
+          className={styles.orderNowOnImage}
+          onClick={() => {
+  setShowSpecialPopup(false);
+  if (mobile) localStorage.setItem(`specialOfferSeen_${mobile}`, 'yes');
+
+  if (!specialOffer || specialOffer.stock === 'Out of Stock' || !specialOffer._id) {
+    toast.error("Sorry, this offer is not available!");
+    return;
+  }
+
+  const idx = cart.findIndex(c => c._id === specialOffer._id);
+  const newCart = [...cart];
+  if (idx >= 0) {
+    newCart[idx].quantity += 1;
+  } else {
+    newCart.push({ ...specialOffer, quantity: 1 });
+  }
+
+  syncCart(newCart);
+  toast.success("🎁 Special offer added to cart!");
+}}
+
+        >
+          Order Now
+        </button>
+      </div>
+    </div>
+  </div>
+)}
+
+<ToastContainer position="top-right" autoClose={2500} />
+
+
+
+
 
 
 </div>

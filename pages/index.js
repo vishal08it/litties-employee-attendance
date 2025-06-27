@@ -63,25 +63,35 @@ export default function Home() {
   }, []);
 
   const login = async (e) => {
-    e.preventDefault();
-    const res = await fetch('/api/login', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ identifier, password }),
-    });
-    const data = await res.json();
-    if (res.ok) {
-      toast.success('Login successful!', { autoClose: 2000 });
-      localStorage.setItem('role', data.role);
-      localStorage.setItem('name', data.name || '');
-      localStorage.setItem('image', data.image || '');
-      localStorage.setItem('emailId', data.emailId || '');
-      localStorage.setItem('mobileNumber', data.mobileNumber || '');
-      setTimeout(() => router.push(data.destination), 2000);
-    } else {
-      toast.error(data.message || 'Login failed');
+  e.preventDefault();
+  const res = await fetch('/api/login', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ identifier, password }),
+  });
+
+  const data = await res.json();
+
+  if (res.ok) {
+    toast.success('Login successful!', { autoClose: 2000 });
+
+    localStorage.setItem('role', data.role);
+    localStorage.setItem('name', data.name || '');
+    localStorage.setItem('image', data.image || '');
+    localStorage.setItem('emailId', data.emailId || '');
+    localStorage.setItem('mobileNumber', data.mobileNumber || '');
+
+    // ✅ Reset special offer seen flag for this user
+    if (data.mobileNumber) {
+      localStorage.removeItem(`specialOfferSeen_${data.mobileNumber}`);
     }
-  };
+
+    setTimeout(() => router.push(data.destination), 2000);
+  } else {
+    toast.error(data.message || 'Login failed');
+  }
+};
+
 
   const handleImageUpload = async (file) => {
     const formData = new FormData();
