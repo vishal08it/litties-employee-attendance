@@ -180,17 +180,23 @@ function ProfilePage() {
                       <td>
                         {order.status === 'New' && withinCancelWindow && (
                           <div style={{ position: 'relative' }}>
-                            <button
-                              onClick={() => requestCancel(order._id, order.createdAt)}
-                              onMouseEnter={() => setHoverCancelId(order._id)}
-                              onMouseLeave={() => setHoverCancelId(null)}
-                              style={{
-                                background: '#dc2626', color: 'white', padding: '5px 10px',
-                                border: 'none', borderRadius: '4px', cursor: 'pointer'
+                             <button
+                                onClick={() => requestCancel(order._id, order.createdAt)}
+                                style={{
+                                  background: '#dc2626', color: 'white', padding: '5px 10px',
+                                  border: 'none', borderRadius: '4px', cursor: 'pointer'
+                                }}>
+                                Cancel
+                              </button>
+                              <p style={{
+                                fontSize: '11px',
+                                color: '#facc15',
+                                marginTop: '4px',
+                                fontStyle: 'italic'
                               }}>
-                              Cancel
-                            </button>
-                            {hoverCancelId === order._id && (
+                                * Cancel Order Within 3 min
+                              </p>
+                            {/* {hoverCancelId === order._id && (
                               <div style={{
                                 position: 'absolute', top: '-30px', left: '50%',
                                 transform: 'translateX(-50%)', background: '#333',
@@ -198,7 +204,7 @@ function ProfilePage() {
                               }}>
                                 After Placed Order Cancel  Within 3 min
                               </div>
-                            )}
+                            )} */}
                           </div>
                         )}
                       </td>
