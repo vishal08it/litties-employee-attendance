@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import Image from 'next/image';
 import styles from '../styles/Home.module.css';
 import { useRouter } from 'next/router';
@@ -11,7 +11,6 @@ import 'react-toastify/dist/ReactToastify.css';
 
 function ItemsPage() {
   const [allItems, setAllItems] = useState([]);
-  const [filteredItems, setFilteredItems] = useState([]);
   const [categories, setCategories] = useState([]);
   const [search, setSearch] = useState('');
   const [category, setCategory] = useState('');
@@ -50,15 +49,22 @@ function ItemsPage() {
   }, []);
 
   useEffect(() => {
-    fetch('/api/items', { cache: 'no-store' })
-      .then(r => r.json())
-      .then(setAllItems);
+    async function fetchInitialData() {
+      const [itemsRes, categoriesRes] = await Promise.all([
+        fetch('/api/items', { cache: 'no-store' }),
+        fetch('/api/categories', { cache: 'no-store' })
+      ]);
 
-    fetch('/api/categories', { cache: 'no-store' })
-      .then(r => r.json())
-      .then(json => {
-        if (json.success) setCategories(json.data.map(c => c.name));
-      });
+      const items = await itemsRes.json();
+      setAllItems(items);
+
+      const categoriesJson = await categoriesRes.json();
+      if (categoriesJson.success) {
+        setCategories(categoriesJson.data.map(c => c.name));
+      }
+    }
+
+    fetchInitialData();
   }, []);
 
   useEffect(() => {
@@ -70,16 +76,15 @@ function ItemsPage() {
       });
   }, [mobile]);
 
-  useEffect(() => {
+  const filteredItems = useMemo(() => {
     let temp = [...allItems];
     if (category) temp = temp.filter(i => i.category === category);
     if (search) temp = temp.filter(i => i.name.toLowerCase().includes(search.toLowerCase()));
-    setFilteredItems(temp);
-    setPage(1);
+    return temp;
   }, [search, category, allItems]);
 
   const startIndex = (page - 1) * ITEMS_PER_PAGE;
-  const paginatedItems = filteredItems.slice(startIndex, startIndex + ITEMS_PER_PAGE);
+  const paginatedItems = useMemo(() => filteredItems.slice(startIndex, startIndex + ITEMS_PER_PAGE), [filteredItems, page]);
   const totalPages = Math.ceil(filteredItems.length / ITEMS_PER_PAGE);
 
   const logout = () => {
@@ -117,7 +122,6 @@ function ItemsPage() {
   };
 
   const removeFromCart = id => syncCart(cart.filter(it => it._id !== id));
-
   const totalAmount = cart.reduce((sum, it) => sum + it.price * it.quantity, 0);
 
   const handleProceed = () => {
@@ -135,7 +139,6 @@ function ItemsPage() {
 
   const handleSubmitFeedback = async () => {
     if (!feedbackText.trim() || rating === 0) return;
-
     const userId = localStorage.getItem('mobileNumber');
     const { itemId, orderId } = lastDeliveredItem || {};
 
@@ -153,7 +156,6 @@ function ItemsPage() {
       setFeedbackText('');
       setRating(0);
       setShowThanksBox(true);
-
       setTimeout(() => {
         setShowThanksBox(false);
         checkSpecialOfferTrigger();
@@ -182,7 +184,6 @@ function ItemsPage() {
 
   useEffect(() => {
     if (!mobile) return;
-
     fetch(`/api/lastDelivered?mobile=${mobile}`, { cache: 'no-store' })
       .then(res => res.json())
       .then(json => {
@@ -194,6 +195,12 @@ function ItemsPage() {
         }
       });
   }, [mobile]);
+
+  useEffect(() => {
+    if (!mobile || showFeedback) return;
+    const timeout = setTimeout(() => checkSpecialOfferTrigger(), 3000);
+    return () => clearTimeout(timeout);
+  }, [mobile, showFeedback]);
 
   useEffect(() => {
     if (!mobile || showFeedback) return;

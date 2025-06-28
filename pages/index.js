@@ -6,13 +6,22 @@ import { useRouter } from 'next/router';
 import Image from 'next/image';
 
 import styles from '../styles/Home.module.css';
-import '@/styles/globals.css';
+import 'react-toastify/dist/ReactToastify.css';
 
 const ToastContainer = dynamic(() => import('react-toastify').then(mod => mod.ToastContainer), { ssr: false });
 import { toast } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css';
 
-export default function Home() {
+export async function getServerSideProps() {
+  try {
+    const res = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/api/getFeedbacks`);
+    const data = await res.json();
+    return { props: { initialFeedbacks: data.feedbacks || [] } };
+  } catch {
+    return { props: { initialFeedbacks: [] } };
+  }
+}
+
+export default function Home({ initialFeedbacks }) {
   const [showLogin, setShowLogin] = useState(false);
   const [showRegister, setShowRegister] = useState(false);
   const [showForgotPassword, setShowForgotPassword] = useState(false);
@@ -21,28 +30,19 @@ export default function Home() {
   const [password, setPassword] = useState('');
   const [email, setEmail] = useState('');
   const [message, setMessage] = useState('');
-
-  const [feedbackList, setFeedbackList] = useState([]);
+  const [feedbackList, setFeedbackList] = useState(initialFeedbacks);
+  const [uploading, setUploading] = useState(false);
 
   const [registerForm, setRegisterForm] = useState({
-    name: '',
-    emailId: '',
-    mobileNumber: '',
-    password: '',
-    image: ''
+    name: '', emailId: '', mobileNumber: '', password: '', image: ''
   });
-
-  const [uploading, setUploading] = useState(false);
 
   const router = useRouter();
 
   const initialsFromName = useCallback((name) => {
     if (!name) return '';
     const parts = name.trim().split(' ');
-    if (parts.length >= 2) {
-      return (parts[0][0] + parts[1][0]).toUpperCase();
-    }
-    return name.slice(0, 2).toUpperCase();
+    return parts.length >= 2 ? (parts[0][0] + parts[1][0]).toUpperCase() : name.slice(0, 2).toUpperCase();
   }, []);
 
   useEffect(() => {
@@ -53,45 +53,33 @@ export default function Home() {
     }
   }, [router]);
 
-  useEffect(() => {
-    fetch('/api/getFeedbacks')
-      .then(res => res.json())
-      .then(data => {
-        if (data.success) setFeedbackList(data.feedbacks);
-      })
-      .catch(console.error);
-  }, []);
-
   const login = async (e) => {
-  e.preventDefault();
-  const res = await fetch('/api/login', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ identifier, password }),
-  });
+    e.preventDefault();
+    const res = await fetch('/api/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ identifier, password }),
+    });
+    const data = await res.json();
 
-  const data = await res.json();
+    if (res.ok) {
+      toast.success('Login successful!', { autoClose: 1500 });
 
-  if (res.ok) {
-    toast.success('Login successful!', { autoClose: 2000 });
+      localStorage.setItem('role', data.role);
+      localStorage.setItem('name', data.name || '');
+      localStorage.setItem('image', data.image || '');
+      localStorage.setItem('emailId', data.emailId || '');
+      localStorage.setItem('mobileNumber', data.mobileNumber || '');
 
-    localStorage.setItem('role', data.role);
-    localStorage.setItem('name', data.name || '');
-    localStorage.setItem('image', data.image || '');
-    localStorage.setItem('emailId', data.emailId || '');
-    localStorage.setItem('mobileNumber', data.mobileNumber || '');
+      if (data.mobileNumber) {
+        localStorage.removeItem(`specialOfferSeen_${data.mobileNumber}`);
+      }
 
-    // ✅ Reset special offer seen flag for this user
-    if (data.mobileNumber) {
-      localStorage.removeItem(`specialOfferSeen_${data.mobileNumber}`);
+      router.push(data.destination);
+    } else {
+      toast.error(data.message || 'Login failed');
     }
-
-    setTimeout(() => router.push(data.destination), 2000);
-  } else {
-    toast.error(data.message || 'Login failed');
-  }
-};
-
+  };
 
   const handleImageUpload = async (file) => {
     const formData = new FormData();
@@ -110,7 +98,7 @@ export default function Home() {
       } else {
         toast.error('Image upload failed');
       }
-    } catch (e) {
+    } catch {
       toast.error('Upload error');
     } finally {
       setUploading(false);
@@ -129,7 +117,7 @@ export default function Home() {
     if (res.ok) {
       toast.success('Registered successfully!');
       setRegisterForm({ name: '', emailId: '', mobileNumber: '', password: '', image: '' });
-      setTimeout(() => router.replace('/'), 2000);
+      router.replace('/');
     } else {
       toast.error(data.message || 'Registration failed');
     }
@@ -161,7 +149,13 @@ export default function Home() {
           <p className={styles.review}>“{fb.feedback}”</p>
         </div>
         {fb.image ? (
-          <img src={fb.image} className={styles.squareImage} alt={fb.name} onError={(e) => (e.currentTarget.src = '/litties.png')} loading="lazy" />
+          <img
+            src={`${fb.image}?w=120&h=120&c_fill&q_auto`}
+            className={styles.squareImage}
+            alt={fb.name}
+            loading="lazy"
+            onError={(e) => (e.currentTarget.src = '/litties.png')}
+          />
         ) : (
           <div className={styles.squareImage} style={{
             display: 'flex', alignItems: 'center', justifyContent: 'center',
@@ -219,9 +213,9 @@ export default function Home() {
             <h2>Register</h2>
             <form onSubmit={register}>
               <input className={styles.input1} placeholder="Name" value={registerForm.name} onChange={e => setRegisterForm(prev => ({ ...prev, name: e.target.value }))} required />
-              <input className={styles.input1} placeholder="Email" type="email" value={registerForm.emailId} onChange={e => setRegisterForm(prev => ({ ...prev, emailId: e.target.value }))} required />
+              <input className={styles.input1} type="email" placeholder="Email" value={registerForm.emailId} onChange={e => setRegisterForm(prev => ({ ...prev, emailId: e.target.value }))} required />
               <input className={styles.input1} placeholder="Mobile" value={registerForm.mobileNumber} onChange={e => setRegisterForm(prev => ({ ...prev, mobileNumber: e.target.value }))} required />
-              <input className={styles.input1} placeholder="Password" type="password" value={registerForm.password} onChange={e => setRegisterForm(prev => ({ ...prev, password: e.target.value }))} required />
+              <input className={styles.input1} type="password" placeholder="Password" value={registerForm.password} onChange={e => setRegisterForm(prev => ({ ...prev, password: e.target.value }))} required />
               <input type="file" className={styles.input1} accept="image/*" onChange={e => handleImageUpload(e.target.files[0])} />
               {uploading && <p>Uploading image...</p>}
               {registerForm.image && <img src={registerForm.image} alt="Preview" style={{ width: 60, height: 60, borderRadius: '50%', margin: '8px auto' }} />}
@@ -247,15 +241,15 @@ export default function Home() {
         </div>
       )}
 
-     <section className={styles.testimonials}>
-  <h2 className={styles.testimonialTitle}>What Our Customers Say</h2>
-  <div className={styles.testimonialViewport}>
-    <div className={styles.testimonialScroller}>
-      {FeedbackBoxes}
-    </div>
-  </div>
-</section>
-
+      {/* === Testimonials Section === */}
+      <section className={styles.testimonials}>
+        <h2 className={styles.testimonialTitle}>What Our Customers Say</h2>
+        <div className={styles.testimonialViewport}>
+          <div className={styles.testimonialScroller}>
+            {FeedbackBoxes}
+          </div>
+        </div>
+      </section>
     </div>
   );
 }
