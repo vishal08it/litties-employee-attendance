@@ -1590,21 +1590,25 @@
   border-top: 4px solid #eab308;
   display: flex;
   justify-content: space-between;
-  align-items: center;
+  align-items: flex-start;
   flex-wrap: wrap;
   margin-top: 30px;
+  row-gap: 20px;
 }
 
 .footerWrapper {
   display: flex;
   justify-content: space-between;
-  align-items: center;
-  flex: 1;
+  align-items: flex-start;
+  flex-wrap: wrap;
+  width: 100%;
+  gap: 20px;
 }
 
 .iconContainer {
   display: flex;
   gap: 16px;
+  flex-wrap: wrap;
 }
 
 .iconImage {
@@ -1624,19 +1628,18 @@
 }
 
 .subscribeCorner {
-  /* background: #1f1f1f; */
   padding: 8px 12px;
-  /* border-radius: 8px; */
   display: flex;
   align-items: center;
   gap: 8px;
-  /* box-shadow: 0 0 10px rgba(0,0,0,0.4); */
+  flex-wrap: wrap;
 }
 
 .subscribeForm {
   display: flex;
   gap: 8px;
   align-items: center;
+  flex-wrap: wrap;
 }
 
 .subscribeInput {
@@ -1645,14 +1648,13 @@
   border: none;
   outline: none;
   font-size: 14px;
-
   background: linear-gradient(to right, #FF9933, #FFFFFF, #138808);
-  color: black; /* Ensure text is readable */
+  color: black;
+  min-width: 180px;
 }
 
-
 .subscribeButton {
-  background: linear-gradient(to right, #FF9933, #FFFFFF, #138808); /* Indian flag colors */
+  background: linear-gradient(to right, #FF9933, #FFFFFF, #138808);
   color: black;
   border: none;
   padding: 6px 12px;
@@ -1663,24 +1665,21 @@
 }
 
 .subscribeButton:hover {
-  background-color: #3cb043; /* Parrot green */
-  background-image: none;     /* Remove gradient on hover */
+  background-color: #3cb043;
+  background-image: none;
   color: white;
 }
-
 
 .subscribeCorner h4 {
   margin: 0;
   font-size: 14px;
   white-space: nowrap;
-
-  background: linear-gradient(to right, #FF9933, #FFFFFF, #138808); /* Saffron → White → Green */
+  background: linear-gradient(to right, #FF9933, #FFFFFF, #138808);
   background-clip: text;
   -webkit-background-clip: text;
   color: transparent;
   -webkit-text-fill-color: transparent;
 }
-
 
 .subscribeStatus {
   color: #facc15;
@@ -1693,7 +1692,6 @@
   text-align: center;
   font-size: 15px;
   margin-top: 8px;
-
   background: linear-gradient(to right, #FF9933, white, #138808);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
@@ -1702,18 +1700,22 @@
 .socialSection {
   display: flex;
   align-items: center;
-  gap: 16px; /* This adds space between "Follow us" and the icons */
+  gap: 16px;
+  flex-wrap: wrap;
 }
+
 .iconBlock {
   display: flex;
   flex-direction: column;
   align-items: flex-start;
-  gap: 6px; /* space between "Follow us" and icons */
+  gap: 6px;
 }
+
 .followRow {
   display: flex;
   align-items: center;
   gap: 15px;
+  flex-wrap: wrap;
 }
 
 .followText {
@@ -1721,8 +1723,51 @@
   font-weight: 600;
   margin: 0;
   white-space: nowrap;
-
   background: linear-gradient(to right, #FF9933, white, #138808);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
+}
+
+/* 🔽 Media Queries for Smaller Screens */
+@media (max-width: 768px) {
+  .footer {
+    flex-direction: column;
+    align-items: stretch;
+    padding: 10px 8px;
+  }
+
+  .footerWrapper {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 5px;
+  }
+
+  .subscribeForm {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
+  }
+
+  .subscribeInput, .subscribeButton {
+    width: 100%;
+  }
+
+  .iconContainer {
+    justify-content: flex-start;
+  }
+
+  .socialSection {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+  }
+
+  .followRow {
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+
+  .copyright {
+    font-size: 14px;
+  }
 }
