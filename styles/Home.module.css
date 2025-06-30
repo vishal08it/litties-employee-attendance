@@ -7,16 +7,27 @@
 }
 
 .header {
+  position: fixed;
+  top: 10px; /* ✅ Adds gap from top of browser */
+  left: 20px; /* ✅ Gap from left */
+  right: 20px; /* ✅ Gap from right */
+  z-index: 999; /* ✅ Ensure it stays above other content */
+
   display: flex;
   align-items: center;
   justify-content: space-between;
-  background: linear-gradient(to bottom, #ff9933, #ffffff, #138808);
-  color: #1e1b18;
-  padding: 5px 40px;
-  border-bottom: 2px solid #eab308;
   flex-wrap: wrap;
-  border-radius: 40px;
+
+  padding: 15px 30px;
+  border-radius: 50px;
+
+  background: linear-gradient(to bottom, #ff9933, #ffffff, #138808); /* 🇮🇳 Tricolor */
+  color: #1e1b18;
+  border: 4px solid #eab308;
+  box-shadow: 0 6px 15px rgba(0, 0, 0, 0.3); /* ✅ Soft shadow for 3D look */
 }
+
+
 
 .logo {
   display: flex;
@@ -1571,4 +1582,147 @@
 .submitButton1:disabled {
   background-color: #d4af37;
   cursor: not-allowed;
+}
+.footer {
+  background: #2c2c2c;
+  padding: 12px 20px;
+  color: white;
+  border-top: 4px solid #eab308;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  margin-top: 30px;
+}
+
+.footerWrapper {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex: 1;
+}
+
+.iconContainer {
+  display: flex;
+  gap: 16px;
+}
+
+.iconImage {
+  border-radius: 50%;
+  object-fit: cover;
+  background: linear-gradient(to right, #FF9933, #FFFFFF, #138808);
+  padding: 4px;
+  width: 36px;
+  height: 36px;
+  cursor: pointer;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.iconImage:hover {
+  transform: scale(1.15);
+  box-shadow: 0 0 8px #facc15;
+}
+
+.subscribeCorner {
+  /* background: #1f1f1f; */
+  padding: 8px 12px;
+  /* border-radius: 8px; */
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  /* box-shadow: 0 0 10px rgba(0,0,0,0.4); */
+}
+
+.subscribeForm {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.subscribeInput {
+  padding: 6px 8px;
+  border-radius: 4px;
+  border: none;
+  outline: none;
+  font-size: 14px;
+
+  background: linear-gradient(to right, #FF9933, #FFFFFF, #138808);
+  color: black; /* Ensure text is readable */
+}
+
+
+.subscribeButton {
+  background: linear-gradient(to right, #FF9933, #FFFFFF, #138808); /* Indian flag colors */
+  color: black;
+  border: none;
+  padding: 6px 12px;
+  font-weight: bold;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background 0.3s ease;
+}
+
+.subscribeButton:hover {
+  background-color: #3cb043; /* Parrot green */
+  background-image: none;     /* Remove gradient on hover */
+  color: white;
+}
+
+
+.subscribeCorner h4 {
+  margin: 0;
+  font-size: 14px;
+  white-space: nowrap;
+
+  background: linear-gradient(to right, #FF9933, #FFFFFF, #138808); /* Saffron → White → Green */
+  background-clip: text;
+  -webkit-background-clip: text;
+  color: transparent;
+  -webkit-text-fill-color: transparent;
+}
+
+
+.subscribeStatus {
+  color: #facc15;
+  font-size: 12px;
+  margin-top: 4px;
+}
+
+.copyright {
+  width: 100%;
+  text-align: center;
+  font-size: 15px;
+  margin-top: 8px;
+
+  background: linear-gradient(to right, #FF9933, white, #138808);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.socialSection {
+  display: flex;
+  align-items: center;
+  gap: 16px; /* This adds space between "Follow us" and the icons */
+}
+.iconBlock {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 6px; /* space between "Follow us" and icons */
+}
+.followRow {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.followText {
+  font-size: 16px;
+  font-weight: 600;
+  margin: 0;
+  white-space: nowrap;
+
+  background: linear-gradient(to right, #FF9933, white, #138808);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
 }

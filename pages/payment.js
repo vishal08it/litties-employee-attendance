@@ -8,6 +8,7 @@ import { useRouter } from 'next/navigation';
 import styles from '../styles/Home.module.css';
 import Image from 'next/image';
 import withAuth from '@/lib/withAuth';
+import Footer from '@/components/Footer';
 
 function PaymentPage() {
   const router = useRouter();
@@ -354,6 +355,7 @@ function PaymentPage() {
           </motion.div>
         </div>
       )}
+      <Footer/>
     </div>
   );
 }

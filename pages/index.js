@@ -4,6 +4,8 @@ import { useState, useEffect, useCallback, useMemo } from 'react';
 import dynamic from 'next/dynamic';
 import { useRouter } from 'next/router';
 import Image from 'next/image';
+import Footer from '@/components/Footer';
+import Header from '../components/Header';
 
 import styles from '../styles/Home.module.css';
 import 'react-toastify/dist/ReactToastify.css';
@@ -170,8 +172,9 @@ export default function Home({ initialFeedbacks }) {
   return (
     <div className={styles.container}>
       <ToastContainer position="top-right" theme="colored" />
-
-      <header className={styles.header}>
+ <Header onLoginClick={() => setShowLogin(true)} />
+  <div style={{ marginTop: '70px' }}></div>
+      {/* <header className={styles.header}>
         <div className={styles.logo}>
           <Image src="/litties.png" alt="Logo" width={60} height={60} priority />
         </div>
@@ -180,7 +183,7 @@ export default function Home({ initialFeedbacks }) {
           <p className={styles.address}>Shanti Prayag, Lalganj, Sasaram - 821115</p>
         </div>
         <button onClick={() => setShowLogin(true)} className={styles.loginButton}>Login</button>
-      </header>
+      </header> */}
 
       {/* === Login Modal === */}
       {showLogin && (
@@ -250,6 +253,7 @@ export default function Home({ initialFeedbacks }) {
           </div>
         </div>
       </section>
+      <Footer/>
     </div>
   );
 }

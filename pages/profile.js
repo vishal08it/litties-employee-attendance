@@ -7,6 +7,8 @@ import Image from 'next/image';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import withAuth from '@/lib/withAuth';
+import Header from '@/components/Header';
+import Footer from '@/components/Footer';
 
 function ProfilePage() {
   const router = useRouter();
@@ -18,6 +20,14 @@ function ProfilePage() {
   const [viewedOrderId, setViewedOrderId] = useState(null);
   const [hoverCancelId, setHoverCancelId] = useState(null);
   const perPage = 5;
+
+  // ✅ Set body background color to light black only on this page
+  useEffect(() => {
+    document.body.style.backgroundColor = '#1f2937';
+    return () => {
+      document.body.style.backgroundColor = '';
+    };
+  }, []);
 
   useEffect(() => {
     const name = localStorage.getItem('name');
@@ -82,7 +92,10 @@ function ProfilePage() {
   return (
     <div style={{ background: '#111827', minHeight: '100vh', color: 'white', paddingBottom: '2rem' }}>
       <ToastContainer />
-      <header className={styles.header}>
+      <Header showBackButton={true} backButtonText="Back to Menu" backButtonLink="/itemspage" />
+      <div style={{ marginTop: '130px' }}></div>
+
+      {/* <header className={styles.header}>
         <div className={styles.logo}>
           <Image src="/litties.png" alt="Litties Logo" width={60} height={60} />
         </div>
@@ -95,7 +108,7 @@ function ProfilePage() {
             Back to Menu
           </button>
         </div>
-      </header>
+      </header> */}
 
       <div style={{ margin: '2rem' }}>
         <div style={{
@@ -294,6 +307,7 @@ function ProfilePage() {
           </div>
         )}
       </div>
+      <Footer/>
     </div>
   );
 }
