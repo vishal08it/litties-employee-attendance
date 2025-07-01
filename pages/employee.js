@@ -4,7 +4,6 @@ import Image from 'next/image';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import styles from '../styles/Home.module.css';
-import Footer from '@/components/Footer';
 
 export default function Employee() {
   const [status, setStatus] = useState('');
@@ -156,7 +155,6 @@ export default function Employee() {
         <button onClick={logout} className={styles.logoutButton}>Logout</button>
       </header>
 
-       <div style={{ marginTop: '70px' }}></div>
       <div style={{ marginTop: '6rem', textAlign: 'left', maxWidth: '1200px', margin: '0 auto', paddingLeft: '2rem' }}>
         <h2 style={{ color: '#eab308', margin: 0, fontSize: '1.5rem' }}>
           Welcome, {name}
@@ -283,7 +281,6 @@ export default function Employee() {
           </div>
         </div>
       </div>
-      <Footer/>
     </div>
   );
 }

@@ -8,8 +8,6 @@ import styles from '../styles/Home.module.css';
 import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import withAdminAuth from '@/lib/withAdminAuth';
-import Header from '@/components/Header';
-import Footer from '@/components/Footer';
 
 function AddCategoryPage() {
   const router = useRouter();
@@ -69,10 +67,7 @@ function AddCategoryPage() {
   return (
     <div className={styles.container}>
       <ToastContainer />
-       <Header logout={() => router.push('/')} showLogoutOnly={true} />
-        <div style={{ marginTop: '120px' }}></div>
-
-      {/* <header className={styles.header}>
+      <header className={styles.header}>
         <div className={styles.logo}>
           <Image src="/litties.png" alt="Logo" width={60} height={60} />
         </div>
@@ -81,7 +76,7 @@ function AddCategoryPage() {
           <p className={styles.address}>Shanti Prayag, Lalganj, Sasaram - 821115</p>
         </div>
         <button onClick={() => router.push('/')} className={styles.logoutButton}>Logout</button>
-      </header> */}
+      </header>
 
       <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '1rem', marginBottom: '1rem' }}>
         <button onClick={() => setShowForm(true)} className={styles.addemployeeButton}>Add Category</button>
@@ -137,7 +132,6 @@ function AddCategoryPage() {
           </div>
         </>
       )}
-      <Footer/>
     </div>
   );
 }

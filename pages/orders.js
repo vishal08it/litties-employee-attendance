@@ -7,8 +7,6 @@ import Image from 'next/image';
 import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import withAdminAuth from '@/lib/withAdminAuth';
-import Header from '@/components/Header';
-import Footer from '@/components/Footer';
 
  function OrdersGet() {
   const [orders, setOrders] = useState([]);
@@ -93,10 +91,8 @@ import Footer from '@/components/Footer';
   return (
     <div className={styles.ordersContainer}>
       <ToastContainer position="top-right" autoClose={3000} />
-      <Header logout={logout} showLogoutOnly={true} />
-      <div style={{ marginTop: '120px' }}></div>
 
-      {/* <header className={styles.header}>
+      <header className={styles.header}>
         <div className={styles.logo}>
           <Image src="/litties.png" alt="Litties Logo" width={60} height={60} />
         </div>
@@ -105,7 +101,7 @@ import Footer from '@/components/Footer';
           <p className={styles.address}>Shanti Prayag, Lalganj, Sasaram - 821115</p>
         </div>
         <button onClick={logout} className={styles.logoutButton}>Logout</button>
-      </header> */}
+      </header>
 
       <div>
         <h1 className={styles.ordersTitle}>
@@ -284,7 +280,6 @@ import Footer from '@/components/Footer';
           ))}
         </div>
       )}
-      <Footer/>
     </div>
   );
 }

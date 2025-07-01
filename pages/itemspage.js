@@ -8,8 +8,6 @@ import Link from 'next/link';
 import withAuth from '@/lib/withAuth';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
-import Header from '../components/Header';
-import Footer from '@/components/Footer';
 
 function ItemsPage() {
   const [allItems, setAllItems] = useState([]);
@@ -161,7 +159,7 @@ function ItemsPage() {
       setTimeout(() => {
         setShowThanksBox(false);
         checkSpecialOfferTrigger();
-      }, 2000);
+      }, 3000);
     } else {
       alert(json.message || 'Submission failed');
     }
@@ -200,27 +198,18 @@ function ItemsPage() {
 
   useEffect(() => {
     if (!mobile || showFeedback) return;
-    const timeout = setTimeout(() => checkSpecialOfferTrigger(), 2000);
+    const timeout = setTimeout(() => checkSpecialOfferTrigger(), 3000);
     return () => clearTimeout(timeout);
   }, [mobile, showFeedback]);
 
   useEffect(() => {
     if (!mobile || showFeedback) return;
-    const timeout = setTimeout(() => checkSpecialOfferTrigger(), 2000);
+    const timeout = setTimeout(() => checkSpecialOfferTrigger(), 3000);
     return () => clearTimeout(timeout);
   }, [mobile, showFeedback]);
 return (
-   <div style={{ background: 'linear-gradient(orange, white, green)', minHeight: '100vh', padding: 20, paddingTop: '120px' }}>
-
-      <Header
-        userName={userName}
-        cart={cart}
-        setCartVisible={setCartVisible}
-        logout={logout}
-        onLoginClick={() => alert('Login popup here')}
-      />
-      <div style={{ marginTop: '10px' }}></div>
-      {/* <header className={styles.header}>
+    <div style={{ background: 'linear-gradient(orange, white, green)', minHeight: '100vh', padding: 20 }}>
+      <header className={styles.header}>
         <div className={styles.logo}><Image src="/litties.png" alt="Litties" width={60} height={60} /></div>
         <div className={styles.headerText}>
           <h1 className={styles.title}>Litties Multi Cuisine Family Restaurant</h1>
@@ -233,7 +222,7 @@ return (
           <Link href="/profile"><strong>{userName}</strong></Link>
           <button onClick={logout} className={styles.logoutButton}>Logout</button>
         </div>
-      </header> */}
+      </header>
 
       <div style={{ display: 'flex', justifyContent: 'center', gap: '1rem', margin: '1rem 0' }}>
         <input
@@ -584,7 +573,12 @@ return (
 )}
 
 <ToastContainer position="top-right" autoClose={2500} />
-<Footer/>
+
+
+
+
+
+
 </div>
   );
 }

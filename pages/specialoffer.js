@@ -5,8 +5,6 @@ import withAdminAuth from '@/lib/withAdminAuth';
 import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import Image from 'next/image';
-import Header from '@/components/Header';
-import Footer from '@/components/Footer';
 
 function SpecialOfferPage() {
   const router = useRouter();
@@ -199,9 +197,7 @@ function SpecialOfferPage() {
 
   return (
     <div className={styles.container}>
-       <Header logout={logout} showLogoutOnly={true} />
-       <div style={{ marginTop: '120px' }}></div>
-      {/* <header className={styles.header}>
+      <header className={styles.header}>
         <div className={styles.logo}>
           <Image src="/litties.png" alt="Litties Logo" width={60} height={60} />
         </div>
@@ -210,7 +206,7 @@ function SpecialOfferPage() {
           <p className={styles.address}>Shanti Prayag, Lalganj, Sasaram - 821115</p>
         </div>
         <button onClick={logout} className={styles.logoutButton}>Logout</button>
-      </header> */}
+      </header>
 
       <h2 style={{ color: '#facc15', margin: '1rem 0', textAlign: 'left' }}>
         Manage Time-Based or Day-Based Offers
@@ -218,7 +214,7 @@ function SpecialOfferPage() {
 
       <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '1rem', flexWrap: 'wrap' }}>
         <button onClick={() => setShowForm(true)} className={styles.addemployeeButton}>Add Offer</button>
-        <button onClick={() => router.push('/admin')} className={styles.addemployeeButton} style={{ backgroundColor: '#1f2937' }}>Admin Dashboard</button>
+        <button onClick={() => router.push('/admin')} className={styles.addemployeeButton} style={{ backgroundColor: '#1f2937' }}>Dashboard</button>
       </div>
 
       <div style={{ overflowX: 'auto' }}>
@@ -316,7 +312,6 @@ function SpecialOfferPage() {
         </div>
       )}
       <ToastContainer position="top-right" autoClose={2000} />
-      <Footer/>
     </div>
   );
 }

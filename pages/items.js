@@ -5,8 +5,6 @@ import Image from 'next/image';
 import styles from '../styles/Home.module.css';
 import { toast } from 'react-toastify';
 import withAdminAuth from '@/lib/withAdminAuth';
-import Header from '@/components/Header';
-import Footer from '@/components/Footer';
 
 function ItemsPage() {
   const router = useRouter();
@@ -169,9 +167,7 @@ function ItemsPage() {
 
   return (
     <div className={styles.container}>
-      <Header logout={logout} showLogoutOnly={true} />
-      <div style={{ marginTop: '120px' }}></div>
-      {/* <header className={styles.header}>
+      <header className={styles.header}>
         <div className={styles.logo}>
           <Image src="/litties.png" alt="Litties Logo" width={60} height={60} />
         </div>
@@ -180,7 +176,7 @@ function ItemsPage() {
           <p className={styles.address}>Shanti Prayag, Lalganj, Sasaram - 821115</p>
         </div>
         <button onClick={logout} className={styles.logoutButton}>Logout</button>
-      </header> */}
+      </header>
 
       <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '1rem', gap: '1rem' }}>
         <button onClick={() => setShowForm(true)} className={styles.addemployeeButton}>Add New Item</button>
@@ -253,7 +249,6 @@ function ItemsPage() {
           </form>
         </div>
       )}
-      <Footer/>
     </div>
   );
 }
