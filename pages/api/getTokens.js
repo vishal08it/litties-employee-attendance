@@ -1,4 +1,5 @@
-import { connectToDatabase } from '@/lib/mongodb';
+import dbConnect from '@/lib/mongodb';
+import mongoose from 'mongoose';
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).end();
@@ -6,7 +7,8 @@ export default async function handler(req, res) {
   const { userMobile, adminMobile } = req.body;
 
   try {
-    const { db } = await connectToDatabase();
+    await dbConnect();
+    const db = mongoose.connection.db;
 
     const user = await db.collection('fcm_tokens').findOne({ mobile: userMobile });
     const admin = await db.collection('fcm_tokens').findOne({ mobile: adminMobile });

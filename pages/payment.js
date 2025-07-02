@@ -123,17 +123,21 @@ function PaymentPage() {
     setShowSuccess(true);
 
     try {
+      
       // 🔍 Fetch FCM tokens for user and admin
-      const tokenRes = await fetch('/api/getTokens', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          userMobile: selectedAddress?.mobile,
-          adminMobile: '9999999999', // Replace with real admin number
-        }),
-      });
+     const tokenRes = await fetch('/api/getTokens', {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({
+    userMobile: selectedAddress?.mobile,
+    adminMobile: '9241741961',
+  }),
+});
 
-      const { tokens } = await tokenRes.json();
+const data = await tokenRes.json();
+console.log('FCM Token Data:', data); // ✅ Add this line
+
+const { tokens } = data;
 
       if (tokens?.length > 0) {
         // 🚀 Send push notification

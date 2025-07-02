@@ -1,12 +1,16 @@
-import { connectToDatabase } from '@/lib/mongodb';
+import dbConnect from '@/lib/mongodb';
+import mongoose from 'mongoose';
 
 export default async function handler(req, res) {
-  if (req.method !== 'POST') return res.status(405).json({ error: 'Only POST method allowed' });
+  if (req.method !== 'POST') {
+    return res.status(405).json({ error: 'Only POST method allowed' });
+  }
 
   const { mobile, token } = req.body;
 
   try {
-    const { db } = await connectToDatabase();
+    await dbConnect();
+    const db = mongoose.connection.db;
 
     await db.collection('fcm_tokens').updateOne(
       { mobile },
