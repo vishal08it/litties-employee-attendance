@@ -3,7 +3,8 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import dynamic from 'next/dynamic';
 import { useRouter } from 'next/router';
-import Image from 'next/image';
+import Image from 'next/image'; 
+import Footer from '@/components/Footer';
 
 import styles from '../styles/Home.module.css';
 import 'react-toastify/dist/ReactToastify.css';
@@ -250,6 +251,7 @@ export default function Home({ initialFeedbacks }) {
           </div>
         </div>
       </section>
+      <Footer/>
     </div>
   );
 }

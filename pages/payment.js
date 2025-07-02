@@ -94,44 +94,76 @@ function PaymentPage() {
   }
 
   async function placeOrder() {
-    const generatedOrderId = 'ORD' + Date.now();
-    const res = await fetch('/api/order', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        orderId: generatedOrderId,
-        userId: selectedAddress?.mobile,
-        email,
-        address: selectedAddress,
-        paymentMethod,
-        items: cartItems,
-        quantity: cartItems.reduce((a, i) => a + i.quantity, 0),
-        totalAmount: grandTotal,
-        mobile: selectedAddress?.mobile,
-      }),
-    });
+  const generatedOrderId = 'ORD' + Date.now();
 
-    const result = await res.json();
-    console.log('ORDER RESPONSE:', result);
+  const res = await fetch('/api/order', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      orderId: generatedOrderId,
+      userId: selectedAddress?.mobile,
+      email,
+      address: selectedAddress,
+      paymentMethod,
+      items: cartItems,
+      quantity: cartItems.reduce((a, i) => a + i.quantity, 0),
+      totalAmount: grandTotal,
+      mobile: selectedAddress?.mobile,
+    }),
+  });
 
-    if (res.ok) {
-      localStorage.removeItem('cartItems');
-      localStorage.removeItem('checkoutStep');
-      setCartItems([]);
-      setOrderId(generatedOrderId);
-      setShowSuccess(true);
+  const result = await res.json();
+  console.log('ORDER RESPONSE:', result);
 
-      if ('Notification' in window && Notification.permission === 'granted') {
-        new Notification('✅ Order Successful', {
-          body: 'Your order has been placed. Please check your email for details.',
+  if (res.ok) {
+    localStorage.removeItem('cartItems');
+    localStorage.removeItem('checkoutStep');
+    setCartItems([]);
+    setOrderId(generatedOrderId);
+    setShowSuccess(true);
+
+    try {
+      // 🔍 Fetch FCM tokens for user and admin
+      const tokenRes = await fetch('/api/getTokens', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          userMobile: selectedAddress?.mobile,
+          adminMobile: '9999999999', // Replace with real admin number
+        }),
+      });
+
+      const { tokens } = await tokenRes.json();
+
+      if (tokens?.length > 0) {
+        // 🚀 Send push notification
+        await fetch('/api/sendNotification', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            title: '✅ Order Placed',
+            body: `Order ${generatedOrderId} has been placed successfully.`,
+            tokens,
+          }),
         });
       }
-
-      setTimeout(() => router.push('/profile'), 3000);
-    } else {
-      toast.error('Order failed. Please check your email for more info.');
+    } catch (error) {
+      console.error('Push notification error:', error);
     }
+
+    // Web browser desktop notification (optional)
+    if ('Notification' in window && Notification.permission === 'granted') {
+      new Notification('✅ Order Successful', {
+        body: 'Your order has been placed. Please check your email for details.',
+      });
+    }
+
+    setTimeout(() => router.push('/profile'), 3000);
+  } else {
+    toast.error('Order failed. Please check your email for more info.');
   }
+}
+
 
   if (!isHydrated) return null;
 
