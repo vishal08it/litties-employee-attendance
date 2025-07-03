@@ -7,6 +7,7 @@ import Image from 'next/image';
 import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import withAdminAuth from '@/lib/withAdminAuth';
+import Footer from '@/components/Footer';
 
  function OrdersGet() {
   const [orders, setOrders] = useState([]);
@@ -280,6 +281,7 @@ import withAdminAuth from '@/lib/withAdminAuth';
           ))}
         </div>
       )}
+      <Footer/>
     </div>
   );
 }

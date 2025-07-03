@@ -5,6 +5,7 @@ import Image from 'next/image';
 import styles from '../styles/Home.module.css';
 import { toast } from 'react-toastify';
 import withAdminAuth from '@/lib/withAdminAuth';
+import Footer from '@/components/Footer';
 
 function ItemsPage() {
   const router = useRouter();
@@ -249,6 +250,7 @@ function ItemsPage() {
           </form>
         </div>
       )}
+      <Footer/>
     </div>
   );
 }

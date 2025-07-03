@@ -5,6 +5,7 @@ import withAdminAuth from '@/lib/withAdminAuth';
 import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import Image from 'next/image';
+import Footer from '@/components/Footer';
 
 function SpecialOfferPage() {
   const router = useRouter();
@@ -312,6 +313,7 @@ function SpecialOfferPage() {
         </div>
       )}
       <ToastContainer position="top-right" autoClose={2000} />
+      <Footer/>
     </div>
   );
 }

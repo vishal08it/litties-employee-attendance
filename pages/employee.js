@@ -4,6 +4,7 @@ import Image from 'next/image';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import styles from '../styles/Home.module.css';
+import Footer from '@/components/Footer';
 
 export default function Employee() {
   const [status, setStatus] = useState('');
@@ -281,6 +282,7 @@ export default function Employee() {
           </div>
         </div>
       </div>
+      <Footer/>
     </div>
   );
 }

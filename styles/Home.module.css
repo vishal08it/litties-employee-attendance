@@ -823,6 +823,7 @@
   padding: 2rem;
   overflow-x: auto;
   scroll-snap-type: x mandatory;
+   padding-top: 100px;
 }
 
 .stepBox {
@@ -1309,12 +1310,16 @@
 }
 
 .testimonialTitle {
-  font-size: 24px;
+  font-size: 32px;
   font-weight: bold;
-  margin-bottom: 2em; /* 2 lines of gap */
-  position: relative;
-  z-index: 2;
+  text-align: center;
+  background: linear-gradient(to bottom, #FF9933 0%, white 50%, #138808 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  color: transparent;
 }
+
 
 .testimonialViewport {
   height: 320px;
@@ -1574,18 +1579,21 @@
 }
 .footer {
   background: #2c2c2c;
-  padding: 8px 16px; /* smaller vertical and horizontal padding */
+  padding: 8px 16px;
   color: white;
-  border-top: 3px solid #eab308; /* thinner top border if needed */
+  border: 3px solid #eab308; /* 🔶 Yellow border on all sides */
   display: flex;
   justify-content: space-between;
   align-items: center;
   flex-wrap: wrap;
-  margin-top: 20px; /* optional: reduce top margin too */
-  font-size: 13px; /* optional: smaller text for compactness */
-  line-height: 1.2; /* tighter line height */
-  min-height: 40px; /* control minimum height */
+  margin-top: 20px;
+  font-size: 13px;
+  line-height: 1.2;
+  min-height: 40px;
+  border-radius: 50px; /* 🔄 Rounded all corners */
 }
+
+
 
 
 .footerWrapper {
@@ -1621,7 +1629,9 @@
   background-clip: text;
   color: transparent;
   white-space: nowrap;
+  margin-left: 60px; /* ✅ Shift to the right */
 }
+
 
 .iconContainer {
   display: flex;
@@ -1698,10 +1708,15 @@
   text-align: center;
   font-size: 13px;
   margin-top: 12px;
-  background: linear-gradient(to right, #FF9933, white, #138808);
+
+  background: linear-gradient(to bottom, #FF9933 0%, #FFFFFF 50%, #138808 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
+  background-clip: text;       /* Standard */
+  color: transparent;          /* Fallback */
+  font-weight: bold;
 }
+
 
 /* Responsive: stack on small devices */
 @media screen and (max-width: 600px) {
@@ -1728,4 +1743,32 @@
   .iconContainer {
     justify-content: center;
   }
+}
+.footerTitle1 {
+  font-size: 14px;
+  font-weight: bold;
+  background: linear-gradient(to right, #FF9933, #ffffff, #138808);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  color: transparent;
+  white-space: nowrap;
+
+}
+.userName3D {
+  font-family: 'Pacifico', cursive;
+  font-size: 24px;
+  color: #1818bc;
+  text-shadow:
+    1px 1px 0 #fff,
+    2px 2px 0 #f77f00,
+    3px 3px 0 #d62828,
+    4px 4px 0 #000;
+  transition: transform 0.2s ease;
+  display: inline-block;
+  padding: 4px 10px;
+}
+
+.userName3D:hover {
+  transform: scale(1.05);
 }

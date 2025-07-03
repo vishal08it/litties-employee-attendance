@@ -8,6 +8,7 @@ import styles from '../styles/Home.module.css';
 import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import withAdminAuth from '@/lib/withAdminAuth';
+import Footer from '@/components/Footer';
 
 function AddCategoryPage() {
   const router = useRouter();
@@ -132,6 +133,7 @@ function AddCategoryPage() {
           </div>
         </>
       )}
+      <Footer/>
     </div>
   );
 }

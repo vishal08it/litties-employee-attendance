@@ -8,6 +8,7 @@ import Link from 'next/link';
 import withAuth from '@/lib/withAuth';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import Footer from '@/components/Footer';
 
 function ItemsPage() {
   const [allItems, setAllItems] = useState([]);
@@ -216,10 +217,39 @@ return (
           <p className={styles.address}>Shanti Prayag, Lalganj, Sasaram - 821115</p>
         </div>
         <div className={styles.rightSection}>
-          <span onClick={() => setCartVisible(true)} style={{ marginRight: '1rem', cursor: 'pointer' }}>
-            🛒 Cart ({cart.reduce((s, i) => s + i.quantity, 0)})
-          </span>
-          <Link href="/profile"><strong>{userName}</strong></Link>
+   <span
+  onClick={() => setCartVisible(true)}
+  style={{
+    marginRight: '1rem',
+    cursor: 'pointer',
+    position: 'relative',
+    display: 'inline-block',
+  }}
+>
+  <img
+    src="/man.png"
+    alt="Man"
+    style={{
+      position: 'absolute',
+      top: '-6px',
+      left: '-25px', // ⬅️ moved further left to create a gap
+      width: '30px',
+      height: '30px',
+      zIndex: 0,
+      pointerEvents: 'none',
+    }}
+  />
+  <span style={{ position: 'relative', zIndex: 1 }}>
+    🛒 ({cart.reduce((s, i) => s + i.quantity, 0)})
+  </span>
+</span>
+
+
+
+          <Link href="/profile">
+  <strong className={styles.userName3D}>{userName}</strong>
+</Link>
+
           <button onClick={logout} className={styles.logoutButton}>Logout</button>
         </div>
       </header>
@@ -232,16 +262,22 @@ return (
           onChange={e => setSearch(e.target.value)}
           style={{ padding: 8, borderRadius: 8, width: 200 }}
         />
-        <select
-          value={category}
-          onChange={e => setCategory(e.target.value)}
-          style={{ padding: 8, borderRadius: 8 }}
-        >
-          <option value="">All Categories</option>
-          {categories.map(cat => (
-            <option key={cat} value={cat}>{cat}</option>
-          ))}
-        </select>
+       <select
+  value={category}
+  onChange={e => setCategory(e.target.value)}
+  style={{ padding: 8, borderRadius: 8 }}
+>
+  <option value="">All Categories</option>
+  {categories.map(cat => {
+    const count = allItems.filter(i => i.category === cat).length;
+    return (
+      <option key={cat} value={cat}>
+        {cat} ({count})
+      </option>
+    );
+  })}
+</select>
+
       </div>
 
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(160px, 1fr))', gap: 20 }}>
@@ -573,12 +609,7 @@ return (
 )}
 
 <ToastContainer position="top-right" autoClose={2500} />
-
-
-
-
-
-
+<Footer/>
 </div>
   );
 }

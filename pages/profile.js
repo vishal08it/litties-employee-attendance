@@ -7,6 +7,7 @@ import Image from 'next/image';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import withAuth from '@/lib/withAuth';
+import Footer from '@/components/Footer';
 
 function ProfilePage() {
   const router = useRouter();
@@ -294,6 +295,7 @@ function ProfilePage() {
           </div>
         )}
       </div>
+      <Footer/>
     </div>
   );
 }

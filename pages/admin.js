@@ -11,6 +11,7 @@ import { FaEdit } from 'react-icons/fa';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import withAdminAuth from '@/lib/withAdminAuth';
+import Footer from '@/components/Footer';
 
 
 
@@ -997,6 +998,7 @@ const goToPrevPage = () => {
 
 
       </div>
+      <Footer/>
     </div>
   );
 }
