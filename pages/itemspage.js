@@ -57,11 +57,11 @@ function ItemsPage() {
       ]);
 
       const items = await itemsRes.json();
-      setAllItems(items);
+      setAllItems(items.map(item => ({ ...item, name: item.name.trim(), category: item.category.trim() })));
 
       const categoriesJson = await categoriesRes.json();
       if (categoriesJson.success) {
-        setCategories(categoriesJson.data.map(c => c.name));
+        setCategories(categoriesJson.data.map(c => c.name.trim()));
       }
     }
 
@@ -78,8 +78,8 @@ function ItemsPage() {
   }, [mobile]);
 
   const filteredItems = useMemo(() => {
-    let temp = [...allItems];
-    if (category) temp = temp.filter(i => i.category === category);
+    let temp = allItems;
+    if (category) temp = temp.filter(i => i.category.trim().toLowerCase() === category.trim().toLowerCase());
     if (search) temp = temp.filter(i => i.name.toLowerCase().includes(search.toLowerCase()));
     return temp;
   }, [search, category, allItems]);
@@ -88,11 +88,17 @@ function ItemsPage() {
   const paginatedItems = useMemo(() => filteredItems.slice(startIndex, startIndex + ITEMS_PER_PAGE), [filteredItems, page]);
   const totalPages = Math.ceil(filteredItems.length / ITEMS_PER_PAGE);
 
-  const logout = () => {
-    localStorage.removeItem('mobileNumber');
-    localStorage.removeItem('name');
-    router.push('/');
-  };
+ const logout = () => {
+  localStorage.clear();
+
+  toast.success('Logged out successfully', { autoClose: 500 });
+
+  setTimeout(() => {
+    window.location.replace('/');
+  }, 600);
+};
+
+
 
   const syncCart = newCart => {
     setCart(newCart);
@@ -196,12 +202,6 @@ function ItemsPage() {
         }
       });
   }, [mobile]);
-
-  useEffect(() => {
-    if (!mobile || showFeedback) return;
-    const timeout = setTimeout(() => checkSpecialOfferTrigger(), 3000);
-    return () => clearTimeout(timeout);
-  }, [mobile, showFeedback]);
 
   useEffect(() => {
     if (!mobile || showFeedback) return;

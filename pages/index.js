@@ -3,14 +3,16 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import dynamic from 'next/dynamic';
 import { useRouter } from 'next/router';
-import Image from 'next/image'; 
+import Image from 'next/image';
 import Footer from '@/components/Footer';
-
 import styles from '../styles/Home.module.css';
 import 'react-toastify/dist/ReactToastify.css';
+import { toast } from 'react-toastify';
 
 const ToastContainer = dynamic(() => import('react-toastify').then(mod => mod.ToastContainer), { ssr: false });
-import { toast } from 'react-toastify';
+const LoginModal = dynamic(() => import('@/components/LoginModal'), { ssr: false });
+const RegisterModal = dynamic(() => import('@/components/RegisterModal'), { ssr: false });
+const ForgotPasswordModal = dynamic(() => import('@/components/ForgotPasswordModal'), { ssr: false });
 
 export async function getServerSideProps() {
   try {
@@ -55,32 +57,36 @@ export default function Home({ initialFeedbacks }) {
   }, [router]);
 
   const login = async (e) => {
-    e.preventDefault();
-    const res = await fetch('/api/login', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ identifier, password }),
-    });
-    const data = await res.json();
+  e.preventDefault();
+  const res = await fetch('/api/login', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ identifier, password }),
+  });
+  const data = await res.json();
 
-    if (res.ok) {
-      toast.success('Login successful!', { autoClose: 1500 });
+  if (res.ok) {
+    toast.success('Login successful!', { autoClose: 500 });
 
-      localStorage.setItem('role', data.role);
-      localStorage.setItem('name', data.name || '');
-      localStorage.setItem('image', data.image || '');
-      localStorage.setItem('emailId', data.emailId || '');
-      localStorage.setItem('mobileNumber', data.mobileNumber || '');
+    localStorage.setItem('role', data.role);
+    localStorage.setItem('name', data.name || '');
+    localStorage.setItem('image', data.image || '');
+    localStorage.setItem('emailId', data.emailId || '');
+    localStorage.setItem('mobileNumber', data.mobileNumber || '');
 
-      if (data.mobileNumber) {
-        localStorage.removeItem(`specialOfferSeen_${data.mobileNumber}`);
-      }
-
-      router.push(data.destination);
-    } else {
-      toast.error(data.message || 'Login failed');
+    if (data.mobileNumber) {
+      localStorage.removeItem(`specialOfferSeen_${data.mobileNumber}`);
     }
-  };
+
+    // Redirect after short delay (to allow toast to be seen)
+    setTimeout(() => {
+      router.push(data.destination);
+    }, 600);
+  } else {
+    toast.error(data.message || 'Login failed');
+  }
+};
+
 
   const handleImageUpload = async (file) => {
     const formData = new FormData();
@@ -183,63 +189,45 @@ export default function Home({ initialFeedbacks }) {
         <button onClick={() => setShowLogin(true)} className={styles.loginButton}>Login</button>
       </header>
 
-      {/* === Login Modal === */}
+      {/* === Modals === */}
       {showLogin && (
-        <>
-          <div className={styles.overlay1} onClick={() => setShowLogin(false)} />
-          <div className={styles.popup1}>
-            <Image src="/litties.png" alt="Logo" width={60} height={60} style={{ display: 'block', margin: '0 auto 10px auto' }} />
-            <button className={styles.closeButton1} onClick={() => setShowLogin(false)}>&times;</button>
-            <h2>Login</h2>
-            <form onSubmit={login}>
-              <input className={styles.input1} placeholder="ID or Mobile" value={identifier} onChange={e => setIdentifier(e.target.value)} required />
-              <input className={styles.input1} type="password" placeholder="Password" value={password} onChange={e => setPassword(e.target.value)} required />
-              <button type="submit" className={styles.submitButton1}>Login</button>
-              <div style={{ textAlign: 'center', marginTop: '8px' }}>
-                <span style={{ cursor: 'pointer', color: '#0070f3' }} onClick={() => { setShowLogin(false); setShowRegister(true); }}>Register</span> |{' '}
-                <span style={{ cursor: 'pointer', color: '#0070f3' }} onClick={() => { setShowLogin(false); setShowForgotPassword(true); }}>Forgot?</span>
-              </div>
-            </form>
-          </div>
-        </>
+        <LoginModal
+          {...{
+            setShowLogin,
+            setShowRegister,
+            setShowForgotPassword,
+            login,
+            identifier,
+            setIdentifier,
+            password,
+            setPassword
+          }}
+        />
       )}
 
-      {/* === Register Modal === */}
       {showRegister && (
-        <>
-          <div className={styles.overlay1} onClick={() => setShowRegister(false)} />
-          <div className={styles.popup1}>
-            <Image src="/litties.png" alt="Logo" width={60} height={60} style={{ display: 'block', margin: '0 auto 10px auto' }} />
-            <button className={styles.closeButton1} onClick={() => setShowRegister(false)}>&times;</button>
-            <h2>Register</h2>
-            <form onSubmit={register}>
-              <input className={styles.input1} placeholder="Name" value={registerForm.name} onChange={e => setRegisterForm(prev => ({ ...prev, name: e.target.value }))} required />
-              <input className={styles.input1} type="email" placeholder="Email" value={registerForm.emailId} onChange={e => setRegisterForm(prev => ({ ...prev, emailId: e.target.value }))} required />
-              <input className={styles.input1} placeholder="Mobile" value={registerForm.mobileNumber} onChange={e => setRegisterForm(prev => ({ ...prev, mobileNumber: e.target.value }))} required />
-              <input className={styles.input1} type="password" placeholder="Password" value={registerForm.password} onChange={e => setRegisterForm(prev => ({ ...prev, password: e.target.value }))} required />
-              <input type="file" className={styles.input1} accept="image/*" onChange={e => handleImageUpload(e.target.files[0])} />
-              {uploading && <p>Uploading image...</p>}
-              {registerForm.image && <img src={registerForm.image} alt="Preview" style={{ width: 60, height: 60, borderRadius: '50%', margin: '8px auto' }} />}
-              <button type="submit" className={styles.submitButton1}>Register</button>
-            </form>
-          </div>
-        </>
+        <RegisterModal
+          {...{
+            setShowRegister,
+            register,
+            registerForm,
+            setRegisterForm,
+            handleImageUpload,
+            uploading
+          }}
+        />
       )}
 
-      {/* === Forgot Password Modal === */}
       {showForgotPassword && (
-        <div className={styles.overlay1}>
-          <div className={styles.popup1}>
-            <Image src="/litties.png" alt="Logo" width={60} height={60} style={{ display: 'block', margin: '0 auto 10px auto' }} />
-            <button className={styles.closeButton1} onClick={() => setShowForgotPassword(false)}>&times;</button>
-            <h2>Forgot Password</h2>
-            <form onSubmit={handleForgotPassword}>
-              <input className={styles.input1} type="email" placeholder="Your email" value={email} onChange={e => setEmail(e.target.value)} required />
-              <button type="submit" className={styles.submitButton1}>Send Password</button>
-            </form>
-            {message && <p style={{ textAlign: 'center', marginTop: 10 }}>{message}</p>}
-          </div>
-        </div>
+        <ForgotPasswordModal
+          {...{
+            setShowForgotPassword,
+            handleForgotPassword,
+            email,
+            setEmail,
+            message
+          }}
+        />
       )}
 
       {/* === Testimonials Section === */}
@@ -251,8 +239,8 @@ export default function Home({ initialFeedbacks }) {
           </div>
         </div>
       </section>
-      <Footer/>
+
+      <Footer />
     </div>
   );
 }
-

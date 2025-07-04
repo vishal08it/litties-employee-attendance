@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
@@ -24,9 +24,10 @@ function PaymentPage() {
   const [formData, setFormData] = useState({ name: '', address: '', mobile: '' });
   const [email, setEmail] = useState('');
   const [orderId, setOrderId] = useState('');
+  const [isPlacingOrder, setIsPlacingOrder] = useState(false);
 
-  const deliveryCharge = totalAmount < 399 ? 50 : 0;
-  const grandTotal = totalAmount + deliveryCharge;
+  const deliveryCharge = useMemo(() => totalAmount < 399 ? 50 : 0, [totalAmount]);
+  const grandTotal = useMemo(() => totalAmount + deliveryCharge, [totalAmount, deliveryCharge]);
 
   useEffect(() => {
     setIsHydrated(true);
@@ -50,12 +51,12 @@ function PaymentPage() {
     }
   }, []);
 
-  const goToStep = (s) => {
+  const goToStep = useCallback((s) => {
     setStep(s);
     localStorage.setItem('checkoutStep', s);
-  };
+  }, []);
 
-  async function fetchAddresses(mobile) {
+  const fetchAddresses = useCallback(async (mobile) => {
     try {
       const res = await fetch(`/api/address/user?mobile=${mobile}`);
       const data = await res.json();
@@ -63,9 +64,9 @@ function PaymentPage() {
     } catch (err) {
       console.error('Failed to fetch addresses:', err);
     }
-  }
+  }, []);
 
-  async function handleAddOrUpdateAddress() {
+  const handleAddOrUpdateAddress = useCallback(async () => {
     const method = editAddress ? 'PUT' : 'POST';
     const url = editAddress ? `/api/address/${editAddress._id}` : '/api/address';
     const res = await fetch(url, {
@@ -81,9 +82,9 @@ function PaymentPage() {
       setFormData({ name: '', address: '', mobile: '' });
       setEditAddress(null);
     } else toast.error('Failed to save address');
-  }
+  }, [editAddress, formData, fetchAddresses]);
 
-  async function deleteAddress(id) {
+  const deleteAddress = useCallback(async (id) => {
     if (!confirm('Delete this address?')) return;
     const res = await fetch(`/api/address/${id}`, { method: 'DELETE' });
     if (res.ok) {
@@ -91,84 +92,76 @@ function PaymentPage() {
       const mobile = localStorage.getItem('mobileNumber');
       if (mobile) await fetchAddresses(mobile);
     } else toast.error('Failed to delete');
-  }
+  }, [fetchAddresses]);
 
-  async function placeOrder() {
+  const placeOrder = useCallback(async () => {
+  setIsPlacingOrder(true);
   const generatedOrderId = 'ORD' + Date.now();
 
-  const res = await fetch('/api/order', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      orderId: generatedOrderId,
-      userId: selectedAddress?.mobile,
-      email,
-      address: selectedAddress,
-      paymentMethod,
-      items: cartItems,
-      quantity: cartItems.reduce((a, i) => a + i.quantity, 0),
-      totalAmount: grandTotal,
-      mobile: selectedAddress?.mobile,
-    }),
-  });
+  try {
+    const res = await fetch('/api/order', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        orderId: generatedOrderId,
+        userId: selectedAddress?.mobile,
+        email,
+        address: selectedAddress,
+        paymentMethod,
+        items: cartItems,
+        quantity: cartItems.reduce((a, i) => a + i.quantity, 0),
+        totalAmount: grandTotal,
+        mobile: selectedAddress?.mobile,
+      }),
+    });
 
-  const result = await res.json();
-  console.log('ORDER RESPONSE:', result);
+    if (!res.ok) {
+      toast.error('Order failed. Please check your email for more info.');
+      setIsPlacingOrder(false);
+      return;
+    }
 
-  if (res.ok) {
+    const { tokens = [] } = await fetch('/api/getTokens', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        userMobile: selectedAddress?.mobile,
+        adminMobile: '9241741961',
+      }),
+    }).then(r => r.json());
+
+    if (tokens.length > 0) {
+      await fetch('/api/sendNotification', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          title: '✅ Order Placed',
+          body: `Order ${generatedOrderId} has been placed successfully.`,
+          tokens,
+        }),
+      });
+    }
+
     localStorage.removeItem('cartItems');
     localStorage.removeItem('checkoutStep');
     setCartItems([]);
     setOrderId(generatedOrderId);
     setShowSuccess(true);
 
-    try {
-      
-      // 🔍 Fetch FCM tokens for user and admin
-     const tokenRes = await fetch('/api/getTokens', {
-  method: 'POST',
-  headers: { 'Content-Type': 'application/json' },
-  body: JSON.stringify({
-    userMobile: selectedAddress?.mobile,
-    adminMobile: '9241741961',
-  }),
-});
-
-const data = await tokenRes.json();
-console.log('FCM Token Data:', data); // ✅ Add this line
-
-const { tokens } = data;
-
-      if (tokens?.length > 0) {
-        // 🚀 Send push notification
-        await fetch('/api/sendNotification', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            title: '✅ Order Placed',
-            body: `Order ${generatedOrderId} has been placed successfully.`,
-            tokens,
-          }),
-        });
-      }
-    } catch (error) {
-      console.error('Push notification error:', error);
-    }
-
-    // Web browser desktop notification (optional)
     if ('Notification' in window && Notification.permission === 'granted') {
       new Notification('✅ Order Successful', {
-        body: 'Your order has been placed. Please check your email for details.',
+        body: 'Your order has been placed.',
       });
     }
 
-    setTimeout(() => router.push('/profile'), 3000);
-  } else {
-    toast.error('Order failed. Please check your email for more info.');
+    setTimeout(() => router.push('/profile'), 1000);
+  } catch (error) {
+    console.error('Place order error:', error);
+    toast.error('Something went wrong!');
+  } finally {
+    setIsPlacingOrder(false);
   }
-}
-
-
+}, [selectedAddress, email, paymentMethod, cartItems, grandTotal, router]);
   if (!isHydrated) return null;
 
   if (showSuccess) {
@@ -214,7 +207,8 @@ const { tokens } = data;
       initial={{ opacity: 0, x: 100 }}
       animate={{ opacity: 1, x: 0 }}
       exit={{ opacity: 0, x: -100 }}
-      transition={{ duration: 0.3 }}
+      transition={{ duration: 0.15 }}
+
       className={`${styles.stepBox} ${styles.centerStep}`}
     >
       {children}
@@ -355,7 +349,9 @@ const { tokens } = data;
                 </div>
               </div>
             </div>
-            <button onClick={placeOrder} className={styles.placeOrder}>Place Order</button>
+           <button onClick={placeOrder} className={styles.placeOrder} disabled={isPlacingOrder}>
+  {isPlacingOrder ? 'Placing Order...' : 'Place Order'}
+</button>
             <button className={styles.submitButton2} onClick={() => goToStep(2)}>← Back</button>
           </>
         )}
