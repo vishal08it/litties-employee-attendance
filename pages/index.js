@@ -16,7 +16,11 @@ const ForgotPasswordModal = dynamic(() => import('@/components/ForgotPasswordMod
 
 export async function getServerSideProps() {
   try {
-    const res = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/api/getFeedbacks`);
+    const res = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/api/getFeedbacks`, {
+      headers: {
+        'Cache-Control': 'no-cache',
+      },
+    });
     const data = await res.json();
     return { props: { initialFeedbacks: data.feedbacks || [] } };
   } catch {
@@ -28,6 +32,7 @@ export default function Home({ initialFeedbacks }) {
   const [showLogin, setShowLogin] = useState(false);
   const [showRegister, setShowRegister] = useState(false);
   const [showForgotPassword, setShowForgotPassword] = useState(false);
+  const [clientReady, setClientReady] = useState(false);
 
   const [identifier, setIdentifier] = useState('');
   const [password, setPassword] = useState('');
@@ -56,37 +61,39 @@ export default function Home({ initialFeedbacks }) {
     }
   }, [router]);
 
+  useEffect(() => {
+    setClientReady(true);
+  }, []);
+
   const login = async (e) => {
-  e.preventDefault();
-  const res = await fetch('/api/login', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ identifier, password }),
-  });
-  const data = await res.json();
+    e.preventDefault();
+    const res = await fetch('/api/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ identifier, password }),
+    });
+    const data = await res.json();
 
-  if (res.ok) {
-    toast.success('Login successful!', { autoClose: 500 });
+    if (res.ok) {
+      toast.success('Login successful!', { autoClose: 500 });
 
-    localStorage.setItem('role', data.role);
-    localStorage.setItem('name', data.name || '');
-    localStorage.setItem('image', data.image || '');
-    localStorage.setItem('emailId', data.emailId || '');
-    localStorage.setItem('mobileNumber', data.mobileNumber || '');
+      localStorage.setItem('role', data.role);
+      localStorage.setItem('name', data.name || '');
+      localStorage.setItem('image', data.image || '');
+      localStorage.setItem('emailId', data.emailId || '');
+      localStorage.setItem('mobileNumber', data.mobileNumber || '');
 
-    if (data.mobileNumber) {
-      localStorage.removeItem(`specialOfferSeen_${data.mobileNumber}`);
+      if (data.mobileNumber) {
+        localStorage.removeItem(`specialOfferSeen_${data.mobileNumber}`);
+      }
+
+      setTimeout(() => {
+        router.push(data.destination);
+      }, 600);
+    } else {
+      toast.error(data.message || 'Login failed');
     }
-
-    // Redirect after short delay (to allow toast to be seen)
-    setTimeout(() => {
-      router.push(data.destination);
-    }, 600);
-  } else {
-    toast.error(data.message || 'Login failed');
-  }
-};
-
+  };
 
   const handleImageUpload = async (file) => {
     const formData = new FormData();
@@ -156,10 +163,12 @@ export default function Home({ initialFeedbacks }) {
           <p className={styles.review}>“{fb.feedback}”</p>
         </div>
         {fb.image ? (
-          <img
+          <Image
             src={`${fb.image}?w=120&h=120&c_fill&q_auto`}
-            className={styles.squareImage}
+            width={120}
+            height={120}
             alt={fb.name}
+            className={styles.squareImage}
             loading="lazy"
             onError={(e) => (e.currentTarget.src = '/litties.png')}
           />
@@ -189,7 +198,6 @@ export default function Home({ initialFeedbacks }) {
         <button onClick={() => setShowLogin(true)} className={styles.loginButton}>Login</button>
       </header>
 
-      {/* === Modals === */}
       {showLogin && (
         <LoginModal
           {...{
@@ -230,15 +238,16 @@ export default function Home({ initialFeedbacks }) {
         />
       )}
 
-      {/* === Testimonials Section === */}
-      <section className={styles.testimonials}>
-        <h2 className={styles.testimonialTitle}>What Our Customers Say</h2>
-        <div className={styles.testimonialViewport}>
-          <div className={styles.testimonialScroller}>
-            {FeedbackBoxes}
+      {clientReady && (
+        <section className={styles.testimonials}>
+          <h2 className={styles.testimonialTitle}>What Our Customers Say</h2>
+          <div className={styles.testimonialViewport}>
+            <div className={styles.testimonialScroller}>
+              {FeedbackBoxes}
+            </div>
           </div>
-        </div>
-      </section>
+        </section>
+      )}
 
       <Footer />
     </div>

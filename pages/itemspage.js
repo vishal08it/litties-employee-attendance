@@ -1,18 +1,15 @@
-"use client";
-
-import { useEffect, useState, useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import Image from 'next/image';
-import styles from '../styles/Home.module.css';
 import { useRouter } from 'next/router';
 import Link from 'next/link';
-import withAuth from '@/lib/withAuth';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import Footer from '@/components/Footer';
+import styles from '../styles/Home.module.css';
+import withAuth from '@/lib/withAuth';
 
-function ItemsPage() {
-  const [allItems, setAllItems] = useState([]);
-  const [categories, setCategories] = useState([]);
+ function ItemsPage({ items, categories }) {
+  const [allItems, setAllItems] = useState(items);
   const [search, setSearch] = useState('');
   const [category, setCategory] = useState('');
   const [page, setPage] = useState(1);
@@ -21,7 +18,6 @@ function ItemsPage() {
   const [cart, setCart] = useState([]);
   const [userName, setUserName] = useState('');
   const [cartVisible, setCartVisible] = useState(false);
-  const [screenWidth, setScreenWidth] = useState(0);
   const [mobile, setMobile] = useState(null);
 
   const [showFeedback, setShowFeedback] = useState(false);
@@ -36,13 +32,6 @@ function ItemsPage() {
   const router = useRouter();
 
   useEffect(() => {
-    setScreenWidth(window.innerWidth);
-    const onResize = () => setScreenWidth(window.innerWidth);
-    window.addEventListener('resize', onResize);
-    return () => window.removeEventListener('resize', onResize);
-  }, []);
-
-  useEffect(() => {
     const m = localStorage.getItem('mobileNumber');
     const n = localStorage.getItem('name');
     if (m) setMobile(m);
@@ -50,55 +39,32 @@ function ItemsPage() {
   }, []);
 
   useEffect(() => {
-    async function fetchInitialData() {
-      const [itemsRes, categoriesRes] = await Promise.all([
-        fetch('/api/items', { cache: 'no-store' }),
-        fetch('/api/categories', { cache: 'no-store' })
-      ]);
-
-      const items = await itemsRes.json();
-      setAllItems(items.map(item => ({ ...item, name: item.name.trim(), category: item.category.trim() })));
-
-      const categoriesJson = await categoriesRes.json();
-      if (categoriesJson.success) {
-        setCategories(categoriesJson.data.map(c => c.name.trim()));
-      }
-    }
-
-    fetchInitialData();
-  }, []);
-
-  useEffect(() => {
     if (!mobile) return;
     fetch(`/api/cart?mobile=${mobile}`, { cache: 'no-store' })
-      .then(r => r.json())
+      .then(res => res.json())
       .then(json => {
         if (json.success) setCart(json.items);
       });
   }, [mobile]);
 
   const filteredItems = useMemo(() => {
-    let temp = allItems;
-    if (category) temp = temp.filter(i => i.category.trim().toLowerCase() === category.trim().toLowerCase());
-    if (search) temp = temp.filter(i => i.name.toLowerCase().includes(search.toLowerCase()));
-    return temp;
+    return allItems.filter(i => {
+      const matchCategory = category ? i.category.toLowerCase() === category.toLowerCase() : true;
+      const matchSearch = i.name.toLowerCase().includes(search.toLowerCase());
+      return matchCategory && matchSearch;
+    });
   }, [search, category, allItems]);
 
   const startIndex = (page - 1) * ITEMS_PER_PAGE;
   const paginatedItems = useMemo(() => filteredItems.slice(startIndex, startIndex + ITEMS_PER_PAGE), [filteredItems, page]);
+
   const totalPages = Math.ceil(filteredItems.length / ITEMS_PER_PAGE);
 
- const logout = () => {
-  localStorage.clear();
-
-  toast.success('Logged out successfully', { autoClose: 500 });
-
-  setTimeout(() => {
-    window.location.replace('/');
-  }, 600);
-};
-
-
+  const logout = () => {
+    localStorage.clear();
+    router.push('/');
+    toast.success('Logged out successfully', { autoClose: 500 });
+  };
 
   const syncCart = newCart => {
     setCart(newCart);
@@ -129,7 +95,7 @@ function ItemsPage() {
   };
 
   const removeFromCart = id => syncCart(cart.filter(it => it._id !== id));
-  const totalAmount = cart.reduce((sum, it) => sum + it.price * it.quantity, 0);
+  const totalAmount = useMemo(() => cart.reduce((sum, it) => sum + it.price * it.quantity, 0), [cart]);
 
   const handleProceed = () => {
     if (!cart.length) return;
@@ -145,63 +111,79 @@ function ItemsPage() {
   };
 
   const handleSubmitFeedback = async () => {
-    if (!feedbackText.trim() || rating === 0) return;
-    const userId = localStorage.getItem('mobileNumber');
-    const { itemId, orderId } = lastDeliveredItem || {};
+  if (!feedbackText.trim() || rating === 0) return;
+  const userId = localStorage.getItem('mobileNumber');
+  const { itemId, orderId } = lastDeliveredItem || {};
 
-    const res = await fetch('/api/submitFeedback', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ userId, itemId, orderId, feedback: feedbackText, rating }),
-      cache: 'no-store'
-    });
+  const res = await fetch('/api/submitFeedback', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ userId, itemId, orderId, feedback: feedbackText, rating }),
+    cache: 'no-store'
+  });
 
-    const json = await res.json();
+  const json = await res.json();
 
-    if (json.success) {
-      setShowFeedback(false);
-      setFeedbackText('');
-      setRating(0);
-      setShowThanksBox(true);
-      setTimeout(() => {
-        setShowThanksBox(false);
-        checkSpecialOfferTrigger();
-      }, 3000);
-    } else {
-      alert(json.message || 'Submission failed');
+  if (json.success) {
+    // ✅ Save that feedback was seen for this mobile + orderId
+    if (mobile && orderId) {
+      localStorage.setItem(`feedbackSeen_${mobile}_${orderId}`, 'yes');
     }
-  };
+
+    setShowFeedback(false);
+    setFeedbackText('');
+    setRating(0);
+    setShowThanksBox(true);
+    setTimeout(() => {
+      setShowThanksBox(false);
+      checkSpecialOfferTrigger();
+    }, 3000);
+  } else {
+    alert(json.message || 'Submission failed');
+  }
+};
+
 
   const checkSpecialOfferTrigger = () => {
-    const mobile = localStorage.getItem('mobileNumber');
-    if (!mobile) return;
+  const mobile = localStorage.getItem('mobileNumber');
+  if (!mobile) return;
 
-    const seen = localStorage.getItem(`specialOfferSeen_${mobile}`);
-    if (seen === 'yes') return;
+  const seen = localStorage.getItem(`specialOfferSeen_${mobile}`);
+  if (seen === 'yes') return;
 
-    fetch('/api/specialoffer/getValid', { cache: 'no-store' })
-      .then(res => res.json())
-      .then(json => {
-        if (json.success && json.offer) {
-          setSpecialOffer(json.offer);
-          setShowSpecialPopup(true);
-        }
-      });
-  };
+  fetch('/api/specialoffer/getValid', { cache: 'no-store' })
+    .then(res => res.json())
+    .then(json => {
+      if (json.success && json.offer) {
+        setSpecialOffer(json.offer);
+        setShowSpecialPopup(true);
+      } else {
+        console.log('[No special offer]:', json.message || 'No valid offers found');
+      }
+    })
+    .catch(err => {
+      console.error('Error checking special offer:', err);
+    });
+};
+
 
   useEffect(() => {
-    if (!mobile) return;
-    fetch(`/api/lastDelivered?mobile=${mobile}`, { cache: 'no-store' })
-      .then(res => res.json())
-      .then(json => {
-        if (json.success && json.item && !json.feedbackGiven) {
+  if (!mobile) return;
+
+  fetch(`/api/lastDelivered?mobile=${mobile}`, { cache: 'no-store' })
+    .then(res => res.json())
+    .then(json => {
+      if (json.success && json.item && !json.feedbackGiven) {
+        const seenKey = `feedbackSeen_${mobile}_${json.item.orderId}`;
+        if (!localStorage.getItem(seenKey)) {
           setLastDeliveredItem(json.item);
           setShowFeedback(true);
-        } else {
-          checkSpecialOfferTrigger();
         }
-      });
-  }, [mobile]);
+      } else {
+        checkSpecialOfferTrigger();
+      }
+    });
+}, [mobile]);
 
   useEffect(() => {
     if (!mobile || showFeedback) return;
@@ -479,7 +461,13 @@ return (
   <div className={styles.feedbackOverlay}>
     <div className={styles.feedbackModal}>
       <button
-        onClick={() => setShowFeedback(false)}
+        onClick={() => {
+  const seenKey = `feedbackSeen_${mobile}_${lastDeliveredItem?.orderId}`;
+  if (mobile && lastDeliveredItem?.orderId) {
+    localStorage.setItem(seenKey, 'yes');
+  }
+  setShowFeedback(false);
+}}
         style={{
           position: 'absolute',
           top: 10,
@@ -612,6 +600,27 @@ return (
 <Footer/>
 </div>
   );
+}
+
+export async function getServerSideProps() {
+  const [itemsRes, categoriesRes] = await Promise.all([
+    fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/items`),
+    fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/categories`)
+  ]);
+
+  const items = await itemsRes.json();
+  const categoriesJson = await categoriesRes.json();
+
+  return {
+    props: {
+      items: items.map(i => ({
+        ...i,
+        name: i.name.trim(),
+        category: i.category.trim()
+      })),
+      categories: categoriesJson.success ? categoriesJson.data.map(c => c.name.trim()) : []
+    }
+  };
 }
 
 export default withAuth(ItemsPage);
