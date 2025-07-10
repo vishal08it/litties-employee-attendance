@@ -78,6 +78,7 @@ export default function Home({ initialFeedbacks }) {
       toast.success('Login successful!', { autoClose: 500 });
 
       localStorage.setItem('role', data.role);
+      localStorage.setItem('empId', data.empId);
       localStorage.setItem('name', data.name || '');
       localStorage.setItem('image', data.image || '');
       localStorage.setItem('emailId', data.emailId || '');
