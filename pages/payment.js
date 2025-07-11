@@ -94,7 +94,7 @@ function PaymentPage() {
     } else toast.error('Failed to delete');
   }, [fetchAddresses]);
 
-  const placeOrder = useCallback(async () => {
+const placeOrder = useCallback(async () => {
   setIsPlacingOrder(true);
   const generatedOrderId = 'ORD' + Date.now();
 
@@ -121,6 +121,7 @@ function PaymentPage() {
       return;
     }
 
+    // ✅ Push notification tokens
     const { tokens = [] } = await fetch('/api/getTokens', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -142,19 +143,38 @@ function PaymentPage() {
       });
     }
 
+    // ✅ WhatsApp to user and admin
+   await fetch('/api/sendOrderWhatsapp', {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({
+    orderId:generatedOrderId,
+    name: selectedAddress.name,
+    mobile: selectedAddress.mobile,
+    address: selectedAddress,
+    items: cartItems,
+    total: grandTotal - deliveryCharge,
+    deliveryCharge,
+  }),
+});
+
+    // ✅ Cleanup
     localStorage.removeItem('cartItems');
     localStorage.removeItem('checkoutStep');
     setCartItems([]);
     setOrderId(generatedOrderId);
     setShowSuccess(true);
 
+    // ✅ Browser notification
     if ('Notification' in window && Notification.permission === 'granted') {
       new Notification('✅ Order Successful', {
         body: 'Your order has been placed.',
       });
     }
 
+    // ✅ Redirect
     setTimeout(() => router.push('/profile'), 1000);
+
   } catch (error) {
     console.error('Place order error:', error);
     toast.error('Something went wrong!');
@@ -162,6 +182,7 @@ function PaymentPage() {
     setIsPlacingOrder(false);
   }
 }, [selectedAddress, email, paymentMethod, cartItems, grandTotal, router]);
+
   if (!isHydrated) return null;
 
   if (showSuccess) {

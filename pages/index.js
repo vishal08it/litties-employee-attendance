@@ -109,7 +109,7 @@ export default function Home({ initialFeedbacks }) {
       const data = await res.json();
       if (data.secure_url) {
         setRegisterForm(prev => ({ ...prev, image: data.secure_url }));
-        toast.success('Image uploaded!');
+       // toast.success('Image uploaded!');
       } else {
         toast.error('Image upload failed');
       }
@@ -120,23 +120,57 @@ export default function Home({ initialFeedbacks }) {
     }
   };
 
-  const register = async (e) => {
-    e.preventDefault();
-    if (!registerForm.image) return toast.error('Please upload an image.');
-    const res = await fetch('/api/register', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(registerForm),
-    });
-    const data = await res.json();
-    if (res.ok) {
-      toast.success('Registered successfully!');
-      setRegisterForm({ name: '', emailId: '', mobileNumber: '', password: '', image: '' });
-      router.replace('/');
-    } else {
-      toast.error(data.message || 'Registration failed');
+const register = async (e) => {
+  e.preventDefault();
+
+  if (!registerForm.image) {
+    alert('Please upload an image.');
+    return;
+  }
+
+  const cleanMobile = registerForm.mobileNumber.replace(/\D/g, '').slice(-10);
+
+  const res = await fetch('/api/register', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ ...registerForm, mobileNumber: cleanMobile }),
+  });
+
+  const data = await res.json();
+  
+
+  if (res.ok) {
+    // ✅ Show success toast
+    toast.success('Registered successfully!', { autoClose: 500 });
+
+    // ✅ Send WhatsApp message silently
+    try {
+      await fetch('/api/sendWhatsapp', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          userName: registerForm.name,
+          userPhone: cleanMobile,
+          userId:registerForm.mobileNumber,
+          userPassword:registerForm.password
+        }),
+      });
+    } catch (err) {
+      console.error('❌ WhatsApp error:', err.message);
     }
-  };
+
+    // ✅ Refresh page after short delay
+    setTimeout(() => {
+      window.location.reload();
+    }, 500);
+  } else {
+    alert(data.message || 'Registration failed');
+  }
+};
+
+
+
+
 
   const handleForgotPassword = async (e) => {
     e.preventDefault();
