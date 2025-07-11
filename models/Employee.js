@@ -29,6 +29,8 @@ const employeeSchema = new mongoose.Schema({
   image: { type: String, required: true },
   emailId: { type: String },
   mobileNumber: { type: String, unique: true, sparse: true },
+  document: { type: String },
+  status: { type: String, default: 'yes' },
 });
 
 export default mongoose.models.Employee || mongoose.model('Employee', employeeSchema);

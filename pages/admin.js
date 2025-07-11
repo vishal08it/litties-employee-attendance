@@ -492,9 +492,12 @@ const goToPrevPage = () => {
     <button onClick={() => window.location.href = '/orders'} className={styles.addemployeeButton}>
      Order Management
     </button>
-    <button onClick={() => setShowForm(true)} className={styles.addemployeeButton}>
-      Add Employee
+    <button onClick={() => window.location.href = '/addemployee'} className={styles.addemployeeButton}>
+     Add Employees
     </button>
+    {/* <button onClick={() => setShowForm(true)} className={styles.addemployeeButton}>
+      Add Employee
+    </button> */}
     <button onClick={() => setShowDeleteModal(true)} className={styles.addemployeeButton}>
       Delete Employee
     </button>
@@ -506,7 +509,7 @@ const goToPrevPage = () => {
     </button>
   </div>
 </div>
- {showForm && (
+ {/* {showForm && (
           <>
           <div className={styles.overlay1} onClick={() => setShowForm(false)} />
 <div className={styles.popup1}>
@@ -538,7 +541,7 @@ const goToPrevPage = () => {
 </div>
 </>
         )}
-        
+         */}
 
         {/* Delete Employee Modal */}
    {showDeleteModal && (

@@ -215,7 +215,7 @@ function SpecialOfferPage() {
 
       <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '1rem', flexWrap: 'wrap' }}>
         <button onClick={() => setShowForm(true)} className={styles.addemployeeButton}>Add Offer</button>
-        <button onClick={() => router.push('/admin')} className={styles.addemployeeButton} style={{ backgroundColor: '#1f2937' }}>Dashboard</button>
+        <button onClick={() => router.push('/admin')} className={styles.addemployeeButton} style={{ backgroundColor: '#1f2937' }}>Admin Dashboard</button>
       </div>
 
       <div style={{ overflowX: 'auto' }}>
