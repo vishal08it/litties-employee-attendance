@@ -164,6 +164,7 @@ import Footer from '@/components/Footer';
               <th>Mobile</th>
               <th>Quantity</th>
               <th>Total</th>
+              <th>Txn No</th>
               <th>Status</th>
               {!(selectedStatus === 'Rejected' || selectedStatus === 'Delivered') && <th>Actions</th>}
               <th style={{ borderRadius: '0 10px 10px 0' }}>View</th>
@@ -194,6 +195,7 @@ import Footer from '@/components/Footer';
                     <td>{order.userId}</td>
                     <td>{order.quantity}</td>
                     <td>₹{order.totalAmount}</td>
+                    <td>{order.utr}</td>
                     <td>{getStatusLabel(order)}</td>
 
                     {!(selectedStatus === 'Rejected' || selectedStatus === 'Delivered') && (

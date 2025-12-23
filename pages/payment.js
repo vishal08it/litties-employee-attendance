@@ -8,12 +8,14 @@ import { useRouter } from 'next/navigation';
 import styles from '../styles/Home.module.css';
 import Image from 'next/image';
 import withAuth from '@/lib/withAuth';
+import QRCode from 'react-qr-code'; 
 
 function PaymentPage() {
   const router = useRouter();
   const [isHydrated, setIsHydrated] = useState(false);
   const [step, setStep] = useState(1);
   const [paymentMethod, setPaymentMethod] = useState('');
+  const [utr, setUtr] = useState(''); 
   const [selectedAddress, setSelectedAddress] = useState(null);
   const [cartItems, setCartItems] = useState([]);
   const [totalAmount, setTotalAmount] = useState(0);
@@ -26,8 +28,14 @@ function PaymentPage() {
   const [orderId, setOrderId] = useState('');
   const [isPlacingOrder, setIsPlacingOrder] = useState(false);
 
+  // Configuration for your UPI
+  const adminUpiId = "vishalraj08it-1@okicici"; 
+  const merchantName = "Litties";
+
   const deliveryCharge = useMemo(() => totalAmount < 399 ? 50 : 0, [totalAmount]);
   const grandTotal = useMemo(() => totalAmount + deliveryCharge, [totalAmount, deliveryCharge]);
+
+  const upiUrl = `upi://pay?pa=${adminUpiId}&pn=${encodeURIComponent(merchantName)}&am=${grandTotal}&cu=INR`;
 
   useEffect(() => {
     setIsHydrated(true);
@@ -61,12 +69,10 @@ function PaymentPage() {
       const res = await fetch(`/api/address/user?mobile=${mobile}`);
       const data = await res.json();
       if (Array.isArray(data)) setAddresses(data);
-    } catch (err) {
-      console.error('Failed to fetch addresses:', err);
-    }
+    } catch (err) { console.error('Failed to fetch addresses:', err); }
   }, []);
 
-  const handleAddOrUpdateAddress = useCallback(async () => {
+  const handleAddOrUpdateAddress = async () => {
     const method = editAddress ? 'PUT' : 'POST';
     const url = editAddress ? `/api/address/${editAddress._id}` : '/api/address';
     const res = await fetch(url, {
@@ -82,141 +88,97 @@ function PaymentPage() {
       setFormData({ name: '', address: '', mobile: '' });
       setEditAddress(null);
     } else toast.error('Failed to save address');
-  }, [editAddress, formData, fetchAddresses]);
+  };
 
-  const deleteAddress = useCallback(async (id) => {
-    if (!confirm('Delete this address?')) return;
-    const res = await fetch(`/api/address/${id}`, { method: 'DELETE' });
-    if (res.ok) {
-      toast.success('Address deleted');
-      const mobile = localStorage.getItem('mobileNumber');
-      if (mobile) await fetchAddresses(mobile);
-    } else toast.error('Failed to delete');
-  }, [fetchAddresses]);
-
-const placeOrder = useCallback(async () => {
-  setIsPlacingOrder(true);
-  const generatedOrderId = 'ORD' + Date.now();
-
-  try {
-    const res = await fetch('/api/order', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        orderId: generatedOrderId,
-        userId: selectedAddress?.mobile,
-        email,
-        address: selectedAddress,
-        paymentMethod,
-        items: cartItems,
-        quantity: cartItems.reduce((a, i) => a + i.quantity, 0),
-        totalAmount: grandTotal,
-        mobile: selectedAddress?.mobile,
-      }),
-    });
-
-    if (!res.ok) {
-      toast.error('Order failed. Please check your email for more info.');
-      setIsPlacingOrder(false);
-      return;
+  const placeOrder = async () => {
+    // 1. Validation
+    if (paymentMethod === 'Online Payment') {
+      if (!utr || utr.trim().length !== 12) {
+        toast.error("Please enter a valid 12-digit UTR number.");
+        return;
+      }
     }
 
-    // ✅ Push notification tokens
-    const { tokens = [] } = await fetch('/api/getTokens', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        userMobile: selectedAddress?.mobile,
-        adminMobile: '9241741961',
-      }),
-    }).then(r => r.json());
+    setIsPlacingOrder(true);
+    const generatedOrderId = 'ORD' + Date.now();
 
-    if (tokens.length > 0) {
-      await fetch('/api/sendNotification', {
+    const orderData = {
+      orderId: generatedOrderId,
+      userId: selectedAddress?.mobile,
+      email: email,
+      address: selectedAddress,
+      paymentMethod: paymentMethod,
+      utr: paymentMethod === 'Online Payment' ? String(utr).trim() : '', 
+      items: cartItems,
+      quantity: cartItems.reduce((a, i) => a + i.quantity, 0),
+      totalAmount: grandTotal,
+      mobile: selectedAddress?.mobile,
+    };
+
+    try {
+      // 2. Save to Database - Note: path is /api/orders per your folder screenshot
+      const res = await fetch('/api/orders', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(orderData),
+      });
+
+      if (!res.ok) {
+        const errorMsg = await res.json();
+        toast.error(errorMsg.error || 'Order failed to save.');
+        setIsPlacingOrder(false);
+        return;
+      }
+
+      // 3. Send WhatsApp Notification
+      await fetch('/api/sendOrderWhatsapp', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          title: '✅ Order Placed',
-          body: `Order ${generatedOrderId} has been placed successfully.`,
-          tokens,
+          ...orderData,
+          name: selectedAddress.name,
+          total: totalAmount,
+          deliveryCharge,
+          utr: paymentMethod === 'Online Payment' ? utr : 'COD'
         }),
       });
+
+      // 4. Success Handling & Cart Clearing
+      localStorage.removeItem('cartItems');
+      localStorage.removeItem('checkoutStep');
+      
+      // CRITICAL: Force the Navbar/Cart Icon to update
+      window.dispatchEvent(new Event("storage")); 
+      
+      setCartItems([]);
+      setOrderId(generatedOrderId);
+      setShowSuccess(true);
+
+      if ('Notification' in window && Notification.permission === 'granted') {
+        new Notification('✅ Order Successful', { body: 'Your order has been placed.' });
+      }
+
+      setTimeout(() => router.push('/profile'), 2000);
+
+    } catch (error) {
+      console.error('Place order error:', error);
+      toast.error('Something went wrong!');
+    } finally {
+      setIsPlacingOrder(false);
     }
-
-    // ✅ WhatsApp to user and admin
-   await fetch('/api/sendOrderWhatsapp', {
-  method: 'POST',
-  headers: { 'Content-Type': 'application/json' },
-  body: JSON.stringify({
-    orderId:generatedOrderId,
-    name: selectedAddress.name,
-    mobile: selectedAddress.mobile,
-    address: selectedAddress,
-    items: cartItems,
-    total: grandTotal - deliveryCharge,
-    deliveryCharge,
-  }),
-});
-
-    // ✅ Cleanup
-    localStorage.removeItem('cartItems');
-    localStorage.removeItem('checkoutStep');
-    setCartItems([]);
-    setOrderId(generatedOrderId);
-    setShowSuccess(true);
-
-    // ✅ Browser notification
-    if ('Notification' in window && Notification.permission === 'granted') {
-      new Notification('✅ Order Successful', {
-        body: 'Your order has been placed.',
-      });
-    }
-
-    // ✅ Redirect
-    setTimeout(() => router.push('/profile'), 1000);
-
-  } catch (error) {
-    console.error('Place order error:', error);
-    toast.error('Something went wrong!');
-  } finally {
-    setIsPlacingOrder(false);
-  }
-}, [selectedAddress, email, paymentMethod, cartItems, grandTotal, router]);
+  };
 
   if (!isHydrated) return null;
 
   if (showSuccess) {
     return (
       <div className={styles.successWrapper}>
-        <ToastContainer />
         <div className={styles.successCard}>
-          <div className={styles.successImageSection}>
-            <Image
-              src="/test.jpg"
-              alt="Thank you"
-              width={400}
-              height={400}
-              className={styles.successImage}
-            />
-          </div>
-          <div className={styles.successInfoSection}>
-            <h2>ORDER CONFIRMED</h2>
-            <p>Hello, <strong>{localStorage.getItem('name') || ''}</strong></p>
-            <p>Your order has been confirmed and will be sent to your email shortly.</p>
-            <p style={{ fontWeight: 'bold', marginTop: '10px' }}>Order Number</p>
-            <p className={styles.orderId}>{orderId}</p>
-            {cartItems.map((item, i) => (
-              <div key={i} className={styles.cartRow}>
-                <p>{item.quantity} × {item.name}</p>
-                <p>₹{(item.price * item.quantity).toFixed(2)}</p>
-              </div>
-            ))}
-            <hr className={styles.divider} />
-            <div className={styles.totalRow}>
-              <p>Total Amount</p>
-              <p>₹{grandTotal.toFixed(2)}</p>
-            </div>
-          </div>
+          <Image src="/test.jpg" alt="Thank you" width={200} height={200} className={styles.successImage} />
+          <h2>ORDER CONFIRMED</h2>
+          <p className={styles.orderId}>{orderId}</p>
+          <p>UTR: {utr || 'N/A'}</p>
+          <p>Total Amount: ₹{grandTotal.toFixed(2)}</p>
         </div>
       </div>
     );
@@ -228,17 +190,10 @@ const placeOrder = useCallback(async () => {
       initial={{ opacity: 0, x: 100 }}
       animate={{ opacity: 1, x: 0 }}
       exit={{ opacity: 0, x: -100 }}
-      transition={{ duration: 0.15 }}
-
       className={`${styles.stepBox} ${styles.centerStep}`}
     >
       {children}
-      <button onClick={() => {
-        localStorage.removeItem('checkoutStep');
-        router.push('/itemspage');
-      }} className={styles.submitButton4}>
-        Cancel
-      </button>
+      <button onClick={() => { localStorage.removeItem('checkoutStep'); router.push('/itemspage'); }} className={styles.submitButton4}>Cancel</button>
     </motion.div>
   );
 
@@ -248,52 +203,30 @@ const placeOrder = useCallback(async () => {
       <AnimatePresence mode="wait">
         {step === 1 && StepBox(
           <>
-            <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '1rem' }}>
-              <Image src="/litties.png" width={60} height={60} alt="Logo" />
-            </div>
+            <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '1rem' }}><Image src="/litties.png" width={60} height={60} alt="Logo" /></div>
             <h2 className={styles.title}>Select Payment Method</h2>
             <div className={styles.paymentOptions}>
-              <label className={styles.radioLabel}>
-                <input
-                  type="radio"
-                  name="payment"
-                  value="Online Payment"
-                  checked={paymentMethod === 'Online Payment'}
-                  onChange={() => setPaymentMethod('Online Payment')}
-                />
-                Online Payment
-              </label>
-              <label className={`${styles.radioLabel} ${styles.cod}`}>
-                <input
-                  type="radio"
-                  name="payment"
-                  value="Cash on Delivery"
-                  checked={paymentMethod === 'Cash on Delivery'}
-                  onChange={() => setPaymentMethod('Cash on Delivery')}
-                />
-                Cash on Delivery
-              </label>
+                <label className={styles.radioLabel}>
+                    <input type="radio" value="Online Payment" checked={paymentMethod === 'Online Payment'} onChange={() => setPaymentMethod('Online Payment')} />
+                    Online Payment (Scan QR)
+                </label>
+                <label className={styles.radioLabel}>
+                    <input type="radio" value="Cash on Delivery" checked={paymentMethod === 'Cash on Delivery'} onChange={() => setPaymentMethod('Cash on Delivery')} />
+                    Cash on Delivery
+                </label>
             </div>
             <div className={styles.summary}>
               <p>Items Total: ₹{totalAmount.toFixed(2)}</p>
               {deliveryCharge > 0 && <p><strong>Home Delivery: ₹{deliveryCharge}</strong></p>}
               <p><strong>Total Payable: ₹{grandTotal.toFixed(2)}</strong></p>
             </div>
-            <button
-              disabled={!paymentMethod}
-              onClick={() => goToStep(2)}
-              className={styles.submitButton3}
-            >
-              Continue
-            </button>
+            <button disabled={!paymentMethod} onClick={() => goToStep(2)} className={styles.submitButton3}>Continue</button>
           </>
         )}
 
         {step === 2 && StepBox(
           <>
-            <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '1rem' }}>
-              <Image src="/litties.png" width={60} height={60} alt="Logo" />
-            </div>
+            <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '1rem' }}><Image src="/litties.png" width={60} height={60} alt="Logo" /></div>
             <h2 className={styles.title}>Your Addresses</h2>
             {addresses.map((addr) => (
               <div key={addr._id} className={styles.addressBox}>
@@ -301,78 +234,67 @@ const placeOrder = useCallback(async () => {
                 <p>{addr.address}</p>
                 <p>Mobile: {addr.mobile}</p>
                 <div className={styles.addressActions}>
-                  <button className={styles.submitButton2} onClick={() => {
-                    setEditAddress(addr);
-                    setFormData(addr);
-                    setShowAddressModal(true);
-                  }}>Edit</button>
-                  <button className={styles.submitButton2} onClick={() => deleteAddress(addr._id)}>Delete</button>
-                  <button className={styles.submitButton2} onClick={() => {
-                    setSelectedAddress(addr);
-                    goToStep(3);
-                  }}>Use This Address</button>
+                  <button className={styles.submitButton2} onClick={() => { setEditAddress(addr); setFormData(addr); setShowAddressModal(true); }}>Edit</button>
+                  <button className={styles.submitButton2} onClick={() => { setSelectedAddress(addr); goToStep(3); }}>Use This Address</button>
                 </div>
               </div>
             ))}
-            <button className={styles.submitButton2} onClick={() => {
-              setEditAddress(null);
-              setFormData({ name: '', address: '', mobile: '' });
-              setShowAddressModal(true);
-            }}>Add Address</button>
+            <button className={styles.submitButton2} onClick={() => { setEditAddress(null); setFormData({ name: '', address: '', mobile: '' }); setShowAddressModal(true); }}>Add Address</button>
             <button className={styles.submitButton2} onClick={() => goToStep(1)}>← Back</button>
           </>
         )}
 
         {step === 3 && StepBox(
           <>
-            <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '1rem' }}>
-              <Image src="/litties.png" width={60} height={60} alt="Logo" />
-            </div>
-            <h2 className={styles.title}>Checkout</h2>
+            <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '1rem' }}><Image src="/litties.png" width={60} height={60} alt="Logo" /></div>
+            <h2 className={styles.title}>Final Checkout</h2>
+            
             <div className={styles.checkoutDetails}>
-              <div>
-                <p className="font-semibold mb-1">Item Details</p>
-                <div className={styles.detailBox}>
-                  {cartItems.map((item, idx) => (
-                    <div key={idx} className={styles.checkoutItem}>
-                      <img src={item.image} alt={item.name} className={styles.checkoutImage} />
-                      <div className={styles.checkoutInfo}>
-                        <p><strong>{item.name}</strong></p>
-                        <p>₹{item.price} × {item.quantity}</p>
-                      </div>
-                      <div className={styles.checkoutSubtotal}>₹{(item.price * item.quantity).toFixed(2)}</div>
-                    </div>
-                  ))}
-                  {deliveryCharge > 0 && (
-                    <div className={styles.checkoutItem}>
-                      <div />
-                      <div className={styles.checkoutInfo}>
-                        <p><strong>Delivery Charge</strong></p>
-                      </div>
-                      <div className={styles.checkoutSubtotal}><strong>₹{deliveryCharge}</strong></div>
-                    </div>
-                  )}
-                  <div className={`${styles.checkoutItem} ${styles.totalRow}`}>
-                    <div />
-                    <div className={styles.checkoutInfo}>
-                      <p><strong>Total Amount</strong></p>
-                    </div>
-                    <div className={styles.checkoutSubtotal}><strong>₹{grandTotal.toFixed(2)}</strong></div>
+              <div className={styles.detailBox}>
+                <p className="font-semibold mb-2">Items Summary</p>
+                {cartItems.map((item, idx) => (
+                  <div key={idx} className={styles.checkoutItem} style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '5px' }}>
+                    <span>{item.name} (x{item.quantity})</span>
+                    <span>₹{(item.price * item.quantity).toFixed(2)}</span>
                   </div>
-                </div>
+                ))}
+                <hr />
+                {deliveryCharge > 0 && <div style={{ display: 'flex', justifyContent: 'space-between' }}><span>Delivery</span><span>₹{deliveryCharge}</span></div>}
+                <div style={{ display: 'flex', justifyContent: 'space-between', fontWeight: 'bold' }}><span>Grand Total</span><span>₹{grandTotal.toFixed(2)}</span></div>
               </div>
-              <div>
-                <p className="font-semibold mb-1">Shipping Address</p>
-                <div className={styles.detailBox}>
-                  <p>{selectedAddress?.name}</p>
-                  <p>{selectedAddress?.address}</p>
-                  <p>Mobile: {selectedAddress?.mobile}</p>
-                </div>
+
+              <div className={styles.detailBox} style={{ marginTop: '10px' }}>
+                <p className="font-semibold">Shipping to:</p>
+                <p><strong>{selectedAddress?.name}</strong></p>
+                <p style={{ fontSize: '13px' }}>{selectedAddress?.address}</p>
+                <p style={{ fontSize: '13px' }}>Ph: {selectedAddress?.mobile}</p>
               </div>
+
+              {paymentMethod === 'Online Payment' && (
+                <div style={{ textAlign: 'center', background: '#fff', padding: '15px', borderRadius: '10px', marginTop: '15px', border: '1px solid #eee' }}>
+                  <p style={{ fontWeight: 'bold', fontSize: '14px', marginBottom: '10px' }}>Scan & Pay ₹{grandTotal.toFixed(2)}</p>
+                  <div style={{ display: 'flex', justifyContent: 'center' }}>
+                    <QRCode value={upiUrl} size={140} />
+                  </div>
+                  <input 
+                    type="text" 
+                    placeholder="Enter 12-digit UTR Number"
+                    value={utr}
+                    maxLength={12}
+                    onChange={(e) => {
+                      const val = e.target.value.replace(/\D/g, ''); 
+                      setUtr(val);
+                    }}
+                    style={{ width: '100%', padding: '12px', marginTop: '12px', borderRadius: '5px', border: '1px solid #ccc', fontSize: '14px' }}
+                  />
+                  <p style={{ fontSize: '11px', color: '#666', marginTop: '5px' }}>Check your payment app for the 12-digit Ref No.</p>
+                </div>
+              )}
             </div>
-           <button onClick={placeOrder} className={styles.placeOrder} disabled={isPlacingOrder}>
-  {isPlacingOrder ? 'Placing Order...' : 'Place Order'}
-</button>
+
+            <button onClick={placeOrder} className={styles.placeOrder} disabled={isPlacingOrder} style={{ marginTop: '20px' }}>
+              {isPlacingOrder ? 'Processing...' : 'Confirm Order'}
+            </button>
             <button className={styles.submitButton2} onClick={() => goToStep(2)}>← Back</button>
           </>
         )}
@@ -381,28 +303,13 @@ const placeOrder = useCallback(async () => {
       {showAddressModal && (
         <div className={styles.modalOverlay}>
           <motion.div className={styles.addressModal} initial={{ scale: 0.8 }} animate={{ scale: 1 }}>
-            <Image src="/litties.png" width={60} height={60} alt="Logo" style={{ margin: '0 auto' }} />
             <h3>{editAddress ? 'Edit Address' : 'Add Address'}</h3>
-            <input
-              placeholder="Name"
-              value={formData.name}
-              onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-            />
-            <textarea
-              placeholder="Full Address"
-              value={formData.address}
-              onChange={(e) => setFormData({ ...formData, address: e.target.value })}
-            />
-            <input
-              placeholder="Mobile Number"
-              value={formData.mobile}
-              onChange={(e) => setFormData({ ...formData, mobile: e.target.value })}
-            />
+            <input placeholder="Name" value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} />
+            <textarea placeholder="Full Address" value={formData.address} onChange={(e) => setFormData({ ...formData, address: e.target.value })} />
+            <input placeholder="Mobile" value={formData.mobile} onChange={(e) => setFormData({ ...formData, mobile: e.target.value })} />
             <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '1rem' }}>
-              <button className={styles.submitButton2} onClick={() => setShowAddressModal(false)}>Cancel</button>
-              <button className={styles.submitButton2} onClick={handleAddOrUpdateAddress}>
-                {editAddress ? 'Update' : 'Add'}
-              </button>
+              <button onClick={() => setShowAddressModal(false)}>Cancel</button>
+              <button onClick={handleAddOrUpdateAddress}>{editAddress ? 'Update' : 'Add'}</button>
             </div>
           </motion.div>
         </div>

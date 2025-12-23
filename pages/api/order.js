@@ -15,6 +15,7 @@ export default async function handler(req, res) {
         const {
           orderId,
           email,
+          utr,
           items,
           quantity,
           totalAmount,
@@ -31,6 +32,7 @@ export default async function handler(req, res) {
           orderId,
           userId: mobile,
           email,
+          utr,
           items,
           quantity,
           totalAmount,
