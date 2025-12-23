@@ -147,7 +147,6 @@ function PaymentPage() {
       localStorage.removeItem('cartItems');
       localStorage.removeItem('checkoutStep');
       
-      
       // CRITICAL: Force the Navbar/Cart Icon to update
       window.dispatchEvent(new Event("storage")); 
       
